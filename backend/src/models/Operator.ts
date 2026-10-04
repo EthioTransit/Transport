@@ -31,7 +31,6 @@ const OperatorSchema = new Schema<IOperator>(
   { timestamps: true }
 );
 
-OperatorSchema.index({ name: 1 });
 OperatorSchema.index({ status: 1 });
 
 export const Operator = mongoose.model<IOperator>('Operator', OperatorSchema);

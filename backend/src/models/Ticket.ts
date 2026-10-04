@@ -63,8 +63,6 @@ const TicketSchema = new Schema<ITicket>(
   { timestamps: true }
 );
 
-TicketSchema.index({ ticketNumber: 1 }, { unique: true });
-TicketSchema.index({ qrVerificationToken: 1 }, { unique: true });
 TicketSchema.index({ booking: 1 });
 TicketSchema.index({ trip: 1 });
 TicketSchema.index({ user: 1 });

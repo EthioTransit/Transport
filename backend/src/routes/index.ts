@@ -11,6 +11,7 @@ import paymentRoutes from './payment.routes';
 import ticketRoutes from './ticket.routes';
 import boardingRoutes from './boarding.routes';
 import analyticsRoutes from './analytics.routes';
+import userRoutes from './user.routes';
 import { BRAND_CONFIG } from '../config/brand';
 
 const apiRouter = Router();
@@ -34,5 +35,6 @@ apiRouter.use('/payments', paymentRoutes);
 apiRouter.use('/tickets', ticketRoutes);
 apiRouter.use('/boarding', boardingRoutes);
 apiRouter.use('/analytics', analyticsRoutes);
+apiRouter.use('/users', userRoutes);
 
 export default apiRouter;

@@ -33,7 +33,6 @@ const DriverSchema = new Schema<IDriver>(
   { timestamps: true }
 );
 
-DriverSchema.index({ phone: 1 });
 DriverSchema.index({ operator: 1 });
 DriverSchema.index({ status: 1 });
 

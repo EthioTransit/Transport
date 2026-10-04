@@ -380,41 +380,52 @@ export async function runDatabaseSeed() {
       for (let sIndex = 0; sIndex < 2; sIndex++) {
         const slot = departureSlots[(rIndex + sIndex) % departureSlots.length];
         const baseFare = Math.round(route.distanceKm * 2.2 + slot.fareModifier); // realistic ETB calculation
-        const randomCode = Math.floor(1000 + Math.random() * 9000);
-        const tripCode = `ET-${dateStr.replace(/-/g, '')}-${randomCode}`;
+        const routeSeq = (rIndex + 1).toString().padStart(2, '0');
+        const slotSeq = (sIndex + 1).toString().padStart(2, '0');
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const tripCode = `ET-${dateStr.replace(/-/g, '')}-${routeSeq}${slotSeq}-${randomSuffix}`;
 
         const originPickup = route.pickupPoints?.[0]?.name || 'Main Intercity Terminal';
         const destDropoff = route.dropOffPoints?.[0]?.name || 'Destination Terminal';
 
         const existingTrip = await Trip.findOne({
-          route: route._id,
-          departureDate: dateStr,
-          departureTime: slot.time,
+          $or: [
+            { route: route._id, departureDate: dateStr, departureTime: slot.time },
+            { tripCode },
+          ],
         });
 
         if (!existingTrip) {
-          const trip = await Trip.create({
-            tripCode,
-            route: route._id,
-            operator: operator,
-            vehicle: vehicle._id,
-            driver: driverRecord._id,
-            departureDate: dateStr,
-            departureTime: slot.time,
-            estimatedArrival: 'In transit',
-            fare: baseFare,
-            serviceFee: 15,
-            status: TripStatus.SCHEDULED,
-            pickupLocation: originPickup,
-            dropOffLocation: destDropoff,
-            totalSeatsCount: vehicle.seatCapacity,
-            availableSeatsCount: vehicle.seatCapacity,
-            amenities: vehicle.features,
-            boardingNotes: 'Please arrive 30 minutes before departure with your digital QR ticket.',
-          });
+          try {
+            const trip = await Trip.create({
+              tripCode,
+              route: route._id,
+              operator: operator,
+              vehicle: vehicle._id,
+              driver: driverRecord._id,
+              departureDate: dateStr,
+              departureTime: slot.time,
+              estimatedArrival: 'In transit',
+              fare: baseFare,
+              serviceFee: 15,
+              status: TripStatus.SCHEDULED,
+              pickupLocation: originPickup,
+              dropOffLocation: destDropoff,
+              totalSeatsCount: vehicle.seatCapacity,
+              availableSeatsCount: vehicle.seatCapacity,
+              amenities: vehicle.features,
+              boardingNotes: 'Please arrive 30 minutes before departure with your digital QR ticket.',
+            });
 
-          await TripService.generateSeatsForTrip(trip._id.toString(), vehicle);
-          tripsCreatedCount++;
+            await TripService.generateSeatsForTrip(trip._id.toString(), vehicle);
+            tripsCreatedCount++;
+          } catch (createErr: any) {
+            if (createErr.code === 11000) {
+              console.warn(`[Seed] Trip already seeded or code collision: ${tripCode}`);
+            } else {
+              throw createErr;
+            }
+          }
         }
       }
     }

@@ -34,7 +34,6 @@ const CitySchema = new Schema<ICity>(
 );
 
 CitySchema.index({ name: 'text', amharicName: 'text', region: 'text' });
-CitySchema.index({ code: 1 });
 CitySchema.index({ status: 1 });
 
 export const City = mongoose.model<ICity>('City', CitySchema);

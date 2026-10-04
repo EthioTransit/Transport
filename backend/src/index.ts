@@ -41,12 +41,23 @@ async function startServer() {
     // Auto-seed development database if empty
     await runDatabaseSeed();
 
-    app.listen(ENV.PORT, () => {
+    const server = app.listen(ENV.PORT, () => {
       console.log(`====================================================`);
       console.log(` EthioTransit API Server running on port ${ENV.PORT}`);
       console.log(` Health Check: http://localhost:${ENV.PORT}/health`);
       console.log(` API Endpoint: http://localhost:${ENV.PORT}/api`);
       console.log(`====================================================`);
+    });
+
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`\n❌ Error: Port ${ENV.PORT} is already in use by another process.`);
+        console.error(`👉 Solution: Terminate the process using port ${ENV.PORT} or configure PORT in your .env file.\n`);
+        process.exit(1);
+      } else {
+        console.error('Server error:', err);
+        process.exit(1);
+      }
     });
   } catch (error) {
     console.error('Fatal error starting EthioTransit server:', error);

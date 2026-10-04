@@ -46,7 +46,6 @@ const PaymentSchema = new Schema<IPayment>(
   { timestamps: true }
 );
 
-PaymentSchema.index({ transactionReference: 1 }, { unique: true });
 PaymentSchema.index({ booking: 1 });
 PaymentSchema.index({ user: 1 });
 PaymentSchema.index({ status: 1 });

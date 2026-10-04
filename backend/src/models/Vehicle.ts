@@ -42,7 +42,6 @@ const VehicleSchema = new Schema<IVehicle>(
   { timestamps: true }
 );
 
-VehicleSchema.index({ plateNumber: 1 });
 VehicleSchema.index({ operator: 1 });
 VehicleSchema.index({ status: 1 });
 

@@ -56,6 +56,5 @@ TripSchema.index({ route: 1 });
 TripSchema.index({ departureDate: 1 });
 TripSchema.index({ status: 1 });
 TripSchema.index({ operator: 1 });
-TripSchema.index({ tripCode: 1 });
 
 export const Trip = mongoose.model<ITrip>('Trip', TripSchema);

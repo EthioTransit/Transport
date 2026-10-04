@@ -159,7 +159,7 @@ export class TripService {
     const route = await Route.findById(data.route);
     if (!route) throw new Error('Route not found');
 
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
     const tripCode = `ET-${data.departureDate.replace(/-/g, '')}-${randomSuffix}`;
 
     const trip = await Trip.create({

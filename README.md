@@ -52,23 +52,21 @@ EthioTransit/
 │   └── tsconfig.json
 │
 ├── frontend/
-│   ├── src/
-│   │   ├── api/             # Axios API client and endpoint definitions
-│   │   ├── components/      # Common UI components (Navbar, Footer, Modal, Skeleton)
-│   │   ├── config/          # Centralized brand configuration
-│   │   ├── context/         # AuthContext and state management
-│   │   ├── features/        # Feature modules:
-│   │   │   ├── search/      # CitySelector, SearchCard, QuickDateCards
-│   │   │   ├── seats/       # SeatMap (2x2 layout, aisle, driver cabin), SeatLockTimer
-│   │   │   ├── booking/     # PassengerForm, PriceBreakdown
-│   │   │   ├── tickets/     # DigitalTicketCard, BoardingScanner
-│   │   │   └── dashboard/   # CityManagementModal, RouteManagementModal, ManifestModal
-│   │   ├── i18n/            # English & Amharic translations
-│   │   ├── pages/           # Application views (Home, Search, Checkout, Ticket, Dashboards)
-│   │   ├── types/           # TypeScript domain definitions
-│   │   └── index.css        # Tailwind CSS design system tokens
+│   ├── src/                 # Public Passenger web portal
 │   ├── package.json
-│   └── vite.config.ts
+│   └── vite.config.ts       # Runs on port 5173
+│
+├── admin-frontend/
+│   ├── src/                 # Dedicated Super Admin & Operations Console
+│   │   ├── api/             # Typed API client & endpoints
+│   │   ├── config/          # Brand metadata & demo credentials
+│   │   ├── context/         # AuthContext with admin role validation
+│   │   ├── features/        # GlobalSearchModal, CityModal, RouteModal, ManifestModal, BookingDetailModal
+│   │   ├── layouts/         # AdminLayout with live Addis Ababa clock & API status monitor
+│   │   ├── pages/           # Overview, Cities, Routes, Operators, Trips, Bookings, Financials, Audit, Settings
+│   │   └── types/           # TypeScript definitions
+│   ├── package.json
+│   └── vite.config.ts       # Runs on port 5174 (distinct deployment link)
 ```
 
 ---
@@ -79,7 +77,7 @@ EthioTransit/
 - Node.js (v18 or higher; v22 recommended)
 - npm or yarn
 
-### 1. Backend Setup
+### 1. Backend Setup (Port 5000)
 ```bash
 cd backend
 npm install
@@ -87,13 +85,21 @@ npm run dev
 ```
 *The backend API will start on `http://localhost:5000`. If `MONGODB_URI` is not set in `.env`, it will automatically launch `MongoMemoryServer` and run the Ethiopian seed data generator.*
 
-### 2. Frontend Setup
+### 2. Public Passenger Frontend (Port 5173)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-*The frontend client will start on `http://localhost:5173`.*
+*The passenger web application will start on `http://localhost:5173`.*
+
+### 3. Super Admin & Operations Frontend (Port 5174)
+```bash
+cd admin-frontend
+npm install
+npm run dev
+```
+*The isolated administrative console will start on `http://localhost:5174` with separate deployment URL and credentials.*
 
 ---
 

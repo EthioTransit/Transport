@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "seed": "tsx src/jobs/seed.ts",
+    "seed:atlas": "tsx src/scripts/test-and-seed-atlas.ts",
     "test": "tsx src/__tests__/integration-test.ts"
   },
   "dependencies": {

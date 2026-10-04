@@ -35,8 +35,6 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-UserSchema.index({ email: 1 });
-UserSchema.index({ phone: 1 });
 UserSchema.index({ role: 1 });
 UserSchema.index({ operatorId: 1 });
 

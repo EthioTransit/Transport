@@ -84,3 +84,12 @@ export const createDriverSchema = z.object({
 });
 
 export const updateDriverSchema = createDriverSchema.partial();
+
+export const updateUserSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters').optional(),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters').optional(),
+  phone: z.string().optional(),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'DRIVER', 'PASSENGER']).optional(),
+  operatorId: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
+});
