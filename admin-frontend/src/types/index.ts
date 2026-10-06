@@ -59,6 +59,7 @@ export interface City {
   code: string;
   status: 'ACTIVE' | 'INACTIVE';
   terminalName?: string;
+  image?: string;
   coordinates?: {
     lat: number;
     lng: number;

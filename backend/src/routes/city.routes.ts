@@ -28,4 +28,11 @@ router.put(
   CityController.updateCity
 );
 
+router.patch(
+  '/:id/status',
+  authenticate,
+  authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  CityController.toggleStatus
+);
+
 export default router;

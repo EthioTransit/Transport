@@ -47,6 +47,22 @@ export class CityController {
     }
   }
 
+  static async toggleStatus(req: Request, res: Response) {
+    try {
+      const userContext = req.user
+        ? { id: req.user.userId, email: req.user.email, role: req.user.role }
+        : undefined;
+      const { status } = req.body;
+      if (!['ACTIVE', 'INACTIVE'].includes(status)) {
+        return sendError(res, 'Status must be ACTIVE or INACTIVE', 400);
+      }
+      const city = await CityService.updateCity(req.params.id, { status }, userContext);
+      return sendSuccess(res, city, `City status updated to ${status}`);
+    } catch (err: any) {
+      return sendError(res, err.message, 400);
+    }
+  }
+
   static async getCityRoutes(req: Request, res: Response) {
     try {
       const routes = await CityService.getCityRoutes(req.params.id);

@@ -49,6 +49,7 @@ export interface City {
   country: string;
   status: 'ACTIVE' | 'INACTIVE';
   terminalName?: string;
+  image?: string;
 }
 
 export interface Route {

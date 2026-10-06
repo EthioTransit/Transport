@@ -8,6 +8,7 @@ export interface ICity extends Document {
   code: string;
   status: 'ACTIVE' | 'INACTIVE';
   terminalName?: string;
+  image?: string;
   coordinates?: {
     lat: number;
     lng: number;
@@ -25,6 +26,7 @@ const CitySchema = new Schema<ICity>(
     code: { type: String, required: true, unique: true, uppercase: true, trim: true },
     status: { type: String, enum: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' },
     terminalName: { type: String, trim: true },
+    image: { type: String, trim: true },
     coordinates: {
       lat: { type: Number },
       lng: { type: Number },

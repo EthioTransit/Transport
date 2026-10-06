@@ -38,6 +38,7 @@ export class CityService {
       code: string;
       status?: 'ACTIVE' | 'INACTIVE';
       terminalName?: string;
+      image?: string;
     },
     userContext?: { id: string; email: string; role: UserRole }
   ) {

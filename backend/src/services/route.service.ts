@@ -54,6 +54,7 @@ export class RouteService {
       pickupPoints?: Array<{ name: string; locationNote?: string; timeOffsetMinutes: number }>;
       dropOffPoints?: Array<{ name: string; locationNote?: string }>;
       status?: 'ACTIVE' | 'INACTIVE';
+      popularityScore?: number;
     },
     userContext?: { id: string; email: string; role: UserRole }
   ) {
@@ -84,7 +85,7 @@ export class RouteService {
       pickupPoints: data.pickupPoints || [{ name: `${originCity.name} Central Terminal`, timeOffsetMinutes: 0 }],
       dropOffPoints: data.dropOffPoints || [{ name: `${destCity.name} Main Bus Station` }],
       status: data.status || 'ACTIVE',
-      popularityScore: 15,
+      popularityScore: data.popularityScore !== undefined ? data.popularityScore : 15,
     });
 
     if (userContext) {

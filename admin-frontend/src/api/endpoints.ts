@@ -28,8 +28,13 @@ export const analyticsApi = {
 };
 
 export const citiesApi = {
-  getAll: (q?: string) =>
-    adminApiRequest<City[]>(`/cities${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  getAll: (q?: string, includeAll: boolean = true) => {
+    const params = new URLSearchParams();
+    if (q) params.append('q', q);
+    if (includeAll) params.append('all', 'true');
+    const qs = params.toString();
+    return adminApiRequest<City[]>(`/cities${qs ? `?${qs}` : ''}`);
+  },
   getById: (id: string) => adminApiRequest<City>(`/cities/${id}`),
   create: (data: Partial<City>) =>
     adminApiRequest<City>('/cities', {
@@ -40,6 +45,11 @@ export const citiesApi = {
     adminApiRequest<City>(`/cities/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    }),
+  toggleStatus: (id: string, status: 'ACTIVE' | 'INACTIVE') =>
+    adminApiRequest<City>(`/cities/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
     }),
 };
 

@@ -9,6 +9,7 @@ export const createCitySchema = z.object({
   code: z.string().min(2, 'Unique city code is required (e.g. ADD, DBR, BHD)').max(5),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
   terminalName: z.string().optional(),
+  image: z.string().optional(),
 });
 
 export const updateCitySchema = createCitySchema.partial();
