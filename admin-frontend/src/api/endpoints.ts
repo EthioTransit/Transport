@@ -4,6 +4,7 @@ import {
   City,
   Route,
   Operator,
+  Vehicle,
   Trip,
   Booking,
   Ticket,
@@ -77,6 +78,14 @@ export const operatorsApi = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+};
+
+export const vehiclesApi = {
+  getAll: (operatorId?: string) => {
+    const q = operatorId ? `?operatorId=${operatorId}` : '';
+    return adminApiRequest<Vehicle[]>(`/vehicles${q}`);
+  },
+  getById: (id: string) => adminApiRequest<Vehicle>(`/vehicles/${id}`),
 };
 
 export const tripsApi = {

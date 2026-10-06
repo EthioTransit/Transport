@@ -1,31 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Search, RefreshCw, Eye, Bus, ArrowRight, Clock, Users } from 'lucide-react';
-import { tripsApi, routesApi, operatorsApi } from '../api/endpoints';
+import { Calendar, Search, RefreshCw, Eye, Bus, ArrowRight, Clock, Users, Plus } from 'lucide-react';
+import { tripsApi, routesApi, operatorsApi, vehiclesApi } from '../api/endpoints';
 import { ManifestModal } from '../features/ManifestModal';
+import { TripModal } from '../features/TripModal';
 import { StatusBadge } from '../components/StatusBadge';
-import { Trip, Route, Operator } from '../types';
+import { Trip, Route, Operator, Vehicle } from '../types';
 import { BRAND } from '../config/brand';
 
 export const TripsPage: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [operators, setOperators] = useState<Operator[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [search, setSearch] = useState('');
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [isTripModalOpen, setIsTripModalOpen] = useState(false);
 
   const fetchTripsData = async () => {
     setLoading(true);
     try {
-      const [tripsRes, routesRes, operatorsRes] = await Promise.all([
+      const [tripsRes, routesRes, operatorsRes, vehiclesRes] = await Promise.all([
         tripsApi.getAll().catch(() => ({ trips: [] })),
         routesApi.getAll().catch(() => []),
         operatorsApi.getAll().catch(() => []),
+        vehiclesApi.getAll().catch(() => []),
       ]);
       setTrips(tripsRes.trips || []);
       setRoutes(routesRes || []);
       setOperators(operatorsRes || []);
+      setVehicles(vehiclesRes || []);
     } catch (err) {
       console.error('Failed to load trips data:', err);
     } finally {
@@ -74,6 +79,14 @@ export const TripsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setIsTripModalOpen(true)}
+            className="px-3.5 py-2 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white text-xs font-bold shadow-xs transition-all inline-flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Schedule New Trip</span>
+          </button>
+
           <button
             onClick={fetchTripsData}
             disabled={loading}
@@ -232,6 +245,15 @@ export const TripsPage: React.FC = () => {
         isOpen={!!selectedTrip}
         onClose={() => setSelectedTrip(null)}
         trip={selectedTrip}
+      />
+
+      <TripModal
+        isOpen={isTripModalOpen}
+        onClose={() => setIsTripModalOpen(false)}
+        onSuccess={fetchTripsData}
+        routes={routes}
+        operators={operators}
+        vehicles={vehicles}
       />
     </div>
   );
