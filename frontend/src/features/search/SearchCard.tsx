@@ -5,6 +5,7 @@ import { CitySelector } from './CitySelector';
 import { QuickDateCards } from './QuickDateCards';
 import { PassengerSelector } from './PassengerSelector';
 import { City } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface SearchCardProps {
   initialFrom?: City | null;
@@ -29,6 +30,8 @@ export const SearchCard: React.FC<SearchCardProps> = ({
   const [passengers, setPassengers] = useState<number>(initialPassengers);
   const [errors, setErrors] = useState<{ from?: string; to?: string; date?: string }>({});
   const [isSwapping, setIsSwapping] = useState(false);
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
 
   // Swap animation and state
   const handleSwapCities = () => {
@@ -86,10 +89,12 @@ export const SearchCard: React.FC<SearchCardProps> = ({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl md:text-2xl font-black text-brand-dark tracking-tight">
-            Find the best routes across Ethiopia
+            {isAmharic ? 'በኢትዮጵያ ውስጥ ምርጥ መስመሮችን ያግኙ' : 'Find the best routes across Ethiopia'}
           </h2>
           <p className="text-xs md:text-sm text-brand-textMuted mt-0.5">
-            Book verified seats with transparent government-aligned fares and digital QR tickets.
+            {isAmharic 
+              ? 'በመንግስት ታሪፍ የተረጋገጡ ወንበሮችን እና ዲጂታል ኪውአር ቲኬቶችን ያስይዙ።' 
+              : 'Book verified seats with transparent government-aligned fares and digital QR tickets.'}
           </p>
         </div>
       </div>
@@ -101,8 +106,8 @@ export const SearchCard: React.FC<SearchCardProps> = ({
           <div className="md:col-span-3">
             <CitySelector
               idPrefix="from-city"
-              label="From"
-              placeholder="Departure city"
+              label={isAmharic ? 'መነሻ' : 'From'}
+              placeholder={isAmharic ? 'መነሻ ከተማ' : 'Departure city'}
               selectedCity={fromCity}
               onSelectCity={(city) => {
                 setFromCity(city);
@@ -132,8 +137,8 @@ export const SearchCard: React.FC<SearchCardProps> = ({
           <div className="md:col-span-3">
             <CitySelector
               idPrefix="to-city"
-              label="To"
-              placeholder="Arrival city"
+              label={isAmharic ? 'መድረሻ' : 'To'}
+              placeholder={isAmharic ? 'መድረሻ ከተማ' : 'Arrival city'}
               selectedCity={toCity}
               onSelectCity={(city) => {
                 setToCity(city);
@@ -147,7 +152,7 @@ export const SearchCard: React.FC<SearchCardProps> = ({
           {/* Travel Date */}
           <div className="md:col-span-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">
-              Date
+              {isAmharic ? 'ቀን' : 'Date'}
             </label>
             <div className="relative">
               <input
@@ -177,7 +182,7 @@ export const SearchCard: React.FC<SearchCardProps> = ({
         <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1">
             <span className="block text-xs font-semibold text-brand-textLight mb-2">
-              Select Quick Date:
+              {isAmharic ? 'ቀን በፍጥነት ይምረጡ:' : 'Select Quick Date:'}
             </span>
             <QuickDateCards selectedDate={travelDate} onSelectDate={setTravelDate} />
           </div>
@@ -190,7 +195,7 @@ export const SearchCard: React.FC<SearchCardProps> = ({
               className="w-full sm:w-auto h-13 px-8 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-emerald/25 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
               <Search className="w-5 h-5" />
-              <span>Search Trips</span>
+              <span>{isAmharic ? 'ጉዞዎችን ፈልግ' : 'Search Trips'}</span>
             </button>
           </div>
         </div>

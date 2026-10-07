@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, MapPin, Users, ShieldCheck, Wifi, Wind, Zap } from 'lucide-react';
+import { Clock, Users, ShieldCheck, ArrowRight, Armchair, ChevronRight } from 'lucide-react';
 import { Trip } from '../../types';
 import { BRAND } from '../../config/brand';
 
@@ -15,109 +15,145 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
   const destCity = trip.route?.destination?.name || 'Destination';
   const operatorName = trip.operator?.name || 'Licensed Operator';
   const vehicleName = trip.vehicle?.vehicleModel || trip.vehicle?.vehicleType || 'Intercity Coach';
+  const durationHours = trip.route?.estimatedDurationHours || 3;
+
+  const seatsAvailable = trip.availableSeatsCount;
+  const seatsLow = seatsAvailable > 0 && seatsAvailable <= 5;
 
   return (
-    <div className="bg-white rounded-card p-6 border border-gray-100 shadow-card hover:shadow-cardHover hover:border-emerald-200 transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-6 group">
-      {/* Left Details */}
-      <div className="flex-1 flex flex-col gap-4">
-        {/* Operator & Type header */}
-        <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2.5">
-          <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-brand-emerald border border-emerald-100">
-            {operatorName}
-          </span>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-brand-textMuted">
-            {vehicleName}
-          </span>
-          {trip.vehicle?.plateNumber && (
-            <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
-              {trip.vehicle.plateNumber}
-            </span>
-          )}
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 ml-auto sm:ml-0">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Verified Bus</span>
-          </div>
-        </div>
+    <div className="bg-white rounded-card border border-gray-100 shadow-card hover:shadow-cardHover hover:border-emerald-200 transition-all duration-200 overflow-hidden group">
+      {/* Top accent bar */}
+      <div className="h-1 bg-gradient-to-r from-brand-emerald to-brand-deep group-hover:from-brand-deep group-hover:to-brand-emerald transition-all duration-500" />
 
-        {/* Schedule & Route Timeline */}
-        <div className="flex items-center gap-4 sm:gap-8">
-          {/* Departure */}
-          <div className="flex flex-col">
-            <span className="text-xl sm:text-2xl font-black text-brand-dark">
-              {trip.departureTime}
+      <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        {/* Left Details */}
+        <div className="flex-1 flex flex-col gap-4">
+          {/* Operator & Badges row */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-brand-emerald border border-emerald-100">
+              {operatorName}
             </span>
-            <span className="text-sm font-bold text-brand-textMain">{originCity}</span>
-            <span className="text-xs text-brand-textMuted truncate max-w-[140px]">
-              {trip.pickupLocation}
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-brand-textMuted">
+              {vehicleName}
             </span>
-          </div>
-
-          {/* Middle Route Line */}
-          <div className="flex-1 max-w-[160px] flex flex-col items-center">
-            <span className="text-[11px] font-semibold text-brand-textLight flex items-center gap-1">
-              <Clock className="w-3 h-3 text-brand-emerald" />
-              <span>{trip.route?.estimatedDurationHours || 3}h est.</span>
-            </span>
-            <div className="w-full flex items-center my-1.5">
-              <div className="w-2 h-2 rounded-full border-2 border-brand-emerald bg-white" />
-              <div className="flex-1 h-0.5 bg-gradient-to-r from-brand-emerald/80 to-brand-gold" />
-              <div className="w-2 h-2 rounded-full bg-brand-gold" />
+            {trip.vehicle?.plateNumber && (
+              <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
+                {trip.vehicle.plateNumber}
+              </span>
+            )}
+            <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 ml-auto sm:ml-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Verified</span>
             </div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-              Direct Route
-            </span>
           </div>
 
-          {/* Arrival */}
-          <div className="flex flex-col text-right sm:text-left">
-            <span className="text-xl sm:text-2xl font-black text-brand-dark">
-              {trip.estimatedArrival || 'Scheduled'}
+          {/* Route Timeline */}
+          <div className="flex items-center gap-3 sm:gap-6">
+            {/* Departure */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-2xl sm:text-3xl font-black text-brand-dark tabular-nums leading-none">
+                {trip.departureTime}
+              </span>
+              <span className="text-sm font-bold text-brand-textMain mt-0.5 truncate">{originCity}</span>
+              {trip.pickupLocation && (
+                <span className="text-xs text-brand-textMuted truncate max-w-[120px] sm:max-w-[160px]">
+                  {trip.pickupLocation}
+                </span>
+              )}
+            </div>
+
+            {/* Middle: duration + route line */}
+            <div className="flex-1 max-w-[140px] sm:max-w-[180px] flex flex-col items-center">
+              <span className="text-[11px] font-semibold text-brand-textLight flex items-center gap-1">
+                <Clock className="w-3 h-3 text-brand-emerald" />
+                <span>{durationHours}h est.</span>
+              </span>
+              <div className="w-full flex items-center my-1.5 gap-1">
+                <div className="w-2 h-2 rounded-full border-2 border-brand-emerald bg-white flex-shrink-0" />
+                <div className="flex-1 h-0.5 bg-gradient-to-r from-brand-emerald via-brand-emerald/60 to-brand-gold" />
+                <div className="w-2 h-2 rounded-full bg-brand-gold flex-shrink-0" />
+              </div>
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                Direct
+              </span>
+            </div>
+
+            {/* Arrival */}
+            <div className="flex flex-col min-w-0 text-right sm:text-left">
+              <span className="text-2xl sm:text-3xl font-black text-brand-dark tabular-nums leading-none">
+                {trip.estimatedArrival || '—'}
+              </span>
+              <span className="text-sm font-bold text-brand-textMain mt-0.5 truncate">{destCity}</span>
+              {trip.dropOffLocation && (
+                <span className="text-xs text-brand-textMuted truncate max-w-[120px] sm:max-w-[160px]">
+                  {trip.dropOffLocation}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Amenities & Seat count */}
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
+            {/* Seats remaining */}
+            <span
+              className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${
+                seatsLow
+                  ? 'bg-red-50 text-red-600 border border-red-100'
+                  : seatsAvailable === 0
+                  ? 'bg-gray-100 text-gray-500 border border-gray-200'
+                  : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+              }`}
+            >
+              <Armchair className="w-3.5 h-3.5" />
+              {seatsAvailable === 0
+                ? 'Sold out'
+                : seatsLow
+                ? `${seatsAvailable} seats left`
+                : `${seatsAvailable} seats available`}
             </span>
-            <span className="text-sm font-bold text-brand-textMain">{destCity}</span>
-            <span className="text-xs text-brand-textMuted truncate max-w-[140px]">
-              {trip.dropOffLocation}
-            </span>
+
+            {/* Amenities */}
+            {trip.amenities?.slice(0, 3).map((am, i) => (
+              <span key={i} className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded border border-gray-100 font-medium">
+                {am}
+              </span>
+            ))}
+            {trip.amenities && trip.amenities.length > 3 && (
+              <span className="text-xs text-brand-textLight font-medium">
+                +{trip.amenities.length - 3} more
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Amenities & Badges */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100/80 text-xs text-brand-textMuted">
-          <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50/60 px-2 py-0.5 rounded">
-            <Users className="w-3.5 h-3.5" />
-            <span className="font-bold">{trip.availableSeatsCount}</span> seats left
-          </span>
-          {trip.amenities?.map((am, i) => (
-            <span key={i} className="bg-gray-50 px-2 py-0.5 rounded text-gray-600">
-              {am}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Right Pricing & Action */}
-      <div className="flex lg:flex-col items-center lg:items-end justify-between border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-8 gap-4">
-        <div className="text-left lg:text-right">
-          <div className="flex items-center gap-1.5 lg:justify-end text-xs font-semibold text-brand-emerald">
-            <span>Official Fare</span>
+        {/* Right: Price & CTA */}
+        <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-6 gap-4 flex-shrink-0">
+          <div className="text-left lg:text-right">
+            <div className="text-[11px] font-bold text-brand-emerald uppercase tracking-wide">Official Fare</div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-3xl sm:text-4xl font-black text-brand-dark tabular-nums">
+                {trip.fare.toLocaleString()}
+              </span>
+              <span className="text-sm font-bold text-brand-textMuted">{BRAND.currency}</span>
+            </div>
+            <span className="text-[11px] text-brand-textLight">per passenger</span>
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-black text-brand-dark">
-              {trip.fare}
-            </span>
-            <span className="text-sm font-bold text-brand-textMuted">
-              {BRAND.currency}
-            </span>
-          </div>
-          <span className="text-[11px] text-brand-textLight">Per Passenger</span>
-        </div>
 
-        <Link
-          to={`/trips/${trip._id}/seats?date=${travelDate}&passengers=${passengersCount}`}
-          id={`select-seat-btn-${trip._id}`}
-          className="px-6 py-3 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-sm shadow-md shadow-brand-emerald/20 hover:shadow-lg hover:scale-105 active:scale-95 transition-all text-center flex-shrink-0"
-        >
-          Select Seat
-        </Link>
+          {trip.availableSeatsCount > 0 ? (
+            <Link
+              to={`/trips/${trip._id}/seats?date=${travelDate}&passengers=${passengersCount}`}
+              id={`select-seat-btn-${trip._id}`}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-sm shadow-md shadow-brand-emerald/20 hover:shadow-lg hover:scale-105 active:scale-95 transition-all text-center flex-shrink-0 group"
+            >
+              <span>Select Seat</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          ) : (
+            <div className="px-5 py-3 rounded-btn bg-gray-100 text-gray-400 font-extrabold text-sm text-center flex-shrink-0 cursor-not-allowed">
+              Sold Out
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

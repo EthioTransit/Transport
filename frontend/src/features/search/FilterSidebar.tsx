@@ -1,6 +1,7 @@
 import React from 'react';
 import { SlidersHorizontal, ArrowUpDown, X } from 'lucide-react';
 import { Operator } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface FilterSidebarProps {
   sortBy: string;
@@ -31,19 +32,22 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   isMobileOpen = false,
   onCloseMobile,
 }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const content = (
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-brand-emerald" />
-          <h3 className="font-extrabold text-base text-brand-dark">Filters & Sort</h3>
+          <h3 className="font-extrabold text-base text-brand-dark">{isAmharic ? 'ማጣሪያዎች እና ማስተካከያዎች' : 'Filters & Sort'}</h3>
         </div>
         <button
           onClick={onReset}
           className="text-xs font-semibold text-brand-emerald hover:underline"
         >
-          Reset All
+          {isAmharic ? 'ሁሉንም አጥፋ' : 'Reset All'}
         </button>
       </div>
 
@@ -51,15 +55,15 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       <div className="flex flex-col gap-2.5">
         <label className="text-xs font-bold uppercase tracking-wider text-brand-textMuted flex items-center gap-1.5">
           <ArrowUpDown className="w-3.5 h-3.5" />
-          <span>Sort By</span>
+          <span>{isAmharic ? 'በቅደም ተከተል አደራድር' : 'Sort By'}</span>
         </label>
         <div className="flex flex-col gap-1.5">
           {[
-            { id: 'DEPARTURE_EARLIEST', label: 'Earliest Departure' },
-            { id: 'PRICE_ASC', label: 'Lowest Official Fare' },
-            { id: 'PRICE_DESC', label: 'Highest Official Fare' },
-            { id: 'DEPARTURE_LATEST', label: 'Latest Departure' },
-            { id: 'SEATS_AVAILABLE', label: 'Most Available Seats' },
+            { id: 'DEPARTURE_EARLIEST', label: isAmharic ? 'በቅድሚያ የሚነሳ' : 'Earliest Departure' },
+            { id: 'PRICE_ASC', label: isAmharic ? 'በአነስተኛ ዋጋ' : 'Lowest Official Fare' },
+            { id: 'PRICE_DESC', label: isAmharic ? 'በከፍተኛ ዋጋ' : 'Highest Official Fare' },
+            { id: 'DEPARTURE_LATEST', label: isAmharic ? 'በመጨረሻ የሚነሳ' : 'Latest Departure' },
+            { id: 'SEATS_AVAILABLE', label: isAmharic ? 'ብዙ ክፍት ወንበሮች' : 'Most Available Seats' },
           ].map((opt) => (
             <label
               key={opt.id}
@@ -86,10 +90,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       <div className="flex flex-col gap-2.5 pt-4 border-t border-gray-100">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold uppercase tracking-wider text-brand-textMuted">
-            Max Price
+            {isAmharic ? 'ከፍተኛ ዋጋ' : 'Max Price'}
           </label>
           <span className="text-sm font-black text-brand-emerald">
-            {priceMax > 0 ? `${priceMax} ETB` : 'Any'}
+            {priceMax > 0 ? `${priceMax} ETB` : (isAmharic ? 'ማንኛውም' : 'Any')}
           </span>
         </div>
         <input
@@ -111,14 +115,14 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       {operators.length > 0 && (
         <div className="flex flex-col gap-2.5 pt-4 border-t border-gray-100">
           <label className="text-xs font-bold uppercase tracking-wider text-brand-textMuted">
-            Bus Operator
+            {isAmharic ? 'የአውቶቡስ ድርጅት' : 'Bus Operator'}
           </label>
           <select
             value={selectedOperator}
             onChange={(e) => onOperatorChange(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-input border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-brand-emerald"
           >
-            <option value="">All Operators</option>
+            <option value="">{isAmharic ? 'ሁሉም ድርጅቶች' : 'All Operators'}</option>
             {operators.map((op) => (
               <option key={op._id} value={op._id}>
                 {op.name}
@@ -131,21 +135,26 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       {/* Vehicle Type */}
       <div className="flex flex-col gap-2.5 pt-4 border-t border-gray-100">
         <label className="text-xs font-bold uppercase tracking-wider text-brand-textMuted">
-          Vehicle Type
+          {isAmharic ? 'የተሽከርካሪ ዓይነት' : 'Vehicle Type'}
         </label>
         <div className="grid grid-cols-2 gap-2">
-          {['', 'Coach', 'Bus', 'Minibus'].map((vt) => (
+          {[
+            { id: '', label: isAmharic ? 'ሁሉም ዓይነቶች' : 'All Types' },
+            { id: 'Coach', label: isAmharic ? 'አውቶቡስ (ኮች)' : 'Coach' },
+            { id: 'Bus', label: isAmharic ? 'አውቶቡስ' : 'Bus' },
+            { id: 'Minibus', label: isAmharic ? 'ሚኒባስ' : 'Minibus' }
+          ].map((vt) => (
             <button
-              key={vt}
+              key={vt.id}
               type="button"
-              onClick={() => onVehicleTypeChange(vt)}
+              onClick={() => onVehicleTypeChange(vt.id)}
               className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-all ${
-                selectedVehicleType === vt
+                selectedVehicleType === vt.id
                   ? 'bg-brand-emerald text-white border-brand-emerald shadow-xs'
                   : 'bg-white text-brand-textMain border-gray-200 hover:border-gray-300'
               }`}
             >
-              {vt === '' ? 'All Types' : vt}
+              {vt.label}
             </button>
           ))}
         </div>

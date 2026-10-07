@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Printer, Download, CheckCircle, Bus } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Share2, Bus } from 'lucide-react';
 import { ticketsApi } from '../api/endpoints';
 import { DigitalTicketCard } from '../features/tickets/DigitalTicketCard';
 import { Ticket } from '../types';
@@ -32,9 +32,12 @@ export const TicketPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center p-6">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-bold text-brand-textMain">Loading digital ticket...</span>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
+          <div className="text-center">
+            <p className="text-sm font-black text-brand-textMain">Loading your ticket...</p>
+            <p className="text-xs text-brand-textMuted mt-1">Fetching digital boarding pass</p>
+          </div>
         </div>
       </div>
     );
@@ -42,37 +45,93 @@ export const TicketPage: React.FC = () => {
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-brand-bg p-8 text-center">
-        <p className="text-red-600 font-bold">{error || 'Ticket not found.'}</p>
-        <Link to="/" className="mt-4 inline-block text-brand-emerald font-semibold">
-          Return to Home
-        </Link>
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center p-6">
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <Bus className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-lg font-black text-brand-dark mb-2">Ticket Not Found</h2>
+          <p className="text-sm text-brand-textMuted mb-6">{error || 'We could not find this ticket.'}</p>
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/my-tickets"
+              className="px-6 py-3 rounded-btn bg-brand-emerald text-white font-bold text-sm shadow-md text-center hover:bg-brand-deep transition-colors"
+            >
+              View My Tickets
+            </Link>
+            <Link
+              to="/"
+              className="px-6 py-2.5 rounded-btn text-sm font-semibold text-brand-textMuted hover:bg-gray-50 text-center transition-colors"
+            >
+              Return to Home
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-brand-bg min-h-screen py-10">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+    <div className="bg-brand-bg min-h-screen">
+      {/* Page Header */}
+      <div className="bg-[#031d12] text-white py-6 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50">
+        <div className="max-w-4xl mx-auto">
           <Link
             to="/my-tickets"
-            className="inline-flex items-center gap-2 text-sm font-bold text-brand-emerald hover:text-brand-deep transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-white mb-4 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5" />
             <span>My Digital Tickets</span>
           </Link>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight">Boarding Pass</h1>
+              <p className="text-emerald-200/70 text-sm mt-1">
+                {ticket.routeTitle} · {ticket.departureDate}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-colors"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Print</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-btn bg-white border border-gray-200 text-xs font-bold text-brand-textMain hover:bg-gray-50 shadow-xs"
-          >
-            <Printer className="w-4 h-4 text-brand-emerald" />
-            <span>Print Boarding Pass</span>
-          </button>
+      {/* Ticket */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DigitalTicketCard ticket={ticket} onPrint={() => window.print()} />
+
+        {/* Show this QR code instruction */}
+        <div className="mt-6 max-w-xl mx-auto">
+          <div className="flex items-center gap-3 p-4 rounded-card bg-emerald-50 border border-emerald-100 text-sm text-emerald-800 font-semibold">
+            <div className="w-8 h-8 rounded-xl bg-brand-emerald flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-base">📱</span>
+            </div>
+            <span>Show this QR code to the driver when boarding. Keep your screen brightness high for easy scanning.</span>
+          </div>
         </div>
 
-        <DigitalTicketCard ticket={ticket} onPrint={() => window.print()} />
+        {/* Navigation */}
+        <div className="mt-8 max-w-xl mx-auto flex flex-col sm:flex-row gap-3 justify-center">
+          <Link
+            to="/my-tickets"
+            className="px-6 py-3 rounded-btn bg-white border border-gray-200 text-sm font-bold text-brand-textMain hover:bg-gray-50 transition-colors text-center shadow-sm"
+          >
+            All My Tickets
+          </Link>
+          <Link
+            to="/search"
+            className="px-6 py-3 rounded-btn bg-brand-emerald text-white text-sm font-bold hover:bg-brand-deep transition-colors text-center shadow-md shadow-brand-emerald/20"
+          >
+            Book Another Trip
+          </Link>
+        </div>
       </div>
     </div>
   );

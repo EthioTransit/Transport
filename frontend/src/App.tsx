@@ -16,6 +16,9 @@ import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { OperatorDashboardPage } from './pages/OperatorDashboardPage';
 import { DriverDashboardPage } from './pages/DriverDashboardPage';
 import { PassengerDashboardPage } from './pages/PassengerDashboardPage';
+import { MyTripsPage } from './pages/MyTripsPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { HelpPage } from './pages/HelpPage';
 import './i18n';
 
 const queryClient = new QueryClient({
@@ -33,20 +36,30 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route element={<MainLayout />}>
+            {/* Public pages */}
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/trips/:tripId/seats" element={<SeatSelectionPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/verify-payment" element={<PaymentVerificationPage />} />
-            <Route path="/tickets/:ticketId" element={<TicketPage />} />
-            <Route path="/my-tickets" element={<PassengerDashboardPage />} />
-            <Route path="/my-bookings" element={<PassengerDashboardPage />} />
             <Route path="/routes" element={<RoutesPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/help" element={<HelpPage />} />
+
+            {/* Ticket pages */}
+            <Route path="/tickets/:ticketId" element={<TicketPage />} />
+            <Route path="/my-tickets" element={<PassengerDashboardPage />} />
+
+            {/* Passenger customer pages */}
+            <Route path="/passenger" element={<PassengerDashboardPage />} />
+            <Route path="/my-bookings" element={<PassengerDashboardPage />} />
+            <Route path="/my-trips" element={<MyTripsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+
+            {/* Staff dashboards */}
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/operator" element={<OperatorDashboardPage />} />
             <Route path="/driver" element={<DriverDashboardPage />} />
-            <Route path="/passenger" element={<PassengerDashboardPage />} />
           </Route>
 
           {/* Standalone Auth Pages */}

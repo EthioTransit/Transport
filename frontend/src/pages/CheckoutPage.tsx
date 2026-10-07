@@ -1,12 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Lock, CreditCard, CheckCircle2, AlertCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  ShieldCheck,
+  Lock,
+  CheckCircle2,
+  AlertCircle,
+  Smartphone,
+  CreditCard,
+  Building2,
+  Zap,
+  Clock,
+} from 'lucide-react';
 import { tripsApi, bookingsApi, paymentsApi } from '../api/endpoints';
 import { PassengerForm } from '../features/booking/PassengerForm';
 import { PriceBreakdown } from '../features/booking/PriceBreakdown';
 import { useAuth } from '../features/auth/useAuth';
 import { Trip, PassengerInfo } from '../types';
 import { BRAND } from '../config/brand';
+
+const PAYMENT_PROVIDERS = [
+  {
+    id: 'mock' as const,
+    title: 'Instant Dev Gateway',
+    subtitle: 'Sandbox instant approval',
+    badge: 'Dev',
+    badgeColor: 'bg-gray-100 text-gray-600',
+    icon: Zap,
+    iconBg: 'bg-gray-50',
+    iconColor: 'text-gray-500',
+    border: 'border-gray-200',
+    activeBorder: 'border-gray-400',
+    activeBg: 'bg-gray-50/50',
+  },
+  {
+    id: 'telebirr' as const,
+    title: 'Telebirr SuperApp',
+    subtitle: 'Ethio Telecom Mobile Money',
+    badge: 'Popular',
+    badgeColor: 'bg-blue-50 text-blue-600',
+    icon: Smartphone,
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
+    border: 'border-gray-200',
+    activeBorder: 'border-blue-500',
+    activeBg: 'bg-blue-50/30',
+  },
+  {
+    id: 'cbe_birr' as const,
+    title: 'CBE Birr',
+    subtitle: 'Commercial Bank of Ethiopia',
+    badge: 'Bank',
+    badgeColor: 'bg-emerald-50 text-emerald-600',
+    icon: Building2,
+    iconBg: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
+    border: 'border-gray-200',
+    activeBorder: 'border-brand-emerald',
+    activeBg: 'bg-emerald-50/30',
+  },
+  {
+    id: 'chapa' as const,
+    title: 'Chapa Pay',
+    subtitle: 'Debit card & digital wallet',
+    badge: 'Card',
+    badgeColor: 'bg-purple-50 text-purple-600',
+    icon: CreditCard,
+    iconBg: 'bg-purple-50',
+    iconColor: 'text-purple-600',
+    border: 'border-gray-200',
+    activeBorder: 'border-purple-500',
+    activeBg: 'bg-purple-50/30',
+  },
+];
 
 export const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -22,7 +88,6 @@ export const CheckoutPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form states
   const [passengers, setPassengers] = useState<PassengerInfo[]>(
     selectedSeats.map((seatNumber, i) => ({
       name: i === 0 && user ? `${user.firstName} ${user.lastName}` : '',
@@ -33,7 +98,7 @@ export const CheckoutPage: React.FC = () => {
     }))
   );
 
-  const [paymentProvider, setPaymentProvider] = useState<'mock' | 'telebirr' | 'chapa' | 'cbe_birr'>('mock');
+  const [paymentProvider, setPaymentProvider] = useState<'mock' | 'telebirr' | 'chapa' | 'cbe_birr'>('telebirr');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -93,13 +158,6 @@ export const CheckoutPage: React.FC = () => {
     setError(null);
 
     try {
-      // 1. If not authenticated, prompt user or auto sign-in with passenger 1 phone
-      if (!isAuthenticated) {
-        // Save state to localStorage and direct to login, or use guest token
-        // To provide seamless experience, create guest session
-      }
-
-      // Create Booking
       const booking = await bookingsApi.create({
         tripId: trip._id,
         seats: selectedSeats,
@@ -107,7 +165,6 @@ export const CheckoutPage: React.FC = () => {
         guestLockId,
       });
 
-      // Initiate Payment session
       const paymentIntent = await paymentsApi.create({
         bookingId: booking._id,
         provider: paymentProvider,
@@ -121,7 +178,6 @@ export const CheckoutPage: React.FC = () => {
             : 'Mock Instant Birr Gateway',
       });
 
-      // Navigate to verification page
       navigate(`/verify-payment?ref=${paymentIntent.transactionReference}&bookingId=${booking._id}`);
     } catch (err: any) {
       if (err.message && err.message.includes('Authentication required')) {
@@ -137,9 +193,12 @@ export const CheckoutPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center p-6">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-bold text-brand-textMain">Loading checkout...</span>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
+          <div className="text-center">
+            <p className="text-sm font-black text-brand-textMain">Loading checkout...</p>
+            <p className="text-xs text-brand-textMuted mt-1">Preparing your booking details</p>
+          </div>
         </div>
       </div>
     );
@@ -148,27 +207,68 @@ export const CheckoutPage: React.FC = () => {
   if (!trip) return null;
 
   return (
-    <div className="bg-brand-bg min-h-screen py-10">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link
-          to={`/trips/${tripId}/seats?seats=${seatsParam}`}
-          className="inline-flex items-center gap-2 text-sm font-bold text-brand-emerald hover:text-brand-deep mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Change Selected Seats</span>
-        </Link>
-
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-black text-brand-dark tracking-tight">
-            Checkout & Passenger Details
-          </h1>
-          <p className="text-sm text-brand-textMuted mt-1">
-            Review official ticket fares and enter traveler information for digital boarding pass generation.
-          </p>
+    <div className="bg-brand-bg min-h-screen">
+      {/* Page Header */}
+      <div className="bg-[#031d12] text-white py-6 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50">
+        <div className="max-w-6xl mx-auto">
+          <Link
+            to={`/trips/${tripId}/seats?seats=${seatsParam}`}
+            className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-white mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Change Selected Seats</span>
+          </Link>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                Checkout
+              </h1>
+              <p className="text-emerald-200/70 text-sm mt-1 flex flex-wrap items-center gap-2">
+                <span>{trip.route?.origin?.name} → {trip.route?.destination?.name}</span>
+                <span>·</span>
+                <Clock className="w-3 h-3 inline" /> {trip.departureDate} at {trip.departureTime}
+              </p>
+              <div className="flex flex-wrap items-center gap-4 mt-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Targa / Plate:</span>
+                  <span className="text-xs font-mono font-black bg-white/20 text-white px-2 py-0.5 rounded border border-white/20">
+                    {trip.vehicle?.plateNumber || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Chair / Seat:</span>
+                  <div className="flex gap-1">
+                    {selectedSeats.map((s) => (
+                      <span key={s} className="text-xs font-black bg-brand-emerald/40 text-white px-2 py-0.5 rounded border border-emerald-400/50">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Bus:</span>
+                  <span className="text-xs font-bold text-white">
+                    {trip.operator?.name || 'Operator'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {/* Security badge */}
+            <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex-shrink-0">
+              <Lock className="w-4 h-4 text-emerald-300" />
+              <div>
+                <p className="text-xs font-black text-white">Secure Checkout</p>
+                <p className="text-[10px] text-emerald-300/70">256-bit encrypted</p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {error && (
-          <div className="mb-6 p-4 rounded-card bg-red-50 border border-red-200 text-status-error text-sm font-medium flex items-center gap-3">
+      {/* Error Banner */}
+      {error && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <div className="p-4 rounded-card bg-red-50 border border-red-200 text-status-error text-sm font-medium flex items-center gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <div className="flex-1">
               <span>{error}</span>
@@ -179,8 +279,10 @@ export const CheckoutPage: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleCreateBookingAndPay} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Passenger Info & Payment Options */}
           <div className="lg:col-span-7 flex flex-col gap-6">
@@ -191,80 +293,74 @@ export const CheckoutPage: React.FC = () => {
               errors={fieldErrors}
             />
 
-            {/* Payment Method Selector (Requirement 33 & 34) */}
-            <div className="bg-white rounded-card p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
+            {/* Payment Method Selector */}
+            <div className="bg-white rounded-card p-6 border border-gray-100 shadow-sm flex flex-col gap-5">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <h3 className="font-extrabold text-base text-brand-dark">Choose Official Payment Provider</h3>
-                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  Instant Verification
-                </span>
+                <div>
+                  <h3 className="font-extrabold text-base text-brand-dark">Payment Method</h3>
+                  <p className="text-xs text-brand-textMuted mt-0.5">Choose your preferred payment provider</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-brand-emerald bg-emerald-50 px-3 py-1.5 rounded-btn">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Secure</span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  {
-                    id: 'mock',
-                    title: 'Instant Sandbox Gateway',
-                    desc: 'Developer & Test Instant Approval',
-                    badge: 'Dev Mode',
-                  },
-                  {
-                    id: 'telebirr',
-                    title: 'Telebirr SuperApp',
-                    desc: 'Ethio Telecom Mobile Money',
-                    badge: 'Popular',
-                  },
-                  {
-                    id: 'cbe_birr',
-                    title: 'CBE Birr',
-                    desc: 'Commercial Bank of Ethiopia',
-                    badge: 'Bank Pay',
-                  },
-                  {
-                    id: 'chapa',
-                    title: 'Chapa Pay',
-                    desc: 'Debit Card & Digital Wallet',
-                    badge: 'Card / QR',
-                  },
-                ].map((prov) => (
-                  <label
-                    key={prov.id}
-                    className={`p-4 rounded-card border-2 cursor-pointer flex flex-col justify-between transition-all ${
-                      paymentProvider === prov.id
-                        ? 'border-brand-emerald bg-emerald-50/50 shadow-sm'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <input
-                        type="radio"
-                        name="paymentProvider"
-                        value={prov.id}
-                        checked={paymentProvider === prov.id}
-                        onChange={() => setPaymentProvider(prov.id as any)}
-                        className="text-brand-emerald focus:ring-brand-emerald mt-0.5"
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand-emerald bg-emerald-100/60 px-2 py-0.5 rounded">
-                        {prov.badge}
-                      </span>
-                    </div>
+                {PAYMENT_PROVIDERS.map((prov) => {
+                  const Icon = prov.icon;
+                  const isSelected = paymentProvider === prov.id;
+                  return (
+                    <label
+                      key={prov.id}
+                      className={`relative p-4 rounded-card border-2 cursor-pointer flex flex-col gap-3 transition-all duration-150 ${
+                        isSelected
+                          ? `${prov.activeBorder} ${prov.activeBg} shadow-sm`
+                          : `${prov.border} bg-white hover:border-gray-300`
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className={`w-10 h-10 rounded-xl ${prov.iconBg} flex items-center justify-center flex-shrink-0`}>
+                          <Icon className={`w-5 h-5 ${prov.iconColor}`} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${prov.badgeColor}`}>
+                            {prov.badge}
+                          </span>
+                          <input
+                            type="radio"
+                            name="paymentProvider"
+                            value={prov.id}
+                            checked={isSelected}
+                            onChange={() => setPaymentProvider(prov.id)}
+                            className="text-brand-emerald focus:ring-brand-emerald"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <span className="font-extrabold text-sm text-brand-textMain block">{prov.title}</span>
+                        <span className="text-xs text-brand-textMuted block mt-0.5">{prov.subtitle}</span>
+                      </div>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle2 className="w-4 h-4 text-brand-emerald" />
+                        </div>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
 
-                    <div className="mt-3">
-                      <span className="font-extrabold text-sm text-brand-textMain block">
-                        {prov.title}
-                      </span>
-                      <span className="text-xs text-brand-textMuted block mt-0.5">
-                        {prov.desc}
-                      </span>
-                    </div>
-                  </label>
-                ))}
+              {/* Seat reservation reminder */}
+              <div className="flex items-center gap-2 p-3 rounded-btn bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">
+                <Clock className="w-4 h-4 flex-shrink-0 text-amber-600" />
+                <span>Your seat reservation expires in 10 minutes. Complete payment to secure your seat.</span>
               </div>
             </div>
           </div>
 
           {/* Right Column: Price Breakdown & Confirmation */}
-          <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-28">
+          <div className="lg:col-span-5 flex flex-col gap-5 lg:sticky lg:top-28">
             <PriceBreakdown
               farePerSeat={trip.fare}
               serviceFeePerSeat={trip.serviceFee || BRAND.platformFee}
@@ -272,15 +368,28 @@ export const CheckoutPage: React.FC = () => {
               selectedSeats={selectedSeats}
             />
 
+            {/* Confirm & Pay Button */}
             <button
               type="submit"
               id="confirm-pay-btn"
               disabled={submitting}
-              className="w-full py-4 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-50 text-white font-extrabold text-base shadow-lg shadow-brand-emerald/25 hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-50 text-white font-extrabold text-base shadow-lg shadow-brand-emerald/25 hover:shadow-xl transition-all flex items-center justify-center gap-2 group"
             >
               <Lock className="w-5 h-5" />
-              <span>{submitting ? 'Processing Payment...' : 'Pay Official Fare & Issue Tickets'}</span>
+              <span>{submitting ? 'Processing Payment...' : 'Confirm & Pay'}</span>
             </button>
+
+            {/* Trust indicators */}
+            <div className="flex flex-col gap-2 p-4 rounded-btn bg-emerald-50/50 border border-emerald-100">
+              <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold">
+                <ShieldCheck className="w-4 h-4 text-brand-emerald flex-shrink-0" />
+                <span>Official government-regulated fare. No hidden fees.</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-brand-emerald flex-shrink-0" />
+                <span>Digital QR ticket issued instantly after payment.</span>
+              </div>
+            </div>
           </div>
         </form>
       </div>

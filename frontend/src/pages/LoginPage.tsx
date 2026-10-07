@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Phone, Lock, Eye, EyeOff, Bus, ShieldCheck, ArrowRight, Clock } from 'lucide-react';
 import { authApi } from '../api/endpoints';
 import { useAuth } from '../features/auth/useAuth';
@@ -9,8 +9,13 @@ import { UserRole } from '../types';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const location = useLocation();
 
-  const [identifier, setIdentifier] = useState('');
+  // State passed from RegisterPage after successful signup
+  const locationState = location.state as { successMessage?: string; prefillEmail?: string } | null;
+  const [successMessage] = useState<string | null>(locationState?.successMessage || null);
+
+  const [identifier, setIdentifier] = useState(locationState?.prefillEmail || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -160,12 +165,20 @@ export const LoginPage: React.FC = () => {
             </p>
           </div>
 
+          {successMessage && (
+            <div className="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+              <span>✅</span>
+              <span>{successMessage}</span>
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-status-error text-xs font-semibold flex items-center gap-2">
               <span>⚠️</span>
               <span>{error}</span>
             </div>
           )}
+
 
           {/* Main Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

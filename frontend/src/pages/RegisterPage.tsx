@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, Eye, EyeOff, Bus, ShieldCheck, ArrowRight, Clock } from 'lucide-react';
 import { authApi } from '../api/endpoints';
-import { useAuth } from '../features/auth/useAuth';
+
 import { Footer } from '../components/common/Footer';
 import { UserRole } from '../types';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -42,8 +42,13 @@ export const RegisterPage: React.FC = () => {
         role: UserRole.PASSENGER,
       });
 
-      login(res.user, res.accessToken);
-      navigate('/passenger');
+      // ✅ Correct flow: redirect to login after signup
+      navigate('/login', {
+        state: {
+          successMessage: 'Account created successfully! Please sign in to continue.',
+          prefillEmail: email,
+        },
+      });
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please check your information and try again.');
     } finally {

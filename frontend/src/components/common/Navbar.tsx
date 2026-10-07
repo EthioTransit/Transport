@@ -8,7 +8,8 @@ import { useAuth } from '../../features/auth/useAuth';
 import { UserRole } from '../../types';
 
 export const Navbar: React.FC = () => {
-  const { t } = useTranslation(['navigation', 'common']);
+  const { t, i18n } = useTranslation(['navigation', 'common']);
+  const isAmharic = i18n.language === 'am';
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -25,10 +26,9 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { to: '/', label: t('navigation:home') },
     { to: '/search', label: t('navigation:searchTrips') },
-    { to: '/my-bookings', label: t('navigation:myBookings') },
+    { to: '/my-trips', label: isAmharic ? 'የእኔ ጉዞዎች' : 'My Bookings' },
     { to: '/my-tickets', label: t('navigation:myTickets') },
-    { to: '/routes', label: t('navigation:routes') },
-    { to: '/how-it-works', label: t('navigation:howItWorks') },
+    { to: '/help', label: isAmharic ? 'እርዳታ' : 'Help' },
   ];
 
   const getDashboardLink = () => {
@@ -101,6 +101,13 @@ export const Navbar: React.FC = () => {
                       ? t('navigation:driver')
                       : t('navigation:dashboard')}
                   </span>
+                </Link>
+                <Link
+                  to="/profile"
+                  title="My Profile"
+                  className="w-9 h-9 rounded-xl bg-brand-emerald/80 hover:bg-brand-emerald border border-emerald-400/30 flex items-center justify-center text-white text-xs font-black transition-colors"
+                >
+                  {user.firstName?.[0]}{user.lastName?.[0]}
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -175,7 +182,15 @@ export const Navbar: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-3 rounded-btn bg-emerald-50 text-brand-emerald font-semibold"
                   >
                     <LayoutDashboard className="w-5 h-5" />
-                    <span>Open Dashboard</span>
+                    <span>Dashboard</span>
+                  </Link>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 rounded-btn text-brand-textMain hover:bg-gray-50 font-medium"
+                  >
+                    <User className="w-5 h-5 text-brand-textMuted" />
+                    <span>My Profile</span>
                   </Link>
                   <button
                     onClick={handleLogout}
