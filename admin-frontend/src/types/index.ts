@@ -114,6 +114,7 @@ export interface Vehicle {
     rows: number;
     columns: number;
     aislePosition: number[];
+    blockedSeats?: string[];
   };
   vehicleModel: string;
   year: number;

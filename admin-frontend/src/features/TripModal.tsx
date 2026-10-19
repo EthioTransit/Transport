@@ -89,7 +89,13 @@ export const TripModal: React.FC<TripModalProps> = ({
       return vOpId === opId;
     });
 
-    if (opVehicles.length > 0) {
+    const activeVehicle = opVehicles.find((v) => v.status === 'ACTIVE');
+    if (activeVehicle) {
+      setVehicleId(activeVehicle._id);
+      if (activeVehicle.features && activeVehicle.features.length > 0) {
+        setAmenities(activeVehicle.features);
+      }
+    } else if (opVehicles.length > 0) {
       setVehicleId(opVehicles[0]._id);
       if (opVehicles[0].features && opVehicles[0].features.length > 0) {
         setAmenities(opVehicles[0].features);
@@ -160,6 +166,11 @@ export const TripModal: React.FC<TripModalProps> = ({
     }
     if (!vehicleId) {
       setError('Please select an assigned Vehicle for this trip.');
+      return;
+    }
+    const selVehicle = vehicles.find((v) => v._id === vehicleId);
+    if (!selVehicle || selVehicle.status !== 'ACTIVE') {
+      setError(`The selected vehicle (${selVehicle?.plateNumber || 'Fleet Vehicle'}) is currently ${selVehicle?.status || 'INACTIVE'}. Only ACTIVE vehicles can be scheduled for trips.`);
       return;
     }
     if (!departureDate) {
@@ -316,11 +327,14 @@ export const TripModal: React.FC<TripModalProps> = ({
             <option value="" disabled>
               {filteredVehicles.length === 0 ? '-- No vehicles available for this operator --' : '-- Select Fleet Vehicle --'}
             </option>
-            {filteredVehicles.map((v) => (
-              <option key={v._id} value={v._id}>
-                {v.plateNumber} • {v.vehicleModel} ({v.seatCapacity} Seats) - {v.vehicleType}
-              </option>
-            ))}
+            {filteredVehicles.map((v) => {
+              const isActive = v.status === 'ACTIVE';
+              return (
+                <option key={v._id} value={v._id} disabled={!isActive}>
+                  {v.plateNumber} • {v.vehicleModel} ({v.seatCapacity} Seats) - {isActive ? '🟢 Active & Ready' : `🔴 ${v.status} (Unavailable)`}
+                </option>
+              );
+            })}
           </select>
           {filteredVehicles.length === 0 && (
             <p className="text-[11px] text-amber-600 mt-1">

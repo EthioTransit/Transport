@@ -27,4 +27,11 @@ router.put(
   VehicleController.updateVehicle
 );
 
+router.patch(
+  '/:id/status',
+  authenticate,
+  authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATOR),
+  VehicleController.updateVehicleStatus
+);
+
 export default router;

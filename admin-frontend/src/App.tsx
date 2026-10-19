@@ -7,6 +7,7 @@ import { DashboardOverviewPage } from './pages/DashboardOverviewPage';
 import { CitiesPage } from './pages/CitiesPage';
 import { RoutesPage } from './pages/RoutesPage';
 import { OperatorsPage } from './pages/OperatorsPage';
+import { VehiclesPage } from './pages/VehiclesPage';
 import { TripsPage } from './pages/TripsPage';
 import { BookingsPage } from './pages/BookingsPage';
 import { PaymentsPage } from './pages/PaymentsPage';
@@ -57,6 +58,7 @@ export function App() {
             <Route path="cities" element={<CitiesPage />} />
             <Route path="routes" element={<RoutesPage />} />
             <Route path="operators" element={<OperatorsPage />} />
+            <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="trips" element={<TripsPage />} />
             <Route path="bookings" element={<BookingsPage />} />

@@ -157,6 +157,10 @@ export class TripService {
     const vehicle = await Vehicle.findById(data.vehicle);
     if (!vehicle) throw new Error('Vehicle not found');
 
+    if (vehicle.status !== 'ACTIVE') {
+      throw new Error(`Vehicle ${vehicle.plateNumber} is currently ${vehicle.status} and cannot be assigned to trips. Please activate it first in Fleet Management.`);
+    }
+
     const route = await Route.findById(data.route);
     if (!route) throw new Error('Route not found');
 
