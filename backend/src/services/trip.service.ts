@@ -162,19 +162,55 @@ export class TripService {
       throw new Error(`Vehicle ${vehicle.plateNumber} is currently ${vehicle.status} and cannot be assigned to trips. Please activate it first in Fleet Management.`);
     }
 
-    const route = await Route.findById(data.route);
+    const route = await Route.findById(data.route).populate('origin destination');
     if (!route) throw new Error('Route not found');
+
+    const originCity = route.origin as any;
+    const destCity = route.destination as any;
+
+    const pickupLocation = (data.pickupLocation && data.pickupLocation.trim()) || route.pickupPoints?.[0]?.name || originCity?.terminalName || `${originCity?.name || 'Origin'} Central Terminal`;
+    const dropOffLocation = (data.dropOffLocation && data.dropOffLocation.trim()) || route.dropOffPoints?.[0]?.name || destCity?.terminalName || `${destCity?.name || 'Destination'} Terminal`;
+
+    // Compute estimated arrival if not explicitly supplied
+    let estimatedArrival = data.estimatedArrival?.trim();
+    if (!estimatedArrival) {
+      try {
+        const match = data.departureTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (match) {
+          let hours = parseInt(match[1], 10);
+          const minutes = parseInt(match[2], 10);
+          const ampm = match[3].toUpperCase();
+          if (ampm === 'PM' && hours < 12) hours += 12;
+          if (ampm === 'AM' && hours === 12) hours = 0;
+          const totalMinutes = hours * 60 + minutes + Math.round((route.estimatedDurationHours || 4) * 60);
+          const arrivalHour24 = Math.floor(totalMinutes / 60) % 24;
+          const arrivalMin = totalMinutes % 60;
+          const arrivalAmPm = arrivalHour24 >= 12 ? 'PM' : 'AM';
+          let arrivalHour12 = arrivalHour24 % 12;
+          if (arrivalHour12 === 0) arrivalHour12 = 12;
+          estimatedArrival = `${arrivalHour12.toString().padStart(2, '0')}:${arrivalMin.toString().padStart(2, '0')} ${arrivalAmPm}`;
+        }
+      } catch {
+        estimatedArrival = '12:00 PM';
+      }
+    }
 
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
     const tripCode = `ET-${data.departureDate.replace(/-/g, '')}-${randomSuffix}`;
 
     const trip = await Trip.create({
       ...data,
+      route: route._id,
+      vehicle: vehicle._id,
+      operator: data.operator || vehicle.operator,
       tripCode,
+      pickupLocation,
+      dropOffLocation,
+      estimatedArrival: estimatedArrival || '12:00 PM',
       totalSeatsCount: vehicle.seatCapacity,
       availableSeatsCount: vehicle.seatCapacity,
       status: TripStatus.SCHEDULED,
-      amenities: data.amenities || vehicle.features,
+      amenities: data.amenities && data.amenities.length > 0 ? data.amenities : vehicle.features,
     });
 
     // Auto-generate seat documents for this trip based on vehicle layout
@@ -264,6 +300,7 @@ export class TripService {
       });
     }
 
+    PersistenceService.queueSave();
     return updated;
   }
 
@@ -271,17 +308,17 @@ export class TripService {
     const filter: any = {};
     if (options.operatorId) filter.operator = options.operatorId;
     if (options.date) filter.departureDate = options.date;
-    if (options.status) filter.status = options.status;
+    if (options.status && options.status !== 'ALL') filter.status = options.status;
 
     return await Trip.find(filter)
-      .populate('operator', 'name')
-      .populate('vehicle', 'plateNumber model vehicleType')
+      .populate('operator', 'name legalName logoUrl')
+      .populate('vehicle', 'plateNumber model vehicleModel vehicleType seatCapacity status features')
       .populate('driver', 'name phone')
       .populate({
         path: 'route',
         populate: ['origin', 'destination'],
       })
-      .sort({ departureDate: -1, departureTime: -1 })
+      .sort({ departureDate: -1, departureTime: -1, createdAt: -1 })
       .lean();
   }
 }

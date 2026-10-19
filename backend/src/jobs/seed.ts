@@ -211,6 +211,17 @@ export async function runDatabaseSeed(force = false) {
       features: ['Air Conditioning', 'Reading Light', 'Music System'],
       status: 'ACTIVE',
     },
+    {
+      plateNumber: 'ET-3-77634-AA',
+      vehicleType: VehicleType.COACH,
+      operator: operatorMap['Golden Bus Express']._id,
+      seatCapacity: 44,
+      seatLayout: { layoutType: '2x2', rows: 11, columns: 4, aislePosition: [2] },
+      vehicleModel: 'Marcopolo Paradiso 1200 G7',
+      year: 2024,
+      features: ['Air Conditioning', 'High-Speed Wi-Fi', 'USB Charging', 'Reclining Seats'],
+      status: 'ACTIVE',
+    },
   ];
 
   const vehicleList: any[] = [];

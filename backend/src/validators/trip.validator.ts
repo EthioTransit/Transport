@@ -3,16 +3,21 @@ import { TripStatus } from '../types';
 
 export const tripSearchSchema = z
   .object({
-    from: z.string().min(1, 'Please select your departure city.'),
-    to: z.string().min(1, 'Please select your arrival city.'),
+    from: z.string().min(1, 'Please select your departure city.').transform((s) => s.trim()),
+    to: z.string().min(1, 'Please select your arrival city.').transform((s) => s.trim()),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please select a valid travel date (YYYY-MM-DD).'),
     passengers: z
-      .string()
+      .union([z.string(), z.number()])
       .optional()
-      .transform((val) => (val ? parseInt(val, 10) : 1))
+      .transform((val) => (val ? Number(val) : 1))
       .pipe(z.number().min(1, 'At least 1 passenger is required.').max(10, 'Maximum 10 passengers allowed per search.')),
+    priceMin: z.union([z.string(), z.number()]).optional().transform((val) => (val !== undefined && val !== '' ? Number(val) : undefined)),
+    priceMax: z.union([z.string(), z.number()]).optional().transform((val) => (val !== undefined && val !== '' ? Number(val) : undefined)),
+    operatorId: z.string().optional(),
+    vehicleType: z.string().optional(),
+    sortBy: z.enum(['PRICE_ASC', 'PRICE_DESC', 'DEPARTURE_EARLIEST', 'DEPARTURE_LATEST', 'SEATS_AVAILABLE']).optional(),
   })
-  .refine((data) => data.from !== data.to, {
+  .refine((data) => data.from.toLowerCase() !== data.to.toLowerCase(), {
     message: 'Departure and arrival cities cannot be the same.',
     path: ['to'],
   });
@@ -24,11 +29,11 @@ export const createTripSchema = z.object({
   driver: z.string().optional(),
   departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Departure date must be YYYY-MM-DD'),
   departureTime: z.string().min(1, 'Departure time is required (e.g. 06:00 AM)'),
-  estimatedArrival: z.string().min(1, 'Estimated arrival is required (e.g. 11:30 AM)'),
-  fare: z.number().min(50, 'Official fare must be at least 50 ETB'),
-  serviceFee: z.number().optional().default(15),
-  pickupLocation: z.string().min(2, 'Pickup location is required'),
-  dropOffLocation: z.string().min(2, 'Drop-off location is required'),
+  estimatedArrival: z.string().optional(),
+  fare: z.union([z.number(), z.string().transform((v) => Number(v))]).pipe(z.number().min(50, 'Official fare must be at least 50 ETB')),
+  serviceFee: z.union([z.number(), z.string().transform((v) => Number(v))]).optional().default(15),
+  pickupLocation: z.string().optional(),
+  dropOffLocation: z.string().optional(),
   amenities: z.array(z.string()).optional(),
   boardingNotes: z.string().optional(),
 });
