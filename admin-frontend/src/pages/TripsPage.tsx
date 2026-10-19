@@ -178,6 +178,7 @@ export const TripsPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold border-b border-gray-100">
               <tr>
+                <th className="py-3 px-3 w-12 text-center text-gray-400 font-bold">#</th>
                 <th className="py-3 px-4">Trip Code</th>
                 <th className="py-3 px-4">Corridor</th>
                 <th className="py-3 px-4">Operator & Fleet</th>
@@ -189,7 +190,7 @@ export const TripsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredTrips.map((t) => {
+              {filteredTrips.map((t, index) => {
                 const totalSeats = t.totalSeatsCount || 44;
                 const availableSeats = t.availableSeatsCount ?? totalSeats;
                 const bookedCount = Math.max(0, totalSeats - availableSeats);
@@ -197,6 +198,12 @@ export const TripsPage: React.FC = () => {
 
                 return (
                   <tr key={t._id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-3.5 px-3 text-center">
+                      <span className="font-mono text-[11px] font-bold text-gray-400 bg-gray-50 border border-gray-200/80 rounded px-1.5 py-0.5 inline-block min-w-[24px]">
+                        {index + 1}
+                      </span>
+                    </td>
+
                     <td className="py-3.5 px-4 font-mono font-bold text-brand-dark">
                       {t.tripCode}
                     </td>
