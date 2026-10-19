@@ -14,21 +14,27 @@ import { Payment } from '../models/Payment';
 import { UserRole, VehicleType, TripStatus, SeatStatus, BookingStatus, TicketStatus, PaymentStatus } from '../types';
 import { TripService } from '../services/trip.service';
 import { generateSecureVerificationToken, generateQrCodeDataUrl } from '../utils/qr.utils';
+import { PersistenceService } from '../services/persistence.service';
 
-export async function runDatabaseSeed() {
-  console.log('[Seed] Checking if database seeding is required...');
+export async function runDatabaseSeed(force = false) {
+  console.log('[Seed] Checking persistence and seeding state...');
+  const persistence = await PersistenceService.init();
 
-  const existingCityCount = await City.countDocuments();
-  if (existingCityCount > 0) {
-    console.log(`[Seed] Database already contains ${existingCityCount} cities. Checking trips...`);
-    const tripsCount = await Trip.countDocuments();
-    if (tripsCount > 0) {
-      console.log(`[Seed] Database already has ${tripsCount} trips. Skipping seed.`);
-      return;
-    }
+  if (!force && persistence.hadSeeded) {
+    const state = PersistenceService.getState();
+    console.log(`[Seed] Database was already seeded previously (Initial: ${state.lastSeededAt || 'unknown'}, Last active save: ${state.lastSavedAt || 'none'}).`);
+    console.log('[Seed] Preserving all admin additions and custom modifications. Skipping re-seed.');
+    return;
   }
 
-  console.log('[Seed] Seeding demo Ethiopian intercity transportation data...');
+  const existingCityCount = await City.countDocuments();
+  if (!force && existingCityCount > 0) {
+    console.log(`[Seed] Database already contains ${existingCityCount} cities. Preserving existing data and skipping seed.`);
+    await PersistenceService.onDatabaseSeeded();
+    return;
+  }
+
+  console.log('[Seed] Performing one-time initial seed for Ethiopian intercity transportation platform...');
 
   // 1. Seed Cities
   const citiesData = [
@@ -443,4 +449,19 @@ export async function runDatabaseSeed() {
   }
 
   console.log(`[Seed] Seeded ${tripsCreatedCount} trips across multiple dynamic dates with complete seat layouts!`);
+  await PersistenceService.onDatabaseSeeded();
 }
+
+// Support direct execution via CLI (e.g. npm run seed)
+if (require.main === module || (typeof process !== 'undefined' && process.argv[1]?.includes('seed'))) {
+  (async () => {
+    const { connectDatabase } = await import('../config/database');
+    await connectDatabase();
+    await runDatabaseSeed(process.argv.includes('--force'));
+    process.exit(0);
+  })().catch((err) => {
+    console.error('Seed execution failed:', err);
+    process.exit(1);
+  });
+}
+

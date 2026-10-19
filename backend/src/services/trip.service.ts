@@ -6,6 +6,7 @@ import { Vehicle } from '../models/Vehicle';
 import { Seat } from '../models/Seat';
 import { TripStatus, SeatStatus, UserRole } from '../types';
 import { AuditService } from './audit.service';
+import { PersistenceService } from './persistence.service';
 
 export class TripService {
   static async searchTrips(params: {
@@ -191,6 +192,7 @@ export class TripService {
       });
     }
 
+    PersistenceService.queueSave();
     return await this.getTripById(trip._id.toString());
   }
 

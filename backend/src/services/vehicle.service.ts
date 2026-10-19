@@ -1,5 +1,6 @@
 import { Vehicle, IVehicle } from '../models/Vehicle';
 import { AuditService } from './audit.service';
+import { PersistenceService } from './persistence.service';
 import { UserRole } from '../types';
 
 export class VehicleService {
@@ -68,6 +69,7 @@ export class VehicleService {
       });
     }
 
+    PersistenceService.queueSave();
     return await Vehicle.findById(vehicle._id).populate('operator').lean();
   }
 
@@ -104,6 +106,7 @@ export class VehicleService {
       });
     }
 
+    PersistenceService.queueSave();
     return updated;
   }
 
