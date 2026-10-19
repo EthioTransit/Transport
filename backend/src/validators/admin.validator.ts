@@ -19,6 +19,7 @@ export const createRouteSchema = z.object({
   destination: z.string().min(1, 'Destination city ID is required'),
   distanceKm: z.number().min(1, 'Distance must be at least 1 km'),
   estimatedDurationHours: z.number().min(0.5, 'Estimated duration must be positive'),
+  image: z.string().optional(),
   pickupPoints: z
     .array(
       z.object({

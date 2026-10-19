@@ -128,6 +128,7 @@ export class TripService {
         id: route._id,
         distanceKm: route.distanceKm,
         estimatedDurationHours: route.estimatedDurationHours,
+        image: route.image,
       },
       originCity: { id: originCity._id, name: originCity.name, code: originCity.code, region: originCity.region },
       destinationCity: { id: destinationCity._id, name: destinationCity.name, code: destinationCity.code, region: destinationCity.region },

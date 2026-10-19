@@ -253,12 +253,30 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {/* Security badge */}
-            <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex-shrink-0">
-              <Lock className="w-4 h-4 text-emerald-300" />
-              <div>
-                <p className="text-xs font-black text-white">Secure Checkout</p>
-                <p className="text-[10px] text-emerald-300/70">256-bit encrypted</p>
+
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Route Corridor Photo Thumbnail */}
+              {(trip.route?.image || (trip.route?.destination as any)?.image) && (
+                <div className="hidden sm:flex items-center gap-2.5 bg-black/40 backdrop-blur-md p-1.5 rounded-xl border border-white/15 shrink-0">
+                  <img
+                    src={trip.route?.image || (trip.route?.destination as any)?.image}
+                    alt="Corridor"
+                    className="w-16 h-12 object-cover rounded-lg shrink-0"
+                  />
+                  <div className="pr-2 text-left">
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">Scenic Route</span>
+                    <span className="text-xs font-black text-white">{trip.route?.distanceKm} km</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Security badge */}
+              <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex-shrink-0">
+                <Lock className="w-4 h-4 text-emerald-300" />
+                <div>
+                  <p className="text-xs font-black text-white">Secure Checkout</p>
+                  <p className="text-[10px] text-emerald-300/70">256-bit encrypted</p>
+                </div>
               </div>
             </div>
           </div>

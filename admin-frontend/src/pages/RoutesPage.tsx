@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Route as RouteIcon, Search, Plus, RefreshCw, Clock, ArrowRight, MapPin, Pencil } from 'lucide-react';
+import { Route as RouteIcon, Search, Plus, RefreshCw, Clock, ArrowRight, MapPin, Pencil, Image as ImageIcon } from 'lucide-react';
 import { routesApi, citiesApi } from '../api/endpoints';
 import { RouteModal } from '../features/RouteModal';
 import { StatusBadge } from '../components/StatusBadge';
@@ -105,29 +105,58 @@ export const RoutesPage: React.FC = () => {
         {filteredRoutes.map((r) => (
           <div
             key={r._id}
-            className="bg-white rounded-card p-5 border border-gray-100 shadow-card hover:shadow-cardHover transition-all space-y-4 flex flex-col justify-between"
+            className="bg-white rounded-card overflow-hidden border border-gray-100 shadow-card hover:shadow-cardHover transition-all flex flex-col justify-between group"
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-brand-dark">
-                  <span className="text-sm font-black">{r.origin?.name}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-brand-emerald" />
-                  <span className="text-sm font-black">{r.destination?.name}</span>
+            {/* Scenic Route Corridor Image */}
+            <div
+              className="relative h-32 w-full bg-gray-900 overflow-hidden cursor-pointer"
+              onClick={() => handleOpenEdit(r)}
+              title="Click to view or edit route details and photo"
+            >
+              {r.image ? (
+                <img
+                  src={r.image}
+                  alt={`${r.origin?.name} to ${r.destination?.name}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-[#031d12] to-[#063B2A] flex items-center justify-center text-emerald-400/40">
+                  <ImageIcon className="w-8 h-8 opacity-40" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={r.status} />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+              <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                <StatusBadge status={r.status} />
+              </div>
+              <div className="absolute bottom-2 left-3 right-3 z-10 flex items-center justify-between text-white">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                  {r.origin?.code} ➔ {r.destination?.code}
+                </span>
+                <span className="text-[10px] bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded text-white font-bold">
+                  {r.image ? 'Corridor Photo' : 'No Photo'}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-brand-dark">
+                    <span className="text-sm font-black">{r.origin?.name}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-brand-emerald" />
+                    <span className="text-sm font-black">{r.destination?.name}</span>
+                  </div>
                   <button
                     onClick={() => handleOpenEdit(r)}
                     className="p-1.5 rounded-btn bg-emerald-50 hover:bg-emerald-100 text-brand-emerald text-xs font-bold inline-flex items-center transition-colors"
-                    title="Edit Route"
+                    title="Edit Route & Photo"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 py-3 border-y border-gray-100 text-xs mt-3">
-                <div>
+                <div className="grid grid-cols-2 gap-3 py-2.5 border-y border-gray-100 text-xs mt-3">
+                  <div>
                   <span className="text-gray-400 font-bold uppercase text-[10px]">Distance</span>
                   <div className="font-extrabold text-brand-emerald text-sm mt-0.5">
                     {r.distanceKm} km
@@ -170,8 +199,9 @@ export const RoutesPage: React.FC = () => {
               </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
+    </div>
 
       {filteredRoutes.length === 0 && !loading && (
         <div className="py-12 text-center text-xs text-gray-400 bg-white rounded-card border border-dashed border-gray-200">

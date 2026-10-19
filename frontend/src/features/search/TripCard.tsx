@@ -19,15 +19,36 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
 
   const seatsAvailable = trip.availableSeatsCount;
   const seatsLow = seatsAvailable > 0 && seatsAvailable <= 5;
+  const routeImage = trip.route?.image || (trip.route?.destination as any)?.image || '/dest-bahirdar.jpg';
 
   return (
     <div className="bg-white rounded-card border border-gray-100 shadow-card hover:shadow-cardHover hover:border-emerald-200 transition-all duration-200 overflow-hidden group">
       {/* Top accent bar */}
       <div className="h-1 bg-gradient-to-r from-brand-emerald to-brand-deep group-hover:from-brand-deep group-hover:to-brand-emerald transition-all duration-500" />
 
-      <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+      <div className="p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 sm:gap-6">
+        {/* Route Corridor Photo Thumbnail */}
+        <div className="relative w-full md:w-36 h-28 md:h-32 rounded-xl overflow-hidden shrink-0 bg-gray-900 border border-gray-100 shadow-2xs group-hover:shadow-md transition-shadow">
+          <img
+            src={routeImage}
+            alt={`${originCity} to ${destCity}`}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute top-2 left-2 z-10">
+            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-xs text-white">
+              {trip.route?.distanceKm ? `${trip.route.distanceKm} km` : 'Direct'}
+            </span>
+          </div>
+          <div className="absolute bottom-1.5 left-2 right-2 z-10 flex items-center justify-between text-white text-[10px] font-bold">
+            <span className="truncate text-emerald-300 uppercase tracking-wider font-black">
+              {trip.route?.origin?.code || originCity.slice(0, 3)} ➔ {trip.route?.destination?.code || destCity.slice(0, 3)}
+            </span>
+          </div>
+        </div>
+
         {/* Left Details */}
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-3 min-w-0">
           {/* Operator & Badges row */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-brand-emerald border border-emerald-100">

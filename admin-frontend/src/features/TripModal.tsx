@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, DollarSign, MapPin, Bus, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, DollarSign, MapPin, Bus, ShieldCheck, Sparkles, AlertCircle, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { tripsApi } from '../api/endpoints';
 import { Route, Operator, Vehicle } from '../types';
@@ -43,6 +43,8 @@ export const TripModal: React.FC<TripModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const selectedRoute = routes.find((r) => r._id === routeId);
 
   // Initial populate when opening
   useEffect(() => {
@@ -256,6 +258,49 @@ export const TripModal: React.FC<TripModalProps> = ({
             </select>
           </div>
         </div>
+
+        {/* Selected Route Corridor & Photo Preview */}
+        {selectedRoute && (
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 flex flex-col sm:flex-row items-center gap-3.5 shadow-2xs">
+            <div className="relative w-full sm:w-28 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-900 border border-emerald-200 shadow-2xs">
+              {selectedRoute.image ? (
+                <img
+                  src={selectedRoute.image}
+                  alt={`${selectedRoute.origin?.name} to ${selectedRoute.destination?.name}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#031d12] to-[#063B2A] text-emerald-300">
+                  <ImageIcon className="w-6 h-6 opacity-60" />
+                  <span className="text-[9px] font-bold mt-1">No Image</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <span className="absolute bottom-1 left-1 text-[9px] font-black text-white px-1.5 py-0.5 rounded bg-black/60 uppercase tracking-wider">
+                {selectedRoute.origin?.code} ➔ {selectedRoute.destination?.code}
+              </span>
+            </div>
+
+            <div className="flex-1 w-full flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-brand-dark flex items-center gap-1.5">
+                  <span>{selectedRoute.origin?.name}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-brand-emerald" />
+                  <span>{selectedRoute.destination?.name}</span>
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-brand-emerald border border-emerald-200">
+                  {selectedRoute.image ? 'Corridor Photo Active' : 'No Photo (Default used)'}
+                </span>
+              </div>
+              <p className="text-[11px] text-brand-textMuted mt-1">
+                {selectedRoute.distanceKm} km • ~{selectedRoute.estimatedDurationHours} hours estimated travel time.
+                <span className="block text-[10px] text-emerald-800 font-medium mt-0.5">
+                  ✨ This route photo will appear on the customer booking card and trip results.
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 2. Vehicle Selection */}
         <div>

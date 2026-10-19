@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw } from 'lucide-react';
+import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw, Image as ImageIcon, Map as MapIcon } from 'lucide-react';
 import { tripsApi, citiesApi, operatorsApi } from '../api/endpoints';
 import { TripCard } from '../features/search/TripCard';
 import { FilterSidebar } from '../features/search/FilterSidebar';
@@ -25,6 +25,7 @@ export const SearchPage: React.FC = () => {
   const [originCity, setOriginCity] = useState<City | null>(null);
   const [destCity, setDestCity] = useState<City | null>(null);
   const [operators, setOperators] = useState<Operator[]>([]);
+  const [sideView, setSideView] = useState<'photo' | 'map'>('photo');
 
   // Filter & Sort State
   const [sortBy, setSortBy] = useState('DEPARTURE_EARLIEST');
@@ -85,11 +86,23 @@ export const SearchPage: React.FC = () => {
     }
   })();
 
+  const routePhoto = trips[0]?.route?.image || (destCity as any)?.image || (trips[0]?.route?.destination as any)?.image;
+
   return (
     <div className="bg-brand-bg min-h-screen">
       {/* Search Header Banner */}
-      <div className="bg-[#031d12] text-white py-7 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50">
-        <div className="max-w-7xl mx-auto">
+      <div className="relative bg-[#031d12] text-white py-7 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50 overflow-hidden">
+        {routePhoto && (
+          <div className="absolute inset-0 z-0">
+            <img
+              src={routePhoto}
+              alt="Route corridor backdrop"
+              className="w-full h-full object-cover opacity-20 filter blur-xs scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#031d12] via-[#031d12]/90 to-[#031d12]/75" />
+          </div>
+        )}
+        <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
@@ -205,24 +218,66 @@ export const SearchPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Right Side: Google Map Embed */}
-              <div className="hidden xl:block w-[340px] flex-shrink-0 sticky top-28 h-[calc(100vh-140px)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 relative">
+              {/* Right Side: Route Photo & Map Panel */}
+              <div className="hidden xl:block w-[340px] flex-shrink-0 sticky top-28 h-[calc(100vh-140px)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 relative flex flex-col">
+                {/* View Mode Toggle Pill */}
+                <div className="absolute top-3 right-3 z-20 flex items-center bg-black/60 backdrop-blur-md p-1 rounded-full border border-white/20 shadow-md">
+                  <button
+                    onClick={() => setSideView('photo')}
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition-colors ${
+                      sideView === 'photo'
+                        ? 'bg-brand-emerald text-white shadow-xs'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    <ImageIcon className="w-3 h-3" />
+                    <span>Photo</span>
+                  </button>
+                  <button
+                    onClick={() => setSideView('map')}
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition-colors ${
+                      sideView === 'map'
+                        ? 'bg-brand-emerald text-white shadow-xs'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    <MapIcon className="w-3 h-3" />
+                    <span>Map</span>
+                  </button>
+                </div>
+
                 {!loading && (
                   <>
-                    <iframe
-                      title="Route Map"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent((originCity?.name || fromParam) + ' to ' + (destCity?.name || toParam) + ', Ethiopia')}&t=&z=6&ie=UTF8&iwloc=&output=embed`}
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      className="absolute inset-0 z-0"
-                    ></iframe>
-                    
+                    {sideView === 'photo' && routePhoto ? (
+                      <div className="relative w-full h-full bg-gray-900 overflow-hidden">
+                        <img
+                          src={routePhoto}
+                          alt="Route corridor"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
+                        <div className="absolute top-4 left-4 z-10">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-emerald-300 border border-emerald-500/30">
+                            Ethiopian Scenic Corridor
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <iframe
+                        title="Route Map"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent((originCity?.name || fromParam) + ' to ' + (destCity?.name || toParam) + ', Ethiopia')}&t=&z=6&ie=UTF8&iwloc=&output=embed`}
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        className="absolute inset-0 z-0"
+                      ></iframe>
+                    )}
+
                     {/* Distance overlay */}
                     {trips.length > 0 && trips[0].route?.distanceKm && (
-                      <div className="absolute bottom-4 left-4 right-4 z-10 bg-white/90 backdrop-blur-md rounded-xl p-3 shadow-lg border border-gray-100 flex items-center justify-between">
+                      <div className="absolute bottom-4 left-4 right-4 z-10 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-lg border border-gray-100 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                             <ArrowRight className="w-4 h-4 text-brand-emerald" />
@@ -236,13 +291,13 @@ export const SearchPage: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        {trips[0].route?.estimatedDurationMinutes && (
+                        {trips[0].route?.estimatedDurationHours && (
                           <div className="text-right">
                             <span className="text-[10px] uppercase tracking-wider font-bold text-brand-textMuted block">
                               {isAmharic ? 'ግምታዊ ሰዓት' : 'Est. Time'}
                             </span>
                             <span className="text-sm font-black text-brand-dark">
-                              {Math.floor(trips[0].route.estimatedDurationMinutes / 60)}h {trips[0].route.estimatedDurationMinutes % 60}m
+                              ~{trips[0].route.estimatedDurationHours} {isAmharic ? 'ሰዓት' : 'hrs'}
                             </span>
                           </div>
                         )}

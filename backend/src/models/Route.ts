@@ -5,6 +5,7 @@ export interface IRoute extends Document {
   destination: mongoose.Types.ObjectId;
   distanceKm: number;
   estimatedDurationHours: number;
+  image?: string;
   pickupPoints: Array<{
     name: string;
     locationNote?: string;
@@ -26,6 +27,7 @@ const RouteSchema = new Schema<IRoute>(
     destination: { type: Schema.Types.ObjectId, ref: 'City', required: true },
     distanceKm: { type: Number, default: 0 },
     estimatedDurationHours: { type: Number, default: 4 },
+    image: { type: String, trim: true },
     pickupPoints: [
       {
         name: { type: String, required: true },
