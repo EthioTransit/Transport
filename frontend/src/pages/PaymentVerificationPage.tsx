@@ -9,8 +9,9 @@ export const PaymentVerificationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const ref = searchParams.get('ref') || '';
+  const ref = searchParams.get('ref') || searchParams.get('tx_ref') || searchParams.get('trx_ref') || '';
   const bookingId = searchParams.get('bookingId') || '';
+  const simulateParam = (searchParams.get('simulateResult') as 'SUCCESS' | 'FAILED') || 'SUCCESS';
 
   const [verifying, setVerifying] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -31,7 +32,7 @@ export const PaymentVerificationPage: React.FC = () => {
     try {
       const res = await paymentsApi.verify({
         transactionReference: ref,
-        simulateResult: 'SUCCESS',
+        simulateResult: simulateParam,
       });
 
       setSuccess(true);

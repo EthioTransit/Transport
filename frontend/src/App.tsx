@@ -7,6 +7,7 @@ import { SearchPage } from './pages/SearchPage';
 import { SeatSelectionPage } from './pages/SeatSelectionPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { PaymentVerificationPage } from './pages/PaymentVerificationPage';
+import { ChapaSandboxPage } from './pages/ChapaSandboxPage';
 import { TicketPage } from './pages/TicketPage';
 import { RoutesPage } from './pages/RoutesPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/trips/:tripId/seats" element={<SeatSelectionPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/checkout/chapa-sandbox" element={<ChapaSandboxPage />} />
             <Route path="/verify-payment" element={<PaymentVerificationPage />} />
             <Route path="/routes" element={<RoutesPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />

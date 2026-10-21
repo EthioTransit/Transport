@@ -11,6 +11,7 @@ import {
   Building2,
   Zap,
   Clock,
+  Sparkles,
 } from 'lucide-react';
 import { tripsApi, bookingsApi, paymentsApi } from '../api/endpoints';
 import { PassengerForm } from '../features/booking/PassengerForm';
@@ -177,6 +178,11 @@ export const CheckoutPage: React.FC = () => {
             ? 'Chapa Gateway'
             : 'Mock Instant Birr Gateway',
       });
+
+      if (paymentIntent.checkoutUrl && paymentProvider === 'chapa') {
+        window.location.href = paymentIntent.checkoutUrl;
+        return;
+      }
 
       navigate(`/verify-payment?ref=${paymentIntent.transactionReference}&bookingId=${booking._id}`);
     } catch (err: any) {
@@ -368,6 +374,17 @@ export const CheckoutPage: React.FC = () => {
                   );
                 })}
               </div>
+              {paymentProvider === 'chapa' && (
+                <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200 text-xs text-purple-900 flex items-start gap-2.5 animate-in fade-in duration-150">
+                  <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <span className="font-bold block text-purple-950">Chapa Official Payment Gateway</span>
+                    <span className="text-[11px] text-purple-700 block mt-0.5 leading-relaxed">
+                      You will be securely routed to Chapa checkout to pay via Visa, Mastercard, Telebirr, or local commercial banking. Your seat will be confirmed immediately.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Seat reservation reminder */}
               <div className="flex items-center gap-2 p-3 rounded-btn bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">
