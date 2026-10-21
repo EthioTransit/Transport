@@ -37,11 +37,32 @@ export class BookingService {
     const totalServiceFee = perSeatFee * params.seats.length;
     const totalAmount = totalFare + totalServiceFee;
 
+    const expiresAt = new Date(Date.now() + (BRAND_CONFIG.seatReservationTimeoutMinutes || 10) * 60 * 1000);
+
+    // If an active pending booking already exists for this caller and these seats, reuse it
+    const existingPending = await Booking.findOne({
+      trip: params.tripId,
+      user: params.userId,
+      seats: { $all: params.seats, $size: params.seats.length },
+      status: BookingStatus.PENDING,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (existingPending) {
+      existingPending.passengers = params.passengers;
+      existingPending.expiresAt = expiresAt;
+      await existingPending.save();
+      return await Booking.findById(existingPending._id)
+        .populate({
+          path: 'trip',
+          populate: ['route', 'operator', 'vehicle'],
+        })
+        .lean();
+    }
+
     const randomSuffix = Math.floor(10000 + Math.random() * 90000);
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const bookingReference = `ET-BK-${dateStr}-${randomSuffix}`;
-
-    const expiresAt = new Date(Date.now() + (BRAND_CONFIG.seatReservationTimeoutMinutes || 10) * 60 * 1000);
 
     const booking = await Booking.create({
       bookingReference,
