@@ -101,8 +101,8 @@ export class PaymentService {
         callbackUrl,
         returnUrl,
         customization: {
-          title: 'EthioTransit Intercity Booking',
-          description: `Travel Booking ${booking.bookingReference} (${booking.seats.length} seat(s))`,
+          title: 'EthioTransit',
+          description: `Booking ${booking.bookingReference}`.replace(/[^a-zA-Z0-9\-_.\s]/g, '').slice(0, 50),
         },
       });
 

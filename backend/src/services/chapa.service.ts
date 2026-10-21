@@ -70,8 +70,10 @@ export class ChapaService {
         callback_url: data.callbackUrl,
         return_url: data.returnUrl,
         customization: {
-          title: data.customization?.title || 'EthioTransit Intercity Booking',
-          description: data.customization?.description || 'Official Bus Travel Booking Ticket',
+          title: (data.customization?.title || 'EthioTransit').slice(0, 16),
+          description: (data.customization?.description || 'Bus Travel Ticket')
+            .replace(/[^a-zA-Z0-9\-_.\s]/g, '')
+            .slice(0, 50),
         },
       };
 
@@ -96,9 +98,13 @@ export class ChapaService {
           };
         } else {
           console.error('[Chapa Error] Initialization failed:', resData);
-          throw new Error(
-            resData.message || 'Chapa initialization failed. Please verify your Chapa API credentials.'
-          );
+          const errorMsg =
+            typeof resData.message === 'string'
+              ? resData.message
+              : resData.message
+              ? JSON.stringify(resData.message)
+              : 'Chapa initialization failed. Please verify your Chapa API credentials.';
+          throw new Error(errorMsg);
         }
       } catch (err: any) {
         console.error('[Chapa Connection Error]:', err.message);
