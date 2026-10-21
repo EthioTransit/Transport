@@ -111,8 +111,22 @@ export const CheckoutPage: React.FC = () => {
     const fetchTrip = async () => {
       setLoading(true);
       try {
-        const data = await tripsApi.getById(tripId);
-        setTrip(data);
+        const [tripData, seatMapData] = await Promise.all([
+          tripsApi.getById(tripId),
+          tripsApi.getSeats(tripId, guestLockId).catch(() => null),
+        ]);
+        setTrip(tripData);
+
+        if (seatMapData && seatMapData.seats) {
+          const unavailable = seatMapData.seats.filter(
+            (s) => selectedSeats.includes(s.seatNumber) && s.status === 'BOOKED'
+          );
+          if (unavailable.length > 0) {
+            setError(
+              `Seat ${unavailable.map((s) => s.seatNumber).join(', ')} has already been booked and paid for. Please choose an available seat.`
+            );
+          }
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to load trip details.');
       } finally {
@@ -293,13 +307,23 @@ export const CheckoutPage: React.FC = () => {
       {/* Error Banner */}
       {error && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <div className="p-4 rounded-card bg-red-50 border border-red-200 text-status-error text-sm font-medium flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <div className="flex-1">
+          <div className="p-4 rounded-card bg-red-50 border border-red-200 text-status-error text-sm font-medium flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
+            </div>
+            <div className="flex items-center gap-2">
               {error.includes('sign in') && (
-                <Link to="/login" className="ml-2 font-bold underline text-brand-emerald">
+                <Link to="/login" className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold shadow-xs hover:bg-brand-deep">
                   Sign In Now
+                </Link>
+              )}
+              {(error.includes('booked') || error.includes('reserved') || error.includes('available')) && (
+                <Link
+                  to={`/trips/${tripId}/seats`}
+                  className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold shadow-xs hover:bg-brand-deep"
+                >
+                  Choose Available Seat
                 </Link>
               )}
             </div>
