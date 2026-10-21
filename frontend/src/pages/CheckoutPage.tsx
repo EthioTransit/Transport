@@ -186,6 +186,7 @@ export const CheckoutPage: React.FC = () => {
 
       navigate(`/verify-payment?ref=${paymentIntent.transactionReference}&bookingId=${booking._id}`);
     } catch (err: any) {
+      console.error('[Booking/Payment Error]:', err.message, err);
       if (err.message && err.message.includes('Authentication required')) {
         setError('Please sign in or create an account to finalize your booking ticket.');
       } else {

@@ -107,16 +107,30 @@ export class SeatService {
     const acquiredSeatIds: mongoose.Types.ObjectId[] = [];
 
     try {
+      const userObjectId =
+        params.userId && mongoose.Types.ObjectId.isValid(params.userId)
+          ? new mongoose.Types.ObjectId(params.userId)
+          : null;
+
       for (const seatNumber of params.seatNumbers) {
         // Atomic condition: must be AVAILABLE OR already locked by this exact caller
+        const orConditions: any[] = [{ status: SeatStatus.AVAILABLE }];
+
+        if (userObjectId) {
+          orConditions.push({ status: SeatStatus.RESERVED, lockedBy: userObjectId });
+          orConditions.push({ status: SeatStatus.RESERVED, lockedBy: params.userId });
+        } else if (params.userId) {
+          orConditions.push({ status: SeatStatus.RESERVED, lockedBy: params.userId });
+        }
+
+        if (params.guestLockId) {
+          orConditions.push({ status: SeatStatus.RESERVED, guestLockId: params.guestLockId });
+        }
+
         const query: any = {
           trip: params.tripId,
           seatNumber,
-          $or: [
-            { status: SeatStatus.AVAILABLE },
-            ...(params.userId ? [{ status: SeatStatus.RESERVED, lockedBy: params.userId }] : []),
-            ...(params.guestLockId ? [{ status: SeatStatus.RESERVED, guestLockId: params.guestLockId }] : []),
-          ],
+          $or: orConditions,
         };
 
         const update: any = {
