@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Route as RouteIcon, Search, Plus, RefreshCw, Clock, ArrowRight, MapPin, Pencil, Image as ImageIcon } from 'lucide-react';
-import { routesApi, citiesApi } from '../api/endpoints';
+import { Route as RouteIcon, Search, Plus, RefreshCw, Clock, ArrowRight, MapPin, Pencil, Calendar, Bus, DollarSign, Image as ImageIcon } from 'lucide-react';
+import { routesApi, citiesApi, operatorsApi } from '../api/endpoints';
 import { RouteModal } from '../features/RouteModal';
 import { StatusBadge } from '../components/StatusBadge';
-import { Route, City } from '../types';
+import { Route, City, Operator } from '../types';
 
 export const RoutesPage: React.FC = () => {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  const [operators, setOperators] = useState<Operator[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [modalOpen, setRouteModalOpen] = useState(false);
@@ -16,14 +17,16 @@ export const RoutesPage: React.FC = () => {
   const fetchRoutesAndCities = async () => {
     setLoading(true);
     try {
-      const [rData, cData] = await Promise.all([
+      const [rData, cData, oData] = await Promise.all([
         routesApi.getAll().catch(() => []),
         citiesApi.getAll().catch(() => []),
+        operatorsApi.getAll().catch(() => []),
       ]);
       setRoutes(rData || []);
       setCities(cData || []);
+      setOperators(oData || []);
     } catch (err) {
-      console.error('Failed to load routes:', err);
+      console.error('Failed to load routes data:', err);
     } finally {
       setLoading(false);
     }
@@ -186,6 +189,51 @@ export const RoutesPage: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              {/* Operating Days & Departure Times Section */}
+              <div className="pt-2.5 mt-2.5 border-t border-gray-100 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1 font-bold text-brand-dark">
+                    <Calendar className="w-3 h-3 text-brand-emerald" />
+                    <span>
+                      {r.operatingDays && r.operatingDays.length === 7
+                        ? 'Daily (All 7 Days)'
+                        : r.operatingDays && r.operatingDays.length > 0
+                        ? r.operatingDays.map(d => d.slice(0, 3)).join(', ')
+                        : 'Daily'}
+                    </span>
+                  </span>
+                  <span className="font-black text-brand-emerald text-xs bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                    ETB {r.baseFare || Math.round(r.distanceKm * 2.2)}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1">
+                  <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                  {(r.departureTimes && r.departureTimes.length > 0
+                    ? r.departureTimes
+                    : ['06:00 AM', '08:30 AM', '01:30 PM']
+                  ).map((time) => (
+                    <span
+                      key={time}
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700"
+                    >
+                      {time}
+                    </span>
+                  ))}
+                </div>
+
+                {r.operator && (
+                  <div className="text-[10px] text-gray-500 flex items-center gap-1 font-medium">
+                    <Bus className="w-2.5 h-2.5 text-brand-emerald" />
+                    <span>
+                      {typeof r.operator === 'object' && r.operator?.name
+                        ? r.operator.name
+                        : 'Dedicated Operator'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="pt-2 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
@@ -195,7 +243,7 @@ export const RoutesPage: React.FC = () => {
                 className="text-brand-emerald hover:text-brand-deep font-bold flex items-center gap-1"
               >
                 <Pencil className="w-3 h-3" />
-                <span>Edit Corridor</span>
+                <span>Edit Schedule</span>
               </button>
             </div>
           </div>
@@ -217,6 +265,7 @@ export const RoutesPage: React.FC = () => {
         }}
         onSuccess={fetchRoutesAndCities}
         cities={cities}
+        operators={operators}
         routeToEdit={editingRoute}
       />
     </div>

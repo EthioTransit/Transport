@@ -2,47 +2,71 @@ import { Route, IRoute } from '../models/Route';
 import { City } from '../models/City';
 import { AuditService } from './audit.service';
 import { UserRole } from '../types';
+import { TripService } from './trip.service';
 
 export class RouteService {
+  private static formatRoute(route: any) {
+    if (!route) return route;
+    return {
+      ...route,
+      operatingDays:
+        route.operatingDays && route.operatingDays.length > 0
+          ? route.operatingDays
+          : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      departureTimes:
+        route.departureTimes && route.departureTimes.length > 0
+          ? route.departureTimes
+          : ['06:00 AM', '08:30 AM', '01:30 PM'],
+    };
+  }
+
   static async getAllRoutes(options: { activeOnly?: boolean } = {}) {
     const filter: any = {};
     if (options.activeOnly) {
       filter.status = 'ACTIVE';
     }
 
-    return await Route.find(filter)
+    const routes = await Route.find(filter)
       .populate('origin', 'name amharicName code region')
       .populate('destination', 'name amharicName code region')
+      .populate('operator', 'name legalName rating logoUrl')
       .sort({ popularityScore: -1 })
       .lean();
+
+    return routes.map((r) => this.formatRoute(r));
   }
 
   static async getPopularRoutes(limit = 6) {
-    return await Route.find({ status: 'ACTIVE' })
+    const routes = await Route.find({ status: 'ACTIVE' })
       .populate('origin', 'name amharicName code region')
       .populate('destination', 'name amharicName code region')
+      .populate('operator', 'name legalName rating logoUrl')
       .sort({ popularityScore: -1 })
       .limit(limit)
       .lean();
+
+    return routes.map((r) => this.formatRoute(r));
   }
 
   static async getRouteById(id: string) {
     const route = await Route.findById(id)
       .populate('origin')
       .populate('destination')
+      .populate('operator', 'name legalName rating logoUrl')
       .lean();
     if (!route) throw new Error('Route not found');
-    return route;
+    return this.formatRoute(route);
   }
 
   static async findRouteByCities(originCityId: string, destCityId: string) {
-    return await Route.findOne({
+    const route = await Route.findOne({
       origin: originCityId,
       destination: destCityId,
       status: 'ACTIVE',
     })
-      .populate('origin destination')
+      .populate('origin destination operator')
       .lean();
+    return route ? this.formatRoute(route) : null;
   }
 
   static async createRoute(
@@ -56,6 +80,11 @@ export class RouteService {
       dropOffPoints?: Array<{ name: string; locationNote?: string }>;
       status?: 'ACTIVE' | 'INACTIVE';
       popularityScore?: number;
+      operatingDays?: string[];
+      departureTimes?: string[];
+      baseFare?: number;
+      operator?: string;
+      autoScheduleTrips?: boolean;
     },
     userContext?: { id: string; email: string; role: UserRole }
   ) {
@@ -87,7 +116,20 @@ export class RouteService {
       dropOffPoints: data.dropOffPoints || [{ name: `${destCity.name} Main Bus Station` }],
       status: data.status || 'ACTIVE',
       popularityScore: data.popularityScore !== undefined ? data.popularityScore : 15,
+      operatingDays: data.operatingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      departureTimes: data.departureTimes || ['06:00 AM', '08:30 AM', '01:30 PM'],
+      baseFare: data.baseFare,
+      operator: data.operator || undefined,
     });
+
+    // Auto-generate scheduled trips for this route if active
+    if (route.status === 'ACTIVE' && data.autoScheduleTrips !== false) {
+      try {
+        await TripService.generateTripsForRouteSchedule(route._id, 14);
+      } catch (scheduleErr) {
+        console.error('[RouteService] Failed to schedule trips for new route:', scheduleErr);
+      }
+    }
 
     if (userContext) {
       await AuditService.log({
@@ -101,20 +143,28 @@ export class RouteService {
       });
     }
 
-    return await Route.findById(route._id).populate('origin destination').lean();
+    return await Route.findById(route._id).populate('origin destination operator').lean();
   }
 
   static async updateRoute(
     id: string,
-    updates: Partial<IRoute>,
+    updates: Partial<IRoute> & { autoScheduleTrips?: boolean },
     userContext?: { id: string; email: string; role: UserRole }
   ) {
     const oldRoute = await Route.findById(id);
     if (!oldRoute) throw new Error('Route not found');
 
     const updated = await Route.findByIdAndUpdate(id, updates, { new: true })
-      .populate('origin destination')
+      .populate('origin destination operator')
       .lean();
+
+    if (updated && updated.status === 'ACTIVE' && updates.autoScheduleTrips !== false) {
+      try {
+        await TripService.generateTripsForRouteSchedule(updated._id, 14);
+      } catch (scheduleErr) {
+        console.error('[RouteService] Failed to update trips for route:', scheduleErr);
+      }
+    }
 
     if (userContext) {
       await AuditService.log({

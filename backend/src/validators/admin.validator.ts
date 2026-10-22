@@ -38,6 +38,12 @@ export const createRouteSchema = z.object({
     )
     .optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
+  popularityScore: z.number().optional(),
+  operatingDays: z.array(z.string()).optional(),
+  departureTimes: z.array(z.string()).optional(),
+  baseFare: z.number().optional(),
+  operator: z.string().optional().nullable(),
+  autoScheduleTrips: z.boolean().optional(),
 });
 
 export const updateRouteSchema = createRouteSchema.partial();

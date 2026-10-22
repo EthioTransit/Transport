@@ -40,15 +40,16 @@ export const DashboardOverviewPage: React.FC = () => {
         analyticsApi.getAdmin().catch(() => null),
         citiesApi.getAll().catch(() => []),
         routesApi.getAll().catch(() => []),
-        tripsApi.getAll().catch(() => ({ trips: [] })),
+        tripsApi.getAll().catch(() => []),
         bookingsApi.getAll().catch(() => ({ bookings: [] })),
       ]);
 
       setAnalytics(analyticsRes);
       setCities(citiesRes || []);
       setRoutes(routesRes || []);
-      setTrips(tripsRes.trips || []);
-      setBookings(bookingsRes.bookings || []);
+      const tripList = Array.isArray(tripsRes) ? tripsRes : ((tripsRes as any)?.trips || []);
+      setTrips(tripList);
+      setBookings(bookingsRes?.bookings || (Array.isArray(bookingsRes) ? bookingsRes : []));
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {

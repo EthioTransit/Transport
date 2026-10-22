@@ -28,13 +28,16 @@ export async function runDatabaseSeed(force = false) {
   }
 
   const existingCityCount = await City.countDocuments();
-  if (!force && existingCityCount > 0) {
-    console.log(`[Seed] Database already contains ${existingCityCount} cities. Preserving existing data and skipping seed.`);
-    await PersistenceService.onDatabaseSeeded();
-    return;
+  if (existingCityCount > 0) {
+    console.log(`[Seed] Database already contains ${existingCityCount} cities. Checking trips...`);
+    const tripsCount = await Trip.countDocuments();
+    if (tripsCount > 0) {
+      console.log(`[Seed] Database already has ${tripsCount} trips. Skipping seed.`);
+      return;
+    }
   }
 
-  console.log('[Seed] Performing one-time initial seed for Ethiopian intercity transportation platform...');
+  console.log('[Seed] Seeding demo Ethiopian intercity transportation data...');
 
   // 1. Seed Cities
   const citiesData = [
@@ -371,6 +374,10 @@ export async function runDatabaseSeed(force = false) {
           pickupPoints: r.pickupPoints,
           dropOffPoints: r.dropOffPoints,
           status: 'ACTIVE',
+          operatingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+          departureTimes: ['05:30 AM', '06:00 AM', '07:30 AM', '11:00 AM', '01:30 PM'],
+          baseFare: Math.max(120, Math.round(r.distanceKm * 2.2)),
+          operator: operatorMap['Selam Bus Line S.C.']?._id,
         },
         { upsert: true, new: true }
       );
@@ -398,8 +405,11 @@ export async function runDatabaseSeed(force = false) {
     tripDateObj.setDate(tripDateObj.getDate() + dayOffset);
     const dateStr = formatYMD(tripDateObj);
 
-    for (let rIndex = 0; rIndex < routeList.length; rIndex++) {
-      const route = routeList[rIndex];
+    const allActiveRoutes = await Route.find({ status: 'ACTIVE' });
+    const targetRoutes = allActiveRoutes.length > 0 ? allActiveRoutes : routeList;
+
+    for (let rIndex = 0; rIndex < targetRoutes.length; rIndex++) {
+      const route = targetRoutes[rIndex];
       // Pick vehicle & operator alternately
       const vehicle = vehicleList[rIndex % vehicleList.length];
       const operator = vehicle.operator;
@@ -460,19 +470,4 @@ export async function runDatabaseSeed(force = false) {
   }
 
   console.log(`[Seed] Seeded ${tripsCreatedCount} trips across multiple dynamic dates with complete seat layouts!`);
-  await PersistenceService.onDatabaseSeeded();
 }
-
-// Support direct execution via CLI (e.g. npm run seed)
-if (require.main === module || (typeof process !== 'undefined' && process.argv[1]?.includes('seed'))) {
-  (async () => {
-    const { connectDatabase } = await import('../config/database');
-    await connectDatabase();
-    await runDatabaseSeed(process.argv.includes('--force'));
-    process.exit(0);
-  })().catch((err) => {
-    console.error('Seed execution failed:', err);
-    process.exit(1);
-  });
-}
-

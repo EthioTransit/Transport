@@ -22,21 +22,38 @@ export const tripSearchSchema = z
     path: ['to'],
   });
 
-export const createTripSchema = z.object({
-  route: z.string().min(1, 'Route ID is required'),
-  operator: z.string().min(1, 'Operator ID is required'),
-  vehicle: z.string().min(1, 'Vehicle ID is required'),
-  driver: z.string().optional(),
-  departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Departure date must be YYYY-MM-DD'),
-  departureTime: z.string().min(1, 'Departure time is required (e.g. 06:00 AM)'),
-  estimatedArrival: z.string().optional(),
-  fare: z.union([z.number(), z.string().transform((v) => Number(v))]).pipe(z.number().min(50, 'Official fare must be at least 50 ETB')),
-  serviceFee: z.union([z.number(), z.string().transform((v) => Number(v))]).optional().default(15),
-  pickupLocation: z.string().optional(),
-  dropOffLocation: z.string().optional(),
-  amenities: z.array(z.string()).optional(),
-  boardingNotes: z.string().optional(),
-});
+export const createTripSchema = z
+  .object({
+    route: z.string().min(1, 'Route ID is required'),
+    operator: z.string().min(1, 'Operator ID is required'),
+    vehicle: z.string().min(1, 'Vehicle ID is required'),
+    driver: z.string().optional(),
+    departureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Departure date must be YYYY-MM-DD').optional(),
+    departureDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+    recurringDays: z.array(z.string()).optional(),
+    repeatWeeks: z.number().min(1).max(8).optional(),
+    departureTime: z.string().min(1, 'Departure time is required (e.g. 06:00 AM)'),
+    departureTimes: z.array(z.string()).optional(),
+    estimatedArrival: z.string().optional(),
+    fare: z.union([z.number(), z.string().transform((v) => Number(v))]).pipe(z.number().min(50, 'Official fare must be at least 50 ETB')),
+    serviceFee: z.union([z.number(), z.string().transform((v) => Number(v))]).optional().default(15),
+    pickupLocation: z.string().optional(),
+    dropOffLocation: z.string().optional(),
+    amenities: z.array(z.string()).optional(),
+    boardingNotes: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      Boolean(
+        data.departureDate ||
+          (data.departureDates && data.departureDates.length > 0) ||
+          (data.recurringDays && data.recurringDays.length > 0)
+      ),
+    {
+      message: 'Please provide departureDate, departureDates, or recurringDays.',
+      path: ['departureDate'],
+    }
+  );
 
 export const updateTripStatusSchema = z.object({
   status: z.nativeEnum(TripStatus),

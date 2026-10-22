@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw, Image as ImageIcon, Map as MapIcon } from 'lucide-react';
+import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw, Clock, Image as ImageIcon, Map as MapIcon } from 'lucide-react';
 import { tripsApi, citiesApi, operatorsApi } from '../api/endpoints';
 import { TripCard } from '../features/search/TripCard';
 import { FilterSidebar } from '../features/search/FilterSidebar';
+import { QuickDateCards } from '../features/search/QuickDateCards';
 import { TripCardSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
@@ -24,6 +25,7 @@ export const SearchPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [originCity, setOriginCity] = useState<City | null>(null);
   const [destCity, setDestCity] = useState<City | null>(null);
+  const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [operators, setOperators] = useState<Operator[]>([]);
   const [sideView, setSideView] = useState<'photo' | 'map'>('photo');
 
@@ -52,6 +54,7 @@ export const SearchPage: React.FC = () => {
       });
 
       setTrips(res.trips);
+      if (res.route) setCurrentRoute(res.route);
       if (res.originCity) setOriginCity(res.originCity);
       if (res.destinationCity) setDestCity(res.destinationCity);
     } catch (err: any) {
@@ -72,6 +75,12 @@ export const SearchPage: React.FC = () => {
     setSelectedVehicleType('');
   };
 
+  const handleDateChange = (newDate: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('date', newDate);
+    setSearchParams(newParams);
+  };
+
   // Format date for display
   const formattedDate = (() => {
     try {
@@ -84,6 +93,26 @@ export const SearchPage: React.FC = () => {
     } catch {
       return dateParam;
     }
+  })();
+
+  // Helper to find next operating date if current date has no trips
+  const nextOperatingDate = (() => {
+    if (!currentRoute?.operatingDays || currentRoute.operatingDays.length === 0 || currentRoute.operatingDays.length === 7) return null;
+    const dayOfWeekNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const curDate = new Date(dateParam + 'T00:00:00');
+    for (let i = 1; i <= 7; i++) {
+      const next = new Date(curDate);
+      next.setDate(next.getDate() + i);
+      const dayName = dayOfWeekNames[next.getDay()];
+      if (currentRoute.operatingDays.includes(dayName)) {
+        return {
+          iso: next.toISOString().split('T')[0],
+          dayName,
+          label: next.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        };
+      }
+    }
+    return null;
   })();
 
   const routePhoto = trips[0]?.route?.image || (destCity as any)?.image || (trips[0]?.route?.destination as any)?.image;
@@ -123,6 +152,30 @@ export const SearchPage: React.FC = () => {
                   {passengersParam} {isAmharic ? 'ተጓዦች' : (passengersParam === 1 ? 'Passenger' : 'Passengers')}
                 </span>
               </div>
+
+              {/* Operating Schedule & Departures Pill */}
+              {currentRoute && (
+                <div className="flex flex-wrap items-center gap-3 mt-2 text-xs bg-emerald-950/70 py-1.5 px-3 rounded-xl border border-emerald-800/60 w-fit">
+                  <span className="flex items-center gap-1.5 font-bold text-emerald-300">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>
+                      {currentRoute.operatingDays?.length === 7
+                        ? (isAmharic ? 'በየቀኑ ይሰራል (7 ቀናት)' : 'Runs Daily (All 7 Days)')
+                        : (isAmharic
+                            ? `የሚሰራባቸው ቀናት: ${currentRoute.operatingDays?.join(', ')}`
+                            : `Runs: ${currentRoute.operatingDays?.join(', ')}`)}
+                    </span>
+                  </span>
+                  <span className="text-emerald-700 hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1.5 text-amber-200 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="text-emerald-300/80">{isAmharic ? 'ሰዓታት:' : 'Departures:'}</span>
+                    <strong className="font-mono font-bold text-amber-300">
+                      {currentRoute.departureTimes?.join(' • ') || '06:00 AM • 08:30 AM'}
+                    </strong>
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3 flex-shrink-0">
@@ -164,6 +217,24 @@ export const SearchPage: React.FC = () => {
 
           {/* Trips List Container */}
           <div className="flex-1 flex flex-col gap-4">
+            {/* Quick Date Selector */}
+            <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-brand-textMuted flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-brand-emerald" />
+                  {isAmharic ? 'የጉዞ ቀን ይምረጡ' : 'Select Departure Date'}
+                </span>
+                <span className="text-[11px] font-semibold text-brand-emerald">
+                  {formattedDate}
+                </span>
+              </div>
+              <QuickDateCards
+                selectedDate={dateParam}
+                onSelectDate={handleDateChange}
+                operatingDays={currentRoute?.operatingDays}
+              />
+            </div>
+
             {/* Results count + sort hint */}
             <div className="flex items-center justify-between pb-1">
               <span className="text-sm font-extrabold text-brand-dark">
@@ -197,12 +268,28 @@ export const SearchPage: React.FC = () => {
                 ) : trips.length === 0 ? (
                   <EmptyState
                     icon={Bus}
-                    title={isAmharic ? "ምንም ጉዞ አልተገኘም" : "No Trips Found"}
-                    description={isAmharic 
-                      ? `ከ ${originCity?.amharicName || fromParam} ወደ ${destCity?.amharicName || toParam} በ ${formattedDate} የተመደበ ጉዞ የለም። እባክዎ የተለየ ቀን ወይም መድረሻ ይምረጡ።`
-                      : `No scheduled departures found from ${originCity?.name || fromParam} to ${destCity?.name || toParam} on ${formattedDate}. Try selecting a different date or destination.`}
-                    actionText={isAmharic ? "ፍለጋ ቀይር" : "Modify Search"}
-                    onAction={() => navigate('/')}
+                    title={isAmharic ? "በዚህ ቀን የተመደበ ጉዞ የለም" : "No Trips on This Date"}
+                    description={
+                      currentRoute?.operatingDays && currentRoute.operatingDays.length > 0 && currentRoute.operatingDays.length < 7
+                        ? (isAmharic
+                            ? `ይህ መስመር የሚሰራው በ: ${currentRoute.operatingDays.join(', ')} ነው። የተመደቡ ሰዓታት: ${currentRoute.departureTimes?.join(', ') || '06:00 AM, 08:30 AM'}። እባክዎ ከላይ ካሉት ቀናት ውስጥ አንዱን ይምረጡ።`
+                            : `This route operates on: ${currentRoute.operatingDays.join(', ')}. Scheduled departures: ${currentRoute.departureTimes?.join(' • ') || '06:00 AM, 08:30 AM'}. Please choose an operating day from the date selector above.`)
+                        : (isAmharic 
+                            ? `ከ ${originCity?.amharicName || fromParam} ወደ ${destCity?.amharicName || toParam} በ ${formattedDate} የተመደበ ጉዞ የለም። እባክዎ ከላይ ካሉት ቀናት ውስጥ አንዱን ይምረጡ።`
+                            : `No scheduled departures found from ${originCity?.name || fromParam} to ${destCity?.name || toParam} on ${formattedDate}. Try selecting an upcoming date from above.`)
+                    }
+                    actionText={
+                      nextOperatingDate
+                        ? (isAmharic ? `ወደ ${nextOperatingDate.label} ቀይር` : `Switch to ${nextOperatingDate.label}`)
+                        : (isAmharic ? "ፍለጋ ቀይር" : "Modify Search")
+                    }
+                    onAction={() => {
+                      if (nextOperatingDate) {
+                        handleDateChange(nextOperatingDate.iso);
+                      } else {
+                        navigate('/');
+                      }
+                    }}
                   />
                 ) : (
                   <div className="flex flex-col gap-4">

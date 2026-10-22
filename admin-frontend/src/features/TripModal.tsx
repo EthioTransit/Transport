@@ -16,6 +16,28 @@ interface TripModalProps {
 
 const COMMON_AMENITIES = ['AC', 'Wi-Fi', 'Bottled Water', 'Reclining Seats', 'USB Charging', 'Luggage Storage'];
 
+const ALL_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAY_SHORT: Record<string, string> = {
+  Monday: 'Mon',
+  Tuesday: 'Tue',
+  Wednesday: 'Wed',
+  Thursday: 'Thu',
+  Friday: 'Fri',
+  Saturday: 'Sat',
+  Sunday: 'Sun',
+};
+
+const COMMON_DEPARTURE_PRESETS = [
+  '05:30 AM',
+  '06:00 AM',
+  '07:30 AM',
+  '08:30 AM',
+  '11:30 AM',
+  '01:30 PM',
+  '03:00 PM',
+  '05:00 PM',
+];
+
 export const TripModal: React.FC<TripModalProps> = ({
   isOpen,
   onClose,
@@ -28,12 +50,20 @@ export const TripModal: React.FC<TripModalProps> = ({
   tomorrow.setDate(tomorrow.getDate() + 1);
   const defaultDate = tomorrow.toISOString().split('T')[0];
 
+  const [scheduleMode, setScheduleMode] = useState<'SINGLE' | 'RECURRING'>('SINGLE');
   const [routeId, setRouteId] = useState('');
   const [operatorId, setOperatorId] = useState('');
   const [vehicleId, setVehicleId] = useState('');
   const [departureDate, setDepartureDate] = useState(defaultDate);
   const [departureTime, setDepartureTime] = useState('06:00 AM');
   const [estimatedArrival, setEstimatedArrival] = useState('11:30 AM');
+
+  // Recurring & Multi-time schedule state
+  const [recurringDays, setRecurringDays] = useState<string[]>(ALL_DAYS);
+  const [repeatWeeks, setRepeatWeeks] = useState<number>(2);
+  const [batchDepartureTimes, setBatchDepartureTimes] = useState<string[]>(['06:00 AM', '08:30 AM']);
+  const [customTimeInput, setCustomTimeInput] = useState('');
+
   const [fare, setFare] = useState<number>(650);
   const [serviceFee, setServiceFee] = useState<number>(15);
   const [pickupLocation, setPickupLocation] = useState('');
@@ -60,7 +90,7 @@ export const TripModal: React.FC<TripModalProps> = ({
 
   const activeVehiclesForCurrentOp = filteredVehicles.filter((v) => v.status === 'ACTIVE');
 
-  // Handle route selection and auto-populate pickup/dropoff/arrival
+  // Handle route selection and auto-populate pickup/dropoff/arrival/schedule
   const handleRouteChange = (rId: string) => {
     setRouteId(rId);
     const selRoute = routes.find((r) => r._id === rId);
@@ -75,6 +105,19 @@ export const TripModal: React.FC<TripModalProps> = ({
         setDropOffLocation(selRoute.dropOffPoints[0].name);
       } else {
         setDropOffLocation(`${selRoute.destination?.name || 'Destination'} Bus Station`);
+      }
+
+      if (selRoute.baseFare && selRoute.baseFare > 0) {
+        setFare(selRoute.baseFare);
+      }
+
+      if (selRoute.operatingDays && selRoute.operatingDays.length > 0) {
+        setRecurringDays(selRoute.operatingDays);
+      }
+
+      if (selRoute.departureTimes && selRoute.departureTimes.length > 0) {
+        setBatchDepartureTimes(selRoute.departureTimes);
+        setDepartureTime(selRoute.departureTimes[0]);
       }
 
       computeEstimatedArrival(departureTime, selRoute.estimatedDurationHours || 5);
@@ -179,6 +222,36 @@ export const TripModal: React.FC<TripModalProps> = ({
     }
   };
 
+  // Recurring days toggles
+  const toggleRecurringDay = (day: string) => {
+    if (recurringDays.includes(day)) {
+      if (recurringDays.length === 1) return;
+      setRecurringDays(recurringDays.filter((d) => d !== day));
+    } else {
+      setRecurringDays([...recurringDays, day]);
+    }
+  };
+
+  const setDaysPreset = (preset: 'daily' | 'weekdays' | 'weekends') => {
+    if (preset === 'daily') setRecurringDays(ALL_DAYS);
+    if (preset === 'weekdays') setRecurringDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']);
+    if (preset === 'weekends') setRecurringDays(['Saturday', 'Sunday']);
+  };
+
+  const addBatchTime = (time: string) => {
+    const trimmed = time.trim();
+    if (!trimmed) return;
+    if (!batchDepartureTimes.includes(trimmed)) {
+      setBatchDepartureTimes([...batchDepartureTimes, trimmed]);
+    }
+    setCustomTimeInput('');
+  };
+
+  const removeBatchTime = (time: string) => {
+    if (batchDepartureTimes.length === 1) return;
+    setBatchDepartureTimes(batchDepartureTimes.filter((t) => t !== time));
+  };
+
   const toggleAmenity = (item: string) => {
     setAmenities((prev) =>
       prev.includes(item) ? prev.filter((a) => a !== item) : [...prev, item]
@@ -212,35 +285,50 @@ export const TripModal: React.FC<TripModalProps> = ({
       return;
     }
     if (!departureDate) {
-      setError('Please select a departure travel date.');
+      setError('Please select a valid Departure Date.');
       return;
     }
     if (!departureTime) {
-      setError('Please specify the departure time.');
+      setError('Please specify Departure Time.');
       return;
     }
     if (!fare || fare < 50) {
-      setError('Base passenger fare must be at least 50 ETB.');
+      setError('Fare must be at least 50 ETB.');
       return;
     }
 
     setLoading(true);
 
     try {
-      await tripsApi.create({
+      const payload: any = {
         route: routeId,
         operator: operatorId,
         vehicle: vehicleId,
         departureDate,
         departureTime,
-        estimatedArrival: estimatedArrival || '12:00 PM',
+        estimatedArrival,
         fare: Number(fare),
         serviceFee: Number(serviceFee || 15),
         pickupLocation: pickupLocation.trim(),
         dropOffLocation: dropOffLocation.trim(),
         amenities,
         boardingNotes: boardingNotes.trim(),
-      });
+      };
+
+      if (scheduleMode === 'RECURRING') {
+        payload.departureDate = departureDate; // Base start date
+        payload.recurringDays = recurringDays;
+        payload.repeatWeeks = Number(repeatWeeks);
+        payload.departureTime = batchDepartureTimes[0];
+        payload.departureTimes = batchDepartureTimes;
+        payload.estimatedArrival = estimatedArrival || '~3 hrs travel';
+      } else {
+        payload.departureDate = departureDate;
+        payload.departureTime = departureTime;
+        payload.estimatedArrival = estimatedArrival;
+      }
+
+      await tripsApi.create(payload);
 
       onSuccess();
       onClose();
@@ -406,74 +494,278 @@ export const TripModal: React.FC<TripModalProps> = ({
           )}
         </div>
 
-        {/* 3. Schedule: Date, Time & Estimated Arrival */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs font-bold text-brand-dark mb-1">
-              Departure Date *
-            </label>
-            <input
-              type="date"
-              value={departureDate}
-              onChange={(e) => setDepartureDate(e.target.value)}
-              required
-              className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium"
-            />
+        {/* 3. Schedule Mode & Departure Details */}
+        <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-200/80 space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-2.5">
+            <div>
+              <span className="text-xs font-black text-brand-dark flex items-center gap-1.5 uppercase tracking-wider">
+                <Calendar className="w-3.5 h-3.5 text-brand-emerald" />
+                <span>Trip Dispatch & Schedule Configuration *</span>
+              </span>
+              <p className="text-[11px] text-brand-textMuted">
+                Schedule a one-time trip or establish automated departures on specific operating days.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-gray-200 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setScheduleMode('SINGLE')}
+                className={`px-3 py-1 rounded text-xs font-bold transition-all ${scheduleMode === 'SINGLE'
+                    ? 'bg-brand-emerald text-white shadow-xs'
+                    : 'text-gray-600 hover:text-brand-dark'
+                  }`}
+              >
+                Single Date
+              </button>
+              <button
+                type="button"
+                onClick={() => setScheduleMode('RECURRING')}
+                className={`px-3 py-1 rounded text-xs font-bold transition-all ${scheduleMode === 'RECURRING'
+                    ? 'bg-brand-emerald text-white shadow-xs'
+                    : 'text-gray-600 hover:text-brand-dark'
+                  }`}
+              >
+                Weekly Recurring
+              </button>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-brand-dark mb-1">
-              Departure Time *
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. 06:00 AM"
-              value={departureTime}
-              onChange={(e) => {
-                setDepartureTime(e.target.value);
-                const selRoute = routes.find((r) => r._id === routeId);
-                if (selRoute) computeEstimatedArrival(e.target.value, selRoute.estimatedDurationHours || 5);
-              }}
-              required
-              className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium font-mono"
-            />
-          </div>
+          {scheduleMode === 'RECURRING' ? (
+            /* RECURRING SCHEDULE CONTROLS */
+            <div className="space-y-3 pt-1">
+              {/* Day selection */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-brand-dark">
+                    Select Operating Days ({recurringDays.length} selected) *
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setDaysPreset('daily')}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded bg-white hover:bg-emerald-50 text-brand-emerald border border-emerald-200"
+                    >
+                      Daily
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDaysPreset('weekdays')}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded bg-white hover:bg-emerald-50 text-brand-emerald border border-emerald-200"
+                    >
+                      Weekdays
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDaysPreset('weekends')}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded bg-white hover:bg-emerald-50 text-brand-emerald border border-emerald-200"
+                    >
+                      Weekends
+                    </button>
+                  </div>
+                </div>
 
-          <div>
-            <label className="block text-xs font-bold text-brand-dark mb-1">
-              Estimated Arrival
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. 11:30 AM"
-              value={estimatedArrival}
-              onChange={(e) => setEstimatedArrival(e.target.value)}
-              className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium font-mono"
-            />
-          </div>
-        </div>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {ALL_DAYS.map((day) => {
+                    const active = recurringDays.includes(day);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => toggleRecurringDay(day)}
+                        className={`py-1.5 px-1 rounded-lg text-xs font-bold transition-all text-center flex flex-col items-center justify-center border ${active
+                            ? 'bg-brand-emerald text-white border-brand-emerald shadow-xs'
+                            : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-300'
+                          }`}
+                      >
+                        <span className="text-[10px] uppercase">{DAY_SHORT[day]}</span>
+                        <span className="text-[9px] opacity-75">{active ? '✓' : '—'}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-        {/* Quick time helpers */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-bold text-brand-textMuted">Quick Times:</span>
-          {['05:30 AM', '06:00 AM', '06:30 AM', '07:00 AM', '01:00 PM', '08:00 PM'].map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => {
-                setDepartureTime(t);
-                const selRoute = routes.find((r) => r._id === routeId);
-                if (selRoute) computeEstimatedArrival(t, selRoute.estimatedDurationHours || 5);
-              }}
-              className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${
-                departureTime === t
-                  ? 'bg-brand-emerald text-white border-brand-emerald'
-                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+              {/* Start Date & Repeat Weeks */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-brand-dark mb-1">
+                    Schedule Starting Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-brand-dark mb-1">
+                    Repeat For Duration *
+                  </label>
+                  <select
+                    value={repeatWeeks}
+                    onChange={(e) => setRepeatWeeks(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-semibold bg-white"
+                  >
+                    <option value={1}>1 Week (Next 7 days)</option>
+                    <option value={2}>2 Weeks (Next 14 days)</option>
+                    <option value={4}>4 Weeks (Next 28 days)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Batch Departure Times */}
+              <div className="pt-2 border-t border-gray-200/70 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-brand-dark flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-brand-emerald" />
+                    <span>Daily Departure Times ({batchDepartureTimes.length}) *</span>
+                  </label>
+                  <span className="text-[10px] text-gray-400">Add all daily departure slots</span>
+                </div>
+
+                {/* Selected times chips */}
+                <div className="flex flex-wrap gap-1.5">
+                  {batchDepartureTimes.map((time) => (
+                    <span
+                      key={time}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-brand-dark font-extrabold text-xs border border-gray-200 shadow-2xs"
+                    >
+                      <Clock className="w-3 h-3 text-brand-emerald" />
+                      <span>{time}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeBatchTime(time)}
+                        className="text-gray-400 hover:text-red-500 font-bold ml-0.5"
+                        title="Remove time"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+
+                {/* Quick Presets & Custom Time */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex flex-wrap items-center gap-1 text-[10px]">
+                    <span className="text-gray-400 font-bold">Quick Presets:</span>
+                    {COMMON_DEPARTURE_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => addBatchTime(preset)}
+                        disabled={batchDepartureTimes.includes(preset)}
+                        className={`px-2 py-0.5 rounded border transition-colors ${batchDepartureTimes.includes(preset)
+                            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                            : 'bg-white hover:bg-emerald-50 text-brand-emerald border-emerald-200 font-semibold'
+                          }`}
+                      >
+                        + {preset}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <input
+                      type="text"
+                      placeholder="e.g. 09:30 AM or 04:15 PM"
+                      value={customTimeInput}
+                      onChange={(e) => setCustomTimeInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addBatchTime(customTimeInput);
+                        }
+                      }}
+                      className="flex-1 px-3 py-1.5 rounded-input border border-gray-200 text-xs bg-white focus:outline-none focus:border-brand-emerald"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => addBatchTime(customTimeInput)}
+                      className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold hover:bg-brand-deep transition-colors"
+                    >
+                      Add Time
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* SINGLE TRIP SCHEDULE CONTROLS */
+            <div className="space-y-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-brand-dark mb-1">
+                    Departure Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-brand-dark mb-1">
+                    Departure Time *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 06:00 AM"
+                    value={departureTime}
+                    onChange={(e) => {
+                      setDepartureTime(e.target.value);
+                      const selRoute = routes.find((r) => r._id === routeId);
+                      if (selRoute) computeEstimatedArrival(e.target.value, selRoute.estimatedDurationHours || 5);
+                    }}
+                    required
+                    className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium font-mono bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-brand-dark mb-1">
+                    Estimated Arrival *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 11:30 AM"
+                    value={estimatedArrival}
+                    onChange={(e) => setEstimatedArrival(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-input border border-gray-200 text-xs focus:outline-none focus:border-brand-emerald font-medium font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Quick time helpers */}
+              <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                <span className="text-[11px] font-bold text-brand-textMuted">Quick Times:</span>
+                {['05:30 AM', '06:00 AM', '06:30 AM', '07:00 AM', '01:00 PM', '08:00 PM'].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      setDepartureTime(t);
+                      const selRoute = routes.find((r) => r._id === routeId);
+                      if (selRoute) computeEstimatedArrival(t, selRoute.estimatedDurationHours || 5);
+                    }}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${departureTime === t
+                        ? 'bg-brand-emerald text-white border-brand-emerald'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                      }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 4. Fare & Service Fee */}
@@ -561,11 +853,10 @@ export const TripModal: React.FC<TripModalProps> = ({
                   key={item}
                   type="button"
                   onClick={() => toggleAmenity(item)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                    active
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${active
                       ? 'bg-emerald-50 border-emerald-300 text-brand-emerald'
                       : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   {active ? '✓ ' : '+ '}
                   {item}
