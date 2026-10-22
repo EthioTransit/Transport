@@ -1,11 +1,15 @@
 import { Payment, IPayment } from '../models/Payment';
 import { Booking } from '../models/Booking';
 import { Seat } from '../models/Seat';
+import { User } from '../models/User';
 import { PaymentStatus, BookingStatus, SeatStatus, NotificationType, UserRole } from '../types';
 import { TicketService } from './ticket.service';
 import { NotificationService } from './notification.service';
 import { AuditService } from './audit.service';
+import { ChapaService } from './chapa.service';
+import { PersistenceService } from './persistence.service';
 import { BRAND_CONFIG } from '../config/brand';
+import { ENV } from '../config/env';
 
 export interface PaymentProviderResult {
   transactionReference: string;
@@ -45,7 +49,7 @@ export class MockPaymentProvider implements IPaymentProvider {
 }
 
 export class PaymentService {
-  private static provider: IPaymentProvider = new MockPaymentProvider();
+  private static mockProvider: IPaymentProvider = new MockPaymentProvider();
 
   static async initiatePayment(params: {
     bookingId: string;
@@ -68,24 +72,66 @@ export class PaymentService {
       throw new Error('Booking reservation has expired. Please select your seats again.');
     }
 
-    const { reference } = await this.provider.createPayment(booking.total, BRAND_CONFIG.currency, {
-      bookingId: booking._id,
-      user: params.userId,
-    });
+    const user = await User.findById(params.userId);
+    const primaryPassenger = booking.passengers && booking.passengers.length > 0 ? booking.passengers[0] : null;
+
+    const firstName = user?.firstName || primaryPassenger?.name?.split(' ')[0] || 'Passenger';
+    const lastName = user?.lastName || primaryPassenger?.name?.split(' ').slice(1).join(' ') || 'Customer';
+    const email = user?.email || 'passenger@ethiotransit.et';
+    const rawPhone = primaryPassenger?.phone || user?.phone || '0911000000';
+    const phone = rawPhone.replace(/\s+/g, '');
+
+    const selectedProvider = params.providerName || 'chapa';
+    let reference = '';
+    let checkoutUrl = '';
+
+    if (selectedProvider === 'chapa') {
+      const txRef = `ET-CHP-${Date.now()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      const returnUrl = `${ENV.CLIENT_URL}/verify-payment?ref=${txRef}`;
+      const callbackUrl = `${ENV.API_BASE_URL || 'http://localhost:5000/api'}/payments/chapa/webhook`;
+
+      const chapaSession = await ChapaService.initializePayment({
+        amount: booking.total,
+        currency: BRAND_CONFIG.currency,
+        email,
+        firstName,
+        lastName,
+        phone,
+        txRef,
+        callbackUrl,
+        returnUrl,
+        customization: {
+          title: 'EthioTransit',
+          description: `Booking ${booking.bookingReference}`.replace(/[^a-zA-Z0-9\-_.\s]/g, '').slice(0, 50),
+        },
+      });
+
+      reference = txRef;
+      checkoutUrl = chapaSession.checkoutUrl;
+    } else {
+      const mockResult = await this.mockProvider.createPayment(booking.total, BRAND_CONFIG.currency, {
+        bookingId: booking._id,
+        user: params.userId,
+      });
+      reference = mockResult.reference;
+      checkoutUrl = mockResult.checkoutUrl || '';
+    }
 
     const payment = await Payment.create({
       booking: booking._id,
       user: params.userId,
-      provider: params.providerName || 'mock',
+      provider: selectedProvider,
       transactionReference: reference,
       amount: booking.total,
       currency: BRAND_CONFIG.currency,
       status: PaymentStatus.PENDING,
-      paymentMethod: params.paymentMethod || 'Mock Payment Gateway',
+      paymentMethod: params.paymentMethod || (selectedProvider === 'chapa' ? 'Chapa Gateway' : 'Mock Payment'),
+      metadata: { checkoutUrl },
     });
 
     booking.payment = payment._id;
     await booking.save();
+    PersistenceService.queueSave();
 
     return {
       paymentId: payment._id,
@@ -95,6 +141,7 @@ export class PaymentService {
       officialFare: booking.fare,
       serviceFee: booking.serviceFee,
       provider: payment.provider,
+      checkoutUrl,
     };
   }
 
@@ -115,17 +162,44 @@ export class PaymentService {
         status: PaymentStatus.PAID,
         message: 'Payment already verified.',
         tickets,
+        bookingReference: (payment.booking as any)?.bookingReference,
       };
     }
 
-    const providerResult = await this.provider.verifyPayment(
-      params.transactionReference,
-      params.simulateResult || 'SUCCESS'
-    );
+    let isPaid = false;
+    let providerRef = '';
+    let failureMsg = '';
 
-    payment.providerReference = providerResult.providerReference;
+    if (payment.provider === 'chapa') {
+      const chapaResult = await ChapaService.verifyPayment(params.transactionReference);
+      if (chapaResult.status === 'PAID') {
+        isPaid = true;
+        providerRef = chapaResult.providerReference || `CHP-AUTH-${Date.now()}`;
+      } else if (chapaResult.status === 'PENDING') {
+        return {
+          payment,
+          status: PaymentStatus.PENDING,
+          message: 'Chapa payment is currently pending authorization.',
+        };
+      } else {
+        failureMsg = chapaResult.message || 'Chapa payment failed or was declined.';
+      }
+    } else {
+      const mockResult = await this.mockProvider.verifyPayment(
+        params.transactionReference,
+        params.simulateResult || 'SUCCESS'
+      );
+      if (mockResult.status === PaymentStatus.PAID) {
+        isPaid = true;
+        providerRef = mockResult.providerReference || `MOCK-${Date.now()}`;
+      } else {
+        failureMsg = 'Mock payment authorization declined.';
+      }
+    }
 
-    if (providerResult.status === PaymentStatus.PAID) {
+    payment.providerReference = providerRef;
+
+    if (isPaid) {
       payment.status = PaymentStatus.PAID;
       payment.paidAt = new Date();
       await payment.save();
@@ -139,52 +213,55 @@ export class PaymentService {
       booking.status = BookingStatus.CONFIRMED;
       await booking.save();
 
-        // Mark Seats as permanently BOOKED
-        await Seat.updateMany(
-          { trip: booking.trip, seatNumber: { $in: booking.seats } },
-          {
-            $set: { status: SeatStatus.BOOKED },
-            $unset: { lockExpiresAt: '', guestLockId: '' },
-          }
-        );
+      // Mark Seats as permanently BOOKED
+      await Seat.updateMany(
+        { trip: booking.trip, seatNumber: { $in: booking.seats } },
+        {
+          $set: { status: SeatStatus.BOOKED },
+          $unset: { lockExpiresAt: '', guestLockId: '' },
+        }
+      );
 
-        // Generate Digital Tickets with secure QR tokens
-        const tickets = await TicketService.generateTicketsForBooking(booking._id.toString());
+      // Generate Digital Tickets with secure QR tokens
+      const tickets = await TicketService.generateTicketsForBooking(booking._id.toString());
 
-        // Send In-App Notification
-        await NotificationService.create({
-          userId: booking.user.toString(),
-          title: 'Booking Confirmed & Digital Tickets Issued',
-          message: `Your journey on reference ${booking.bookingReference} is confirmed. ${tickets.length} digital ticket(s) are ready for boarding.`,
-          type: NotificationType.PAYMENT_SUCCESS,
-          metadata: { bookingId: booking._id, reference: booking.bookingReference },
-        });
+      // Send In-App Notification
+      await NotificationService.create({
+        userId: booking.user.toString(),
+        title: 'Booking Confirmed & Digital Tickets Issued',
+        message: `Your journey on reference ${booking.bookingReference} is confirmed. ${tickets.length} digital ticket(s) are ready for boarding.`,
+        type: NotificationType.PAYMENT_SUCCESS,
+        metadata: { bookingId: booking._id, reference: booking.bookingReference },
+      });
 
-        await AuditService.log({
-          user: booking.user.toString(),
-          role: UserRole.PASSENGER,
-          action: 'PAYMENT_COMPLETED',
-          resource: 'Payment',
-          resourceId: payment._id.toString(),
-          newValue: { amount: payment.amount, reference: payment.transactionReference },
-        });
+      await AuditService.log({
+        user: booking.user.toString(),
+        role: UserRole.PASSENGER,
+        action: 'PAYMENT_COMPLETED',
+        resource: 'Payment',
+        resourceId: payment._id.toString(),
+        newValue: { amount: payment.amount, reference: payment.transactionReference, provider: payment.provider },
+      });
 
-        return {
-          payment,
-          status: PaymentStatus.PAID,
-          message: 'Payment verified successfully! Tickets generated.',
-          tickets,
-          bookingReference: booking.bookingReference,
-        };
+      PersistenceService.queueSave();
+
+      return {
+        payment,
+        status: PaymentStatus.PAID,
+        message: 'Payment verified successfully! Tickets generated.',
+        tickets,
+        bookingReference: booking.bookingReference,
+      };
     } else {
       payment.status = PaymentStatus.FAILED;
-      payment.failureReason = 'Payment authorization failed or declined by provider.';
+      payment.failureReason = failureMsg || 'Payment authorization failed.';
       await payment.save();
+      PersistenceService.queueSave();
 
       return {
         payment,
         status: PaymentStatus.FAILED,
-        message: 'Payment verification failed.',
+        message: failureMsg || 'Payment verification failed.',
       };
     }
   }

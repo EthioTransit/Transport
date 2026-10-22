@@ -11,6 +11,7 @@ import {
   Building2,
   Zap,
   Clock,
+  Sparkles,
 } from 'lucide-react';
 import { tripsApi, bookingsApi, paymentsApi } from '../api/endpoints';
 import { PassengerForm } from '../features/booking/PassengerForm';
@@ -110,8 +111,22 @@ export const CheckoutPage: React.FC = () => {
     const fetchTrip = async () => {
       setLoading(true);
       try {
-        const data = await tripsApi.getById(tripId);
-        setTrip(data);
+        const [tripData, seatMapData] = await Promise.all([
+          tripsApi.getById(tripId),
+          tripsApi.getSeats(tripId, guestLockId).catch(() => null),
+        ]);
+        setTrip(tripData);
+
+        if (seatMapData && seatMapData.seats) {
+          const unavailable = seatMapData.seats.filter(
+            (s) => selectedSeats.includes(s.seatNumber) && s.status === 'BOOKED'
+          );
+          if (unavailable.length > 0) {
+            setError(
+              `Seat ${unavailable.map((s) => s.seatNumber).join(', ')} has already been booked and paid for. Please choose an available seat.`
+            );
+          }
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to load trip details.');
       } finally {
@@ -178,8 +193,14 @@ export const CheckoutPage: React.FC = () => {
             : 'Mock Instant Birr Gateway',
       });
 
+      if (paymentIntent.checkoutUrl && paymentProvider === 'chapa') {
+        window.location.href = paymentIntent.checkoutUrl;
+        return;
+      }
+
       navigate(`/verify-payment?ref=${paymentIntent.transactionReference}&bookingId=${booking._id}`);
     } catch (err: any) {
+      console.error('[Booking/Payment Error]:', err.message, err);
       if (err.message && err.message.includes('Authentication required')) {
         setError('Please sign in or create an account to finalize your booking ticket.');
       } else {
@@ -253,12 +274,30 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {/* Security badge */}
-            <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex-shrink-0">
-              <Lock className="w-4 h-4 text-emerald-300" />
-              <div>
-                <p className="text-xs font-black text-white">Secure Checkout</p>
-                <p className="text-[10px] text-emerald-300/70">256-bit encrypted</p>
+
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Route Corridor Photo Thumbnail */}
+              {(trip.route?.image || (trip.route?.destination as any)?.image) && (
+                <div className="hidden sm:flex items-center gap-2.5 bg-black/40 backdrop-blur-md p-1.5 rounded-xl border border-white/15 shrink-0">
+                  <img
+                    src={trip.route?.image || (trip.route?.destination as any)?.image}
+                    alt="Corridor"
+                    className="w-16 h-12 object-cover rounded-lg shrink-0"
+                  />
+                  <div className="pr-2 text-left">
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">Scenic Route</span>
+                    <span className="text-xs font-black text-white">{trip.route?.distanceKm} km</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Security badge */}
+              <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex-shrink-0">
+                <Lock className="w-4 h-4 text-emerald-300" />
+                <div>
+                  <p className="text-xs font-black text-white">Secure Checkout</p>
+                  <p className="text-[10px] text-emerald-300/70">256-bit encrypted</p>
+                </div>
               </div>
             </div>
           </div>
@@ -268,13 +307,23 @@ export const CheckoutPage: React.FC = () => {
       {/* Error Banner */}
       {error && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <div className="p-4 rounded-card bg-red-50 border border-red-200 text-status-error text-sm font-medium flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <div className="flex-1">
+          <div className="p-4 rounded-card bg-red-50 border border-red-200 text-status-error text-sm font-medium flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
+            </div>
+            <div className="flex items-center gap-2">
               {error.includes('sign in') && (
-                <Link to="/login" className="ml-2 font-bold underline text-brand-emerald">
+                <Link to="/login" className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold shadow-xs hover:bg-brand-deep">
                   Sign In Now
+                </Link>
+              )}
+              {(error.includes('booked') || error.includes('reserved') || error.includes('available')) && (
+                <Link
+                  to={`/trips/${tripId}/seats`}
+                  className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold shadow-xs hover:bg-brand-deep"
+                >
+                  Choose Available Seat
                 </Link>
               )}
             </div>
@@ -350,6 +399,17 @@ export const CheckoutPage: React.FC = () => {
                   );
                 })}
               </div>
+              {paymentProvider === 'chapa' && (
+                <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200 text-xs text-purple-900 flex items-start gap-2.5 animate-in fade-in duration-150">
+                  <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <span className="font-bold block text-purple-950">Chapa Official Payment Gateway</span>
+                    <span className="text-[11px] text-purple-700 block mt-0.5 leading-relaxed">
+                      You will be securely routed to Chapa checkout to pay via Visa, Mastercard, Telebirr, or local commercial banking. Your seat will be confirmed immediately.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Seat reservation reminder */}
               <div className="flex items-center gap-2 p-3 rounded-btn bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">

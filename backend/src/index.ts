@@ -18,6 +18,17 @@ app.use(
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
+// Root welcome route
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'EthioTransit Transportation Platform API',
+    version: '1.0.0',
+    documentation: '/api',
+    healthCheck: '/health',
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({

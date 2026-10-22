@@ -21,6 +21,7 @@ export class BookingController {
 
       return sendSuccess(res, booking, 'Booking created. Proceed to payment within 10 minutes.', 201);
     } catch (err: any) {
+      console.error('[BookingController CreateBooking Error]:', err.message);
       return sendError(res, err.message, 400);
     }
   }

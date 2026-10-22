@@ -155,12 +155,23 @@ export const SeatSelectionPage: React.FC = () => {
   const fareTotal = farePerSeat * selectedSeatNumbers.length;
   const serviceFeeTotal = serviceFeePerSeat * selectedSeatNumbers.length;
   const grandTotal = fareTotal + serviceFeeTotal;
+  const routePhoto = trip.route?.image || (trip.route?.destination as any)?.image;
 
   return (
     <div className="bg-brand-bg min-h-screen">
       {/* Page Header */}
-      <div className="bg-[#031d12] text-white py-6 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50">
-        <div className="max-w-6xl mx-auto">
+      <div className="relative bg-[#031d12] text-white py-6 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50 overflow-hidden">
+        {routePhoto && (
+          <div className="absolute inset-0 z-0">
+            <img
+              src={routePhoto}
+              alt="Corridor backdrop"
+              className="w-full h-full object-cover opacity-20 filter blur-xs scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#031d12] via-[#031d12]/90 to-[#031d12]/80" />
+          </div>
+        )}
+        <div className="relative z-10 max-w-6xl mx-auto">
           <Link
             to={`/search?from=${trip.route?.origin?.code}&to=${trip.route?.destination?.code}&date=${travelDate}&passengers=${passengersCount}`}
             className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-white mb-4 transition-colors"
@@ -202,13 +213,29 @@ export const SeatSelectionPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-right hidden sm:block">
-              <span className="text-xs text-emerald-300/70 font-semibold uppercase">Official Fare</span>
-              <div className="flex items-baseline gap-1 justify-end">
-                <span className="text-3xl font-black">{trip.fare}</span>
-                <span className="text-sm font-bold text-emerald-300/70">{BRAND.currency}</span>
+            <div className="flex items-center gap-4">
+              {routePhoto && (
+                <div className="hidden md:flex items-center gap-2.5 bg-black/40 backdrop-blur-md p-1.5 rounded-xl border border-white/10">
+                  <img
+                    src={routePhoto}
+                    alt="Corridor"
+                    className="w-16 h-12 object-cover rounded-lg shrink-0"
+                  />
+                  <div className="pr-2 text-left">
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">Corridor</span>
+                    <span className="text-xs font-black text-white">{trip.route?.distanceKm} km</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-right hidden sm:block">
+                <span className="text-xs text-emerald-300/70 font-semibold uppercase">Official Fare</span>
+                <div className="flex items-baseline gap-1 justify-end">
+                  <span className="text-3xl font-black">{trip.fare}</span>
+                  <span className="text-sm font-bold text-emerald-300/70">{BRAND.currency}</span>
+                </div>
+                <span className="text-[11px] text-emerald-400 font-bold">Per Seat</span>
               </div>
-              <span className="text-[11px] text-emerald-400 font-bold">Per Seat</span>
             </div>
           </div>
         </div>

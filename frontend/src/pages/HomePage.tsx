@@ -132,7 +132,7 @@ export const HomePage: React.FC = () => {
                     return '/ethiopia-hero.jpg';
                   };
 
-                  const photoUrl = getDestPhoto(destName, originName);
+                  const photoUrl = route.image || getDestPhoto(destName, originName);
                   const todayIso = new Date().toISOString().split('T')[0];
                   const baseFare = Math.round(route.distanceKm * 1.5 + 50);
 

@@ -54,7 +54,7 @@ export class TripController {
       const date = req.query.date as string | undefined;
       const status = req.query.status as string | undefined;
       const trips = await TripService.getAllTrips({ operatorId, date, status });
-      return sendSuccess(res, trips);
+      return sendSuccess(res, { trips, total: trips.length });
     } catch (err: any) {
       return sendError(res, err.message, 500);
     }

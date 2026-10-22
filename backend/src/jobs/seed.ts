@@ -14,22 +14,30 @@ import { Payment } from '../models/Payment';
 import { UserRole, VehicleType, TripStatus, SeatStatus, BookingStatus, TicketStatus, PaymentStatus } from '../types';
 import { TripService } from '../services/trip.service';
 import { generateSecureVerificationToken, generateQrCodeDataUrl } from '../utils/qr.utils';
+import { PersistenceService } from '../services/persistence.service';
 
-export async function runDatabaseSeed() {
-  console.log('[Seed] Checking if database seeding is required...');
+export async function runDatabaseSeed(force = false) {
+  console.log('[Seed] Checking persistence and seeding state...');
+  const persistence = await PersistenceService.init();
 
-  const existingCityCount = await City.countDocuments();
-  const todayStr = new Date().toISOString().split('T')[0];
-  const upcomingTripsCount = await Trip.countDocuments({
-    departureDate: { $gte: todayStr },
-  });
-
-  if (existingCityCount > 0 && upcomingTripsCount >= 20) {
-    console.log(`[Seed] Database already contains ${existingCityCount} cities and ${upcomingTripsCount} upcoming trips from ${todayStr} onwards. Skipping seed.`);
+  if (!force && persistence.hadSeeded) {
+    const state = PersistenceService.getState();
+    console.log(`[Seed] Database was already seeded previously (Initial: ${state.lastSeededAt || 'unknown'}, Last active save: ${state.lastSavedAt || 'none'}).`);
+    console.log('[Seed] Preserving all admin additions and custom modifications. Skipping re-seed.');
     return;
   }
 
-  console.log(`[Seed] Seeding Ethiopian transportation data (cities: ${existingCityCount}, upcoming trips: ${upcomingTripsCount})...`);
+  const existingCityCount = await City.countDocuments();
+  if (existingCityCount > 0) {
+    console.log(`[Seed] Database already contains ${existingCityCount} cities. Checking trips...`);
+    const tripsCount = await Trip.countDocuments();
+    if (tripsCount > 0) {
+      console.log(`[Seed] Database already has ${tripsCount} trips. Skipping seed.`);
+      return;
+    }
+  }
+
+  console.log('[Seed] Seeding demo Ethiopian intercity transportation data...');
 
   // 1. Seed Cities
   const citiesData = [
@@ -206,6 +214,17 @@ export async function runDatabaseSeed() {
       features: ['Air Conditioning', 'Reading Light', 'Music System'],
       status: 'ACTIVE',
     },
+    {
+      plateNumber: 'ET-3-77634-AA',
+      vehicleType: VehicleType.COACH,
+      operator: operatorMap['Golden Bus Express']._id,
+      seatCapacity: 44,
+      seatLayout: { layoutType: '2x2', rows: 11, columns: 4, aislePosition: [2] },
+      vehicleModel: 'Marcopolo Paradiso 1200 G7',
+      year: 2024,
+      features: ['Air Conditioning', 'High-Speed Wi-Fi', 'USB Charging', 'Reclining Seats'],
+      status: 'ACTIVE',
+    },
   ];
 
   const vehicleList: any[] = [];
@@ -242,6 +261,7 @@ export async function runDatabaseSeed() {
       distanceKm: 130,
       estimatedDurationHours: 2.5,
       popularityScore: 95,
+      image: '/dest-debreberhan.jpg',
       pickupPoints: [{ name: 'Lam Beret Bus Terminal', timeOffsetMinutes: 0 }, { name: 'Kotebe 02 Station', timeOffsetMinutes: 20 }],
       dropOffPoints: [{ name: 'Debre Berhan Main Terminal' }],
     },
@@ -251,6 +271,7 @@ export async function runDatabaseSeed() {
       distanceKm: 130,
       estimatedDurationHours: 2.5,
       popularityScore: 90,
+      image: '/ethiopia-hero.jpg',
       pickupPoints: [{ name: 'Debre Berhan Main Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Lam Beret Bus Terminal' }],
     },
@@ -260,6 +281,7 @@ export async function runDatabaseSeed() {
       distanceKm: 215,
       estimatedDurationHours: 4.5,
       popularityScore: 85,
+      image: '/cities-collage.jpg',
       pickupPoints: [{ name: 'Autobus Tera Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Alem Ketema Central Bus Station' }],
     },
@@ -269,6 +291,7 @@ export async function runDatabaseSeed() {
       distanceKm: 565,
       estimatedDurationHours: 8.5,
       popularityScore: 98,
+      image: '/dest-bahirdar.jpg',
       pickupPoints: [{ name: 'Autobus Tera North Wing', timeOffsetMinutes: 0 }, { name: 'Sululta Toll Station', timeOffsetMinutes: 40 }],
       dropOffPoints: [{ name: 'Bahir Dar Giyorgis Terminal' }],
     },
@@ -278,6 +301,7 @@ export async function runDatabaseSeed() {
       distanceKm: 565,
       estimatedDurationHours: 8.5,
       popularityScore: 92,
+      image: '/dest-bahirdar.jpg',
       pickupPoints: [{ name: 'Bahir Dar Giyorgis Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Autobus Tera Terminal' }],
     },
@@ -287,6 +311,7 @@ export async function runDatabaseSeed() {
       distanceKm: 735,
       estimatedDurationHours: 11.0,
       popularityScore: 90,
+      image: '/cities-collage.jpg',
       pickupPoints: [{ name: 'Autobus Tera North Wing', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Gondar Piassa Station' }],
     },
@@ -296,6 +321,7 @@ export async function runDatabaseSeed() {
       distanceKm: 275,
       estimatedDurationHours: 3.5,
       popularityScore: 96,
+      image: '/dest-hawassa.jpg',
       pickupPoints: [{ name: 'Kality Intercity Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Hawassa Menhariya' }],
     },
@@ -305,6 +331,7 @@ export async function runDatabaseSeed() {
       distanceKm: 400,
       estimatedDurationHours: 6.5,
       popularityScore: 88,
+      image: '/dest-debreberhan.jpg',
       pickupPoints: [{ name: 'Lam Beret Bus Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Dessie Central Station' }],
     },
@@ -314,6 +341,7 @@ export async function runDatabaseSeed() {
       distanceKm: 350,
       estimatedDurationHours: 5.5,
       popularityScore: 87,
+      image: '/cities-collage.jpg',
       pickupPoints: [{ name: 'Autobus Tera West Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Jimma Kochi Terminal' }],
     },
@@ -323,6 +351,7 @@ export async function runDatabaseSeed() {
       distanceKm: 99,
       estimatedDurationHours: 1.2,
       popularityScore: 94,
+      image: '/dest-adama.jpg',
       pickupPoints: [{ name: 'Kality Expressway Terminal', timeOffsetMinutes: 0 }],
       dropOffPoints: [{ name: 'Adama Posta Bet Station' }],
     },
@@ -341,6 +370,7 @@ export async function runDatabaseSeed() {
           distanceKm: r.distanceKm,
           estimatedDurationHours: r.estimatedDurationHours,
           popularityScore: r.popularityScore,
+          image: r.image,
           pickupPoints: r.pickupPoints,
           dropOffPoints: r.dropOffPoints,
           status: 'ACTIVE',
@@ -440,19 +470,4 @@ export async function runDatabaseSeed() {
   }
 
   console.log(`[Seed] Seeded ${tripsCreatedCount} trips across multiple dynamic dates with complete seat layouts!`);
-}
-
-if (process.argv[1]?.includes('seed.ts')) {
-  import('dotenv').then((dotenv) => {
-    dotenv.config();
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ethiotransit';
-    mongoose.connect(uri).then(async () => {
-      await runDatabaseSeed();
-      await mongoose.disconnect();
-      process.exit(0);
-    }).catch((err) => {
-      console.error('[Seed] Direct run failed:', err);
-      process.exit(1);
-    });
-  });
 }

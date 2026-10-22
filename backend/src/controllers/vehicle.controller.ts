@@ -14,7 +14,8 @@ export class VehicleController {
       }
 
       const activeOnly = req.query.active === 'true';
-      const vehicles = await VehicleService.getVehicles({ operatorId, activeOnly });
+      const status = req.query.status as string | undefined;
+      const vehicles = await VehicleService.getVehicles({ operatorId, activeOnly, status });
       return sendSuccess(res, vehicles);
     } catch (err: any) {
       return sendError(res, err.message, 500);
@@ -43,7 +44,7 @@ export class VehicleController {
       }
 
       const vehicle = await VehicleService.createVehicle(payload, userContext);
-      return sendSuccess(res, vehicle, 'Vehicle created successfully', 201);
+      return sendSuccess(res, vehicle, 'Vehicle registered successfully in fleet', 201);
     } catch (err: any) {
       return sendError(res, err.message, 400);
     }
@@ -56,6 +57,24 @@ export class VehicleController {
         : undefined;
       const vehicle = await VehicleService.updateVehicle(req.params.id, req.body, userContext);
       return sendSuccess(res, vehicle, 'Vehicle updated successfully');
+    } catch (err: any) {
+      return sendError(res, err.message, 400);
+    }
+  }
+
+  static async updateVehicleStatus(req: Request, res: Response) {
+    try {
+      const { status } = req.body;
+      if (!['ACTIVE', 'MAINTENANCE', 'INACTIVE'].includes(status)) {
+        return sendError(res, 'Status must be ACTIVE, MAINTENANCE, or INACTIVE', 400);
+      }
+
+      const userContext = req.user
+        ? { id: req.user.userId, email: req.user.email, role: req.user.role }
+        : undefined;
+
+      const vehicle = await VehicleService.updateVehicleStatus(req.params.id, status, userContext);
+      return sendSuccess(res, vehicle, `Vehicle status updated to ${status}`);
     } catch (err: any) {
       return sendError(res, err.message, 400);
     }

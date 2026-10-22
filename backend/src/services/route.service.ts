@@ -75,6 +75,7 @@ export class RouteService {
       destination: string;
       distanceKm: number;
       estimatedDurationHours: number;
+      image?: string;
       pickupPoints?: Array<{ name: string; locationNote?: string; timeOffsetMinutes: number }>;
       dropOffPoints?: Array<{ name: string; locationNote?: string }>;
       status?: 'ACTIVE' | 'INACTIVE';

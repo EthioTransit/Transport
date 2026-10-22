@@ -12,7 +12,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'sm' })
 
   if (['ACTIVE', 'CONFIRMED', 'COMPLETED', 'USED', 'ISSUED', 'VALID_TICKET'].includes(normalized)) {
     style = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
-  } else if (['PENDING', 'SCHEDULED', 'BOARDING'].includes(normalized)) {
+  } else if (['PENDING', 'SCHEDULED', 'BOARDING', 'MAINTENANCE'].includes(normalized)) {
     style = 'bg-amber-50 text-amber-700 border-amber-200/80';
   } else if (['IN_TRANSIT'].includes(normalized)) {
     style = 'bg-blue-50 text-blue-700 border-blue-200/80';

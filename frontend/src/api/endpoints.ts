@@ -137,6 +137,7 @@ export const paymentsApi = {
       officialFare: number;
       serviceFee: number;
       provider: string;
+      checkoutUrl?: string;
     }>('/payments/create', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -152,6 +153,13 @@ export const paymentsApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  getChapaStatus: () =>
+    apiRequest<{
+      isConfigured: boolean;
+      mode: 'live' | 'sandbox';
+      publicKey: string | null;
+      provider: string;
+    }>('/payments/chapa/status'),
 };
 
 export const ticketsApi = {

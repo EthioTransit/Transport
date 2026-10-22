@@ -19,6 +19,7 @@ export const createRouteSchema = z.object({
   destination: z.string().min(1, 'Destination city ID is required'),
   distanceKm: z.number().min(1, 'Distance must be at least 1 km'),
   estimatedDurationHours: z.number().min(0.5, 'Estimated duration must be positive'),
+  image: z.string().optional(),
   pickupPoints: z
     .array(
       z.object({
@@ -65,13 +66,15 @@ export const createVehicleSchema = z.object({
   vehicleType: z.nativeEnum(VehicleType).default(VehicleType.BUS),
   operator: z.string().min(1, 'Operator ID is required'),
   seatCapacity: z.number().min(10).max(80),
-  seatLayout: z.object({
-    layoutType: z.enum(['2x2', '2x1', '1x2', 'minibus']).default('2x2'),
-    rows: z.number().min(2).max(20),
-    columns: z.number().min(2).max(5),
-    aislePosition: z.array(z.number()).default([2]),
-    blockedSeats: z.array(z.string()).optional(),
-  }),
+  seatLayout: z
+    .object({
+      layoutType: z.enum(['2x2', '2x1', '1x2', 'minibus']).default('2x2'),
+      rows: z.number().min(2).max(20).optional(),
+      columns: z.number().min(2).max(5).optional(),
+      aislePosition: z.array(z.number()).default([2]),
+      blockedSeats: z.array(z.string()).optional(),
+    })
+    .optional(),
   vehicleModel: z.string().min(2, 'Vehicle model is required'),
   year: z.number().min(2000).max(2030),
   features: z.array(z.string()).default(['AC', 'USB Charging', 'Reclining Seats']),

@@ -104,42 +104,78 @@ export class SeatService {
     const now = new Date();
     const lockExpiresAt = new Date(now.getTime() + timeoutMinutes * 60 * 1000);
 
+    const tripObjectId = mongoose.Types.ObjectId.isValid(params.tripId)
+      ? new mongoose.Types.ObjectId(params.tripId)
+      : params.tripId;
+
+    const userObjectId =
+      params.userId && mongoose.Types.ObjectId.isValid(params.userId)
+        ? new mongoose.Types.ObjectId(params.userId)
+        : null;
+
     const acquiredSeatIds: mongoose.Types.ObjectId[] = [];
 
     try {
       for (const seatNumber of params.seatNumbers) {
-        // Atomic condition: must be AVAILABLE OR already locked by this exact caller
-        const query: any = {
-          trip: params.tripId,
-          seatNumber,
-          $or: [
-            { status: SeatStatus.AVAILABLE },
-            ...(params.userId ? [{ status: SeatStatus.RESERVED, lockedBy: params.userId }] : []),
-            ...(params.guestLockId ? [{ status: SeatStatus.RESERVED, guestLockId: params.guestLockId }] : []),
-          ],
-        };
+        const cleanSeatNumber = seatNumber.trim();
+        const seat = await Seat.findOne({
+          trip: tripObjectId,
+          seatNumber: cleanSeatNumber,
+        });
 
-        const update: any = {
-          status: SeatStatus.RESERVED,
-          lockedAt: now,
-          lockExpiresAt,
-        };
-
-        if (params.userId) update.lockedBy = params.userId;
-        if (params.guestLockId) update.guestLockId = params.guestLockId;
-
-        const updatedSeat = await Seat.findOneAndUpdate(query, { $set: update }, { new: true });
-
-        if (!updatedSeat) {
-          throw new Error(`Seat ${seatNumber} is no longer available. Please select another seat.`);
+        if (!seat) {
+          throw new Error(`Seat ${seatNumber} does not exist for this trip.`);
         }
 
-        acquiredSeatIds.push(updatedSeat._id as mongoose.Types.ObjectId);
+        if (seat.status === SeatStatus.BOOKED) {
+          throw new Error(`Seat ${seatNumber} has already been booked and paid for.`);
+        }
+
+        if (seat.status === SeatStatus.BLOCKED) {
+          throw new Error(`Seat ${seatNumber} is blocked for maintenance or driver.`);
+        }
+
+        const isLockExpired = seat.lockExpiresAt ? new Date(seat.lockExpiresAt) < now : true;
+        const isAvailable = seat.status === SeatStatus.AVAILABLE || isLockExpired;
+
+        let callerMatches = false;
+        if (!isAvailable && seat.status === SeatStatus.RESERVED) {
+          // Check if caller is the owner
+          if (userObjectId && seat.lockedBy && seat.lockedBy.toString() === userObjectId.toString()) {
+            callerMatches = true;
+          } else if (params.userId && seat.lockedBy && seat.lockedBy.toString() === params.userId.toString()) {
+            callerMatches = true;
+          } else if (params.guestLockId && seat.guestLockId === params.guestLockId) {
+            callerMatches = true;
+          } else if (!seat.lockedBy && !seat.guestLockId) {
+            callerMatches = true;
+          } else if (seat.booking) {
+            // Check if attached booking is a pending booking of this user
+            const b = await mongoose.model('Booking').findById(seat.booking);
+            if (b && b.status === 'PENDING' && b.user && b.user.toString() === (params.userId || '').toString()) {
+              callerMatches = true;
+            }
+          }
+        }
+
+        if (!isAvailable && !callerMatches) {
+          throw new Error(`Seat ${seatNumber} is currently reserved by another passenger. Please select another seat.`);
+        }
+
+        // Lock / refresh lock on seat
+        seat.status = SeatStatus.RESERVED;
+        seat.lockedAt = now;
+        seat.lockExpiresAt = lockExpiresAt;
+        if (userObjectId) seat.lockedBy = userObjectId;
+        if (params.guestLockId) seat.guestLockId = params.guestLockId;
+
+        await seat.save();
+        acquiredSeatIds.push(seat._id as mongoose.Types.ObjectId);
       }
 
       // Update available count on trip
-      const availableCount = await Seat.countDocuments({ trip: params.tripId, status: SeatStatus.AVAILABLE });
-      await Trip.findByIdAndUpdate(params.tripId, { availableSeatsCount: availableCount });
+      const availableCount = await Seat.countDocuments({ trip: tripObjectId, status: SeatStatus.AVAILABLE });
+      await Trip.findByIdAndUpdate(tripObjectId, { availableSeatsCount: availableCount });
 
       return {
         success: true,
@@ -147,17 +183,8 @@ export class SeatService {
         lockExpiresAt,
         timeoutMinutes,
       };
-    } catch (err) {
-      // Rollback acquired locks if failure occurs
-      if (acquiredSeatIds.length > 0) {
-        await Seat.updateMany(
-          { _id: { $in: acquiredSeatIds } },
-          {
-            $set: { status: SeatStatus.AVAILABLE },
-            $unset: { lockedBy: '', guestLockId: '', lockedAt: '', lockExpiresAt: '' },
-          }
-        );
-      }
+    } catch (err: any) {
+      console.warn(`[Seat Lock Warning]: ${err.message}`);
       throw err;
     }
   }
@@ -168,22 +195,34 @@ export class SeatService {
     userId?: string;
     guestLockId?: string;
   }) {
+    const tripObjectId = mongoose.Types.ObjectId.isValid(params.tripId)
+      ? new mongoose.Types.ObjectId(params.tripId)
+      : params.tripId;
+
+    const userObjectId =
+      params.userId && mongoose.Types.ObjectId.isValid(params.userId)
+        ? new mongoose.Types.ObjectId(params.userId)
+        : null;
+
     const filter: any = {
-      trip: params.tripId,
+      trip: tripObjectId,
       seatNumber: { $in: params.seatNumbers },
       status: SeatStatus.RESERVED,
     };
 
-    if (params.userId) filter.lockedBy = params.userId;
-    else if (params.guestLockId) filter.guestLockId = params.guestLockId;
+    if (userObjectId) {
+      filter.$or = [{ lockedBy: userObjectId }, { lockedBy: params.userId }];
+    } else if (params.guestLockId) {
+      filter.guestLockId = params.guestLockId;
+    }
 
     await Seat.updateMany(filter, {
       $set: { status: SeatStatus.AVAILABLE },
       $unset: { lockedBy: '', guestLockId: '', lockedAt: '', lockExpiresAt: '', booking: '' },
     });
 
-    const availableCount = await Seat.countDocuments({ trip: params.tripId, status: SeatStatus.AVAILABLE });
-    await Trip.findByIdAndUpdate(params.tripId, { availableSeatsCount: availableCount });
+    const availableCount = await Seat.countDocuments({ trip: tripObjectId, status: SeatStatus.AVAILABLE });
+    await Trip.findByIdAndUpdate(tripObjectId, { availableSeatsCount: availableCount });
 
     return { success: true };
   }

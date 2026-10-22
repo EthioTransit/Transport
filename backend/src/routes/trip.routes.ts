@@ -31,5 +31,17 @@ router.put(
   authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATOR),
   TripController.updateTrip
 );
+router.patch(
+  '/:id/status',
+  authenticate,
+  authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATOR),
+  TripController.updateTrip
+);
+router.patch(
+  '/:id',
+  authenticate,
+  authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OPERATOR),
+  TripController.updateTrip
+);
 
 export default router;

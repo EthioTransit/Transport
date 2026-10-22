@@ -15,10 +15,25 @@ export async function connectDatabase(): Promise<string> {
     }
   }
 
-  // Fallback to MongoMemoryServer for immediate local development / test without external requirements
-  console.log(`[Database] Initializing in-memory MongoDB server for development...`);
+  // Check if a local MongoDB service is actively running on port 27017
   try {
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
+    const localUri = 'mongodb://127.0.0.1:27017/ethiotransit';
+    await mongoose.connect(localUri, { serverSelectionTimeoutMS: 1200 } as any);
+    console.log(`[Database] Successfully connected to local persistent MongoDB service at: ${localUri}`);
+    return localUri;
+  } catch {
+    // Local MongoDB daemon not running, proceed to managed in-memory server
+  }
+
+  // Fallback to MongoMemoryServer with snapshot persistence
+  console.log(`[Database] Initializing managed MongoDB server with local persistence...`);
+  try {
+    // @ts-ignore
+    const memoryServerModule: any = await import('mongodb-memory-server').catch(() => null);
+    if (!memoryServerModule || !memoryServerModule.MongoMemoryServer) {
+      throw new Error('In-memory MongoDB is not available in production. Please configure MONGODB_URI in your environment variables.');
+    }
+    const { MongoMemoryServer } = memoryServerModule;
     const mongod = await MongoMemoryServer.create({
       instance: {
         launchTimeout: 120000,

@@ -28,6 +28,9 @@ export class AuditService {
         userAgent: params.userAgent,
         timestamp: new Date(),
       });
+      // Automatically queue persistent snapshot to disk
+      const { PersistenceService } = await import('./persistence.service');
+      PersistenceService.queueSave();
     } catch (err) {
       console.error('[AuditService] Failed to record audit log:', err);
     }

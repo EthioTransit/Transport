@@ -81,11 +81,36 @@ export const operatorsApi = {
 };
 
 export const vehiclesApi = {
-  getAll: (operatorId?: string) => {
-    const q = operatorId ? `?operatorId=${operatorId}` : '';
+  getAll: (params?: string | { operatorId?: string; activeOnly?: boolean; status?: string }) => {
+    let q = '';
+    if (typeof params === 'string') {
+      q = params ? `?operatorId=${params}` : '';
+    } else if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.operatorId) searchParams.append('operatorId', params.operatorId);
+      if (params.activeOnly) searchParams.append('active', 'true');
+      if (params.status) searchParams.append('status', params.status);
+      const str = searchParams.toString();
+      q = str ? `?${str}` : '';
+    }
     return adminApiRequest<Vehicle[]>(`/vehicles${q}`);
   },
   getById: (id: string) => adminApiRequest<Vehicle>(`/vehicles/${id}`),
+  create: (data: any) =>
+    adminApiRequest<Vehicle>('/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: any) =>
+    adminApiRequest<Vehicle>(`/vehicles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  updateStatus: (id: string, status: 'ACTIVE' | 'MAINTENANCE' | 'INACTIVE') =>
+    adminApiRequest<Vehicle>(`/vehicles/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
 };
 
 export const tripsApi = {

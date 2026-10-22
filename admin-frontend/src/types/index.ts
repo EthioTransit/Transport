@@ -73,6 +73,7 @@ export interface Route {
   destination: City;
   distanceKm: number;
   estimatedDurationHours: number;
+  image?: string;
   pickupPoints: Array<{
     name: string;
     locationNote?: string;
@@ -117,6 +118,7 @@ export interface Vehicle {
     rows: number;
     columns: number;
     aislePosition: number[];
+    blockedSeats?: string[];
   };
   vehicleModel: string;
   year: number;
