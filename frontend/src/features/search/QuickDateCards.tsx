@@ -52,7 +52,7 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
   });
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+    <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 touch-scroll no-scrollbar -mx-1 px-1">
       {days.map((item) => {
         const isSelected = selectedDate === item.iso;
         return (
@@ -61,7 +61,7 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
             type="button"
             id={`quick-date-${item.iso}`}
             onClick={() => onSelectDate(item.iso)}
-            className={`flex-shrink-0 flex flex-col items-center justify-center min-w-[82px] py-2 px-3 rounded-btn border text-center transition-all duration-150 relative ${
+            className={`flex-shrink-0 flex flex-col items-center justify-center min-w-[66px] sm:min-w-[76px] py-1.5 sm:py-2 px-2 sm:px-3 rounded-btn border text-center transition-all duration-150 relative ${
               isSelected
                 ? 'bg-brand-emerald text-white border-brand-emerald shadow-md shadow-brand-emerald/20 font-bold scale-[1.02]'
                 : item.isOperating
@@ -70,16 +70,16 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
             }`}
           >
             <span
-              className={`text-[10px] font-semibold uppercase tracking-wider ${
+              className={`text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider ${
                 isSelected ? 'text-emerald-100' : 'text-brand-textMuted'
               }`}
             >
               {item.label}
             </span>
-            <span className="text-base font-extrabold leading-tight">{item.dayNum}</span>
+            <span className="text-sm sm:text-base font-extrabold leading-tight">{item.dayNum}</span>
             <div className="flex items-center gap-1">
               <span
-                className={`text-[10px] font-medium tracking-wider ${
+                className={`text-[9px] sm:text-[10px] font-medium tracking-wider ${
                   isSelected ? 'text-white/80' : 'text-brand-textLight'
                 }`}
               >
@@ -99,7 +99,7 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
               )}
             </div>
             {operatingDays && operatingDays.length > 0 && operatingDays.length < 7 && !item.isOperating && (
-              <span className="text-[8px] text-gray-400 font-bold uppercase mt-0.5">Off day</span>
+              <span className="text-[7.5px] sm:text-[8px] text-gray-400 font-bold uppercase mt-0.5">Off day</span>
             )}
           </button>
         );

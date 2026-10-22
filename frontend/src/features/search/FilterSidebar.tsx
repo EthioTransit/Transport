@@ -172,7 +172,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       {/* Mobile Modal/Drawer */}
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex items-end bg-black/50 backdrop-blur-xs">
-          <div className="w-full bg-white rounded-t-cardLg p-6 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200 shadow-2xl">
+          <div className="w-full bg-white rounded-t-cardLg p-4 sm:p-6 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto touch-scroll animate-in slide-in-from-bottom duration-200 shadow-2xl safe-area-pb">
             <div className="flex justify-end mb-2">
               <button
                 onClick={onCloseMobile}
@@ -185,7 +185,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             <div className="mt-6 pt-4 border-t border-gray-100">
               <button
                 onClick={onCloseMobile}
-                className="w-full py-3 rounded-btn bg-brand-emerald text-white font-bold"
+                className="w-full py-3.5 rounded-btn bg-brand-emerald text-white font-bold text-sm shadow-md hover:bg-brand-deep transition-all text-center"
               >
                 Apply Filters
               </button>

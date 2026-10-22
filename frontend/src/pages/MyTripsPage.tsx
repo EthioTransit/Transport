@@ -153,7 +153,7 @@ export const MyTripsPage: React.FC = () => {
         {section === 'trips' && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Trip Tabs */}
-            <div className="flex border-b border-gray-100 px-4 pt-4">
+            <div className="flex border-b border-gray-100 px-3 sm:px-4 pt-3 sm:pt-4 overflow-x-auto touch-scroll no-scrollbar whitespace-nowrap gap-1">
               {(
                 [
                   { key: 'upcoming', label: 'Upcoming', count: upcomingBookings.length, icon: Calendar },
@@ -164,7 +164,7 @@ export const MyTripsPage: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setTripTab(key)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-bold rounded-t-lg transition-all relative -mb-px ${
+                  className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-lg transition-all relative -mb-px shrink-0 ${
                     tripTab === key
                       ? 'text-brand-emerald border-b-2 border-brand-emerald'
                       : 'text-brand-textMuted hover:text-brand-dark'
@@ -187,7 +187,7 @@ export const MyTripsPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {tabBookings[tripTab].length === 0 ? (
                 <div className="py-16 flex flex-col items-center gap-3 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center">
@@ -299,7 +299,7 @@ export const MyTripsPage: React.FC = () => {
         {section === 'wallet' && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Wallet Tabs */}
-            <div className="flex border-b border-gray-100 px-4 pt-4">
+            <div className="flex border-b border-gray-100 px-3 sm:px-4 pt-3 sm:pt-4 overflow-x-auto touch-scroll no-scrollbar whitespace-nowrap gap-1">
               {(
                 [
                   { key: 'active', label: 'Active Tickets', count: activeTickets.length },
@@ -310,7 +310,7 @@ export const MyTripsPage: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setWalletTab(key)}
-                  className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold rounded-t-lg transition-all relative -mb-px ${
+                  className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-t-lg transition-all relative -mb-px shrink-0 ${
                     walletTab === key
                       ? 'text-brand-emerald border-b-2 border-brand-emerald'
                       : 'text-brand-textMuted hover:text-brand-dark'
@@ -330,7 +330,7 @@ export const MyTripsPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {walletTickets[walletTab].length === 0 ? (
                 <div className="py-16 flex flex-col items-center gap-3 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center">

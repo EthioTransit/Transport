@@ -23,18 +23,98 @@ import { routesApi } from '../api/endpoints';
 import { BRAND } from '../config/brand';
 import { Route } from '../types';
 
+const FALLBACK_POPULAR_ROUTES: Route[] = [
+  {
+    _id: 'pop-1',
+    origin: { _id: 'c1', name: 'Addis Ababa', amharicName: 'አዲስ አበባ', region: 'Addis Ababa', code: 'ADD', country: 'ET', status: 'ACTIVE' },
+    destination: { _id: 'c2', name: 'Bahir Dar', amharicName: 'ባሕር ዳር', region: 'Amhara Region', code: 'BJR', country: 'ET', status: 'ACTIVE' },
+    distanceKm: 565,
+    estimatedDurationHours: 10,
+    image: '/dest-bahirdar.jpg',
+    pickupPoints: [{ name: 'Autobis Tera', timeOffsetMinutes: 0 }],
+    dropOffPoints: [{ name: 'Bahir Dar Central Bus Station' }],
+    status: 'ACTIVE',
+    popularityScore: 98,
+  },
+  {
+    _id: 'pop-2',
+    origin: { _id: 'c1', name: 'Addis Ababa', amharicName: 'አዲስ አበባ', region: 'Addis Ababa', code: 'ADD', country: 'ET', status: 'ACTIVE' },
+    destination: { _id: 'c3', name: 'Hawassa', amharicName: 'ሐዋሳ', region: 'Sidama Region', code: 'HWA', country: 'ET', status: 'ACTIVE' },
+    distanceKm: 275,
+    estimatedDurationHours: 4.5,
+    image: '/dest-hawassa.jpg',
+    pickupPoints: [{ name: 'Kality Terminal', timeOffsetMinutes: 0 }],
+    dropOffPoints: [{ name: 'Hawassa Piazza Terminal' }],
+    status: 'ACTIVE',
+    popularityScore: 95,
+  },
+  {
+    _id: 'pop-3',
+    origin: { _id: 'c1', name: 'Addis Ababa', amharicName: 'አዲስ አበባ', region: 'Addis Ababa', code: 'ADD', country: 'ET', status: 'ACTIVE' },
+    destination: { _id: 'c4', name: 'Gondar', amharicName: 'ጎንደር', region: 'Amhara Region', code: 'GDQ', country: 'ET', status: 'ACTIVE' },
+    distanceKm: 720,
+    estimatedDurationHours: 12.5,
+    image: '/cities-collage.jpg',
+    pickupPoints: [{ name: 'Autobis Tera', timeOffsetMinutes: 0 }],
+    dropOffPoints: [{ name: 'Azezo Terminal' }],
+    status: 'ACTIVE',
+    popularityScore: 92,
+  },
+  {
+    _id: 'pop-4',
+    origin: { _id: 'c1', name: 'Addis Ababa', amharicName: 'አዲስ አበባ', region: 'Addis Ababa', code: 'ADD', country: 'ET', status: 'ACTIVE' },
+    destination: { _id: 'c5', name: 'Dire Dawa', amharicName: 'ድሬዳዋ', region: 'Dire Dawa', code: 'DIR', country: 'ET', status: 'ACTIVE' },
+    distanceKm: 450,
+    estimatedDurationHours: 8,
+    image: '/ethiopia-hero.jpg',
+    pickupPoints: [{ name: 'Lamberet Terminal', timeOffsetMinutes: 0 }],
+    dropOffPoints: [{ name: 'Dire Dawa Main Station' }],
+    status: 'ACTIVE',
+    popularityScore: 89,
+  },
+  {
+    _id: 'pop-5',
+    origin: { _id: 'c1', name: 'Addis Ababa', amharicName: 'አዲስ አበባ', region: 'Addis Ababa', code: 'ADD', country: 'ET', status: 'ACTIVE' },
+    destination: { _id: 'c6', name: 'Debre Berhan', amharicName: 'ደብረ ብርሃን', region: 'Amhara Region', code: 'DBR', country: 'ET', status: 'ACTIVE' },
+    distanceKm: 130,
+    estimatedDurationHours: 2.5,
+    image: '/dest-debreberhan.jpg',
+    pickupPoints: [{ name: 'Lamberet Terminal', timeOffsetMinutes: 0 }],
+    dropOffPoints: [{ name: 'Debre Berhan Bus Station' }],
+    status: 'ACTIVE',
+    popularityScore: 85,
+  },
+  {
+    _id: 'pop-6',
+    origin: { _id: 'c1', name: 'Addis Ababa', amharicName: 'አዲስ አበባ', region: 'Addis Ababa', code: 'ADD', country: 'ET', status: 'ACTIVE' },
+    destination: { _id: 'c7', name: 'Adama', amharicName: 'አዳማ', region: 'Oromia Region', code: 'ADA', country: 'ET', status: 'ACTIVE' },
+    distanceKm: 98,
+    estimatedDurationHours: 1.5,
+    image: '/dest-adama.jpg',
+    pickupPoints: [{ name: 'Kality Terminal', timeOffsetMinutes: 0 }],
+    dropOffPoints: [{ name: 'Adama Posta Station' }],
+    status: 'ACTIVE',
+    popularityScore: 88,
+  },
+];
+
 export const HomePage: React.FC = () => {
   const { t } = useTranslation(['common', 'navigation', 'search']);
-  const [popularRoutes, setPopularRoutes] = useState<Route[]>([]);
-  const [loadingRoutes, setLoadingRoutes] = useState(true);
+  const [popularRoutes, setPopularRoutes] = useState<Route[]>(FALLBACK_POPULAR_ROUTES);
+  const [loadingRoutes, setLoadingRoutes] = useState(false);
 
   useEffect(() => {
     const fetchRoutes = async () => {
       try {
         const routes = await routesApi.getPopular();
-        setPopularRoutes(routes);
+        if (routes && routes.length > 0) {
+          setPopularRoutes(routes);
+        } else {
+          setPopularRoutes(FALLBACK_POPULAR_ROUTES);
+        }
       } catch (err) {
-        console.error('Failed to load popular routes:', err);
+        console.error('Failed to load popular routes, using defaults:', err);
+        setPopularRoutes(FALLBACK_POPULAR_ROUTES);
       } finally {
         setLoadingRoutes(false);
       }
@@ -55,21 +135,21 @@ export const HomePage: React.FC = () => {
       <InteractiveEthiopiaHero onSearchClick={scrollToSearch} />
 
       {/* 2. SEARCH SECTION */}
-      <section id="search-section" className="relative bg-brand-bg py-10 px-4 sm:px-6 lg:px-8 border-b border-gray-100">
+      <section id="search-section" className="relative bg-brand-bg py-6 sm:py-10 px-3 sm:px-6 lg:px-8 border-b border-gray-100">
         <div className="max-w-5xl mx-auto -mt-6 sm:-mt-8 relative z-20">
           <SearchCard />
         </div>
       </section>
 
       {/* 3. POPULAR ROUTES SECTION */}
-      <section className="py-16 bg-[#F7F9FC] border-t border-gray-100">
+      <section className="py-10 sm:py-16 bg-[#F7F9FC] border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-10 gap-3 sm:gap-0">
             <div>
               <span className="text-xs font-black uppercase tracking-wider text-brand-emerald bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                 Top Ethiopian Destinations
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-brand-dark mt-2">
+              <h2 className="text-xl sm:text-3xl font-black text-brand-dark mt-2">
                 Popular Intercity Routes
               </h2>
               <p className="text-xs sm:text-sm text-brand-textMuted mt-1">
@@ -78,14 +158,14 @@ export const HomePage: React.FC = () => {
             </div>
             <Link
               to="/routes"
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-emerald hover:text-brand-deep mt-2 sm:mt-0 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-emerald hover:text-brand-deep transition-colors"
             >
               <span>View All Routes</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {loadingRoutes
               ? [1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="h-64 bg-white rounded-2xl animate-pulse border border-gray-100" />
@@ -143,7 +223,7 @@ export const HomePage: React.FC = () => {
                       className="group bg-white rounded-2xl overflow-hidden border border-gray-200/80 hover:border-emerald-500 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                     >
                       {/* Card Image Header */}
-                      <div className="relative h-44 w-full overflow-hidden bg-gray-900">
+                      <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-gray-900">
                         <img
                           src={photoUrl}
                           alt={`${originName} to ${destName}`}
@@ -152,36 +232,36 @@ export const HomePage: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
 
                         {/* Top Badges */}
-                        <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10">
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#031d12]/80 backdrop-blur-md text-emerald-300 border border-emerald-500/30 shadow-sm">
+                        <div className="absolute top-2.5 sm:top-3 inset-x-2.5 sm:inset-x-3 flex items-center justify-between z-10 gap-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#031d12]/80 backdrop-blur-md text-emerald-300 border border-emerald-500/30 shadow-sm truncate max-w-[55%]">
                             📍 {destRegion}
                           </span>
-                          <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-400 text-emerald-950 shadow-md">
+                          <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-400 text-emerald-950 shadow-md shrink-0">
                             From {baseFare} ETB
                           </span>
                         </div>
 
                         {/* Bottom Image Title */}
-                        <div className="absolute bottom-2.5 left-3 right-3 z-10 flex items-end justify-between">
-                          <div className="flex flex-col">
+                        <div className="absolute bottom-2.5 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 flex items-end justify-between gap-2">
+                          <div className="flex flex-col min-w-0">
                             <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
                               Direct Corridor
                             </span>
-                            <div className="text-white text-base font-black tracking-tight drop-shadow-sm">
+                            <div className="text-white text-sm sm:text-base font-black tracking-tight drop-shadow-sm truncate">
                               {originName} ➔ {destName}
                             </div>
                           </div>
-                          <div className="w-8 h-8 rounded-full bg-emerald-500 group-hover:bg-amber-400 text-white group-hover:text-emerald-950 flex items-center justify-center shadow-lg transition-colors">
+                          <div className="w-8 h-8 rounded-full bg-emerald-500 group-hover:bg-amber-400 text-white group-hover:text-emerald-950 flex items-center justify-center shadow-lg transition-colors shrink-0">
                             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" />
                           </div>
                         </div>
                       </div>
 
                       {/* Card Body */}
-                      <div className="p-4 flex flex-col justify-between flex-1 bg-white">
-                        <div className="flex items-center justify-between text-xs text-brand-textMuted font-bold pb-2 border-b border-gray-100">
-                          <span>{originAmharic || originName} ➔ {destAmharic || destName}</span>
-                          <span className="text-emerald-700 text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-emerald-100">
+                      <div className="p-3.5 sm:p-4 flex flex-col justify-between flex-1 bg-white">
+                        <div className="flex items-center justify-between text-xs text-brand-textMuted font-bold pb-2 border-b border-gray-100 gap-2">
+                          <span className="truncate">{originAmharic || originName} ➔ {destAmharic || destName}</span>
+                          <span className="text-emerald-700 text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-emerald-100 shrink-0">
                             <Calendar className="w-3 h-3 text-brand-emerald" />
                             <span>
                               {route.operatingDays && route.operatingDays.length === 7
@@ -194,7 +274,7 @@ export const HomePage: React.FC = () => {
                         </div>
 
                         {/* Daily Departures row */}
-                        <div className="mt-2.5 text-[11px] text-gray-500 flex items-center gap-1.5">
+                        <div className="mt-2 sm:mt-2.5 text-[11px] text-gray-500 flex items-center gap-1.5">
                           <Clock className="w-3 h-3 text-brand-emerald shrink-0" />
                           <span className="text-gray-400 font-medium">Times:</span>
                           <span className="font-mono font-bold text-brand-dark truncate">
@@ -204,7 +284,7 @@ export const HomePage: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 mt-2 pt-1 text-xs text-brand-textMuted">
+                        <div className="grid grid-cols-2 gap-2 mt-2 sm:mt-2.5 pt-1 text-xs text-brand-textMuted">
                           <div className="flex items-center gap-1.5 font-semibold">
                             <span className="text-brand-emerald">🛣️</span>
                             <span>{route.distanceKm} km</span>
@@ -215,11 +295,11 @@ export const HomePage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-gray-500">
+                        <div className="mt-2.5 sm:mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold text-gray-500 truncate">
                             🚌 Selam • Abay • Oda Bus
                           </span>
-                          <span className="text-xs font-black text-brand-emerald group-hover:text-brand-deep flex items-center gap-1">
+                          <span className="text-xs font-black text-brand-emerald group-hover:text-brand-deep flex items-center gap-1 shrink-0">
                             Book Seat →
                           </span>
                         </div>
@@ -232,21 +312,21 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4. HOW IT WORKS */}
-      <section className="py-20 bg-brand-bg border-t border-gray-100">
+      <section className="py-12 sm:py-20 bg-brand-bg border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-16">
             <span className="text-xs font-extrabold uppercase tracking-wider text-brand-emerald">
               Simple • Fast • Trustworthy
             </span>
-            <h2 className="text-3xl font-black text-brand-dark mt-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-brand-dark mt-1">
               How EthioTransit Works
             </h2>
-            <p className="text-sm text-brand-textMuted mt-2">
+            <p className="text-xs sm:text-sm text-brand-textMuted mt-1 sm:mt-2">
               From search to boarding in four simple steps.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               {
                 step: '01',
@@ -281,14 +361,14 @@ export const HomePage: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-card p-7 border border-gray-100 shadow-card hover:shadow-cardHover transition-all duration-200 flex flex-col relative group hover:-translate-y-0.5"
+                  className="bg-white rounded-card p-5 sm:p-7 border border-gray-100 shadow-card hover:shadow-cardHover transition-all duration-200 flex flex-col relative group hover:-translate-y-0.5"
                 >
-                  <span className="text-4xl font-black text-gray-100 mb-4 select-none">{item.step}</span>
-                  <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center mb-4 shadow-sm`}>
-                    <Icon className="w-6 h-6" />
+                  <span className="text-3xl sm:text-4xl font-black text-gray-100 mb-2 sm:mb-4 select-none">{item.step}</span>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${item.color} flex items-center justify-center mb-3 sm:mb-4 shadow-sm`}>
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <h3 className="text-lg font-black text-brand-dark mb-2">{item.title}</h3>
-                  <p className="text-sm text-brand-textMuted leading-relaxed">{item.desc}</p>
+                  <h3 className="text-base sm:text-lg font-black text-brand-dark mb-1.5 sm:mb-2">{item.title}</h3>
+                  <p className="text-xs sm:text-sm text-brand-textMuted leading-relaxed">{item.desc}</p>
 
                   {/* Step connector arrow (desktop only) */}
                   {idx < 3 && (
@@ -301,10 +381,10 @@ export const HomePage: React.FC = () => {
             })}
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-8 sm:mt-10 text-center">
             <Link
               to="/how-it-works"
-              className="inline-flex items-center gap-2 text-sm font-bold text-brand-emerald hover:text-brand-deep transition-colors"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-emerald hover:text-brand-deep transition-colors"
             >
               <span>Learn more about the process</span>
               <ArrowRight className="w-4 h-4" />
@@ -314,21 +394,21 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 5. TRAVEL WITH CONFIDENCE — TRUST SECTION */}
-      <section className="py-20 bg-[#F7F9FC] border-t border-gray-100">
+      <section className="py-12 sm:py-20 bg-[#F7F9FC] border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-14">
             <span className="text-xs font-extrabold uppercase tracking-wider text-brand-emerald">
               Why Choose EthioTransit
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black text-brand-dark mt-2">
+            <h2 className="text-2xl sm:text-4xl font-black text-brand-dark mt-1 sm:mt-2">
               Travel With Confidence
             </h2>
-            <p className="text-sm text-brand-textMuted mt-2">
+            <p className="text-xs sm:text-sm text-brand-textMuted mt-1 sm:mt-2">
               We've built EthioTransit to be simple, transparent, and trustworthy — so you can focus on your journey.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               {
                 icon: Lock,
@@ -367,14 +447,14 @@ export const HomePage: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-cardLg p-7 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col gap-4"
+                  className="bg-white rounded-cardLg p-5 sm:p-7 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col gap-3 sm:gap-4"
                 >
-                  <div className={`w-13 h-13 rounded-2xl ${benefit.bg} flex items-center justify-center shadow-sm flex-shrink-0`}>
-                    <Icon className={`w-6 h-6 ${benefit.iconColor}`} />
+                  <div className={`w-11 h-11 sm:w-13 sm:h-13 rounded-2xl ${benefit.bg} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${benefit.iconColor}`} />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-brand-dark mb-2">{benefit.title}</h3>
-                    <p className="text-sm text-brand-textMuted leading-relaxed">{benefit.desc}</p>
+                    <h3 className="text-sm sm:text-base font-black text-brand-dark mb-1 sm:mb-2">{benefit.title}</h3>
+                    <p className="text-xs sm:text-sm text-brand-textMuted leading-relaxed">{benefit.desc}</p>
                   </div>
                 </div>
               );
@@ -384,53 +464,53 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 6. PAYMENT TRANSPARENCY BANNER */}
-      <section className="py-16 bg-brand-dark text-white relative overflow-hidden">
+      <section className="py-10 sm:py-16 bg-brand-dark text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-emerald/20 text-emerald-300 text-xs font-bold w-fit">
                 <ShieldCheck className="w-4 h-4" />
                 <span>100% Payment Transparency Guarantee</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
-                No Hidden Surcharges.<br />No Unofficial Ticket Prices.
+              <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+                No Hidden Surcharges.<br className="hidden sm:inline" />No Unofficial Ticket Prices.
               </h2>
-              <p className="text-sm text-gray-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
                 Ethiopian travelers often face fluctuating fares and unofficial collections. EthioTransit locks the official government-regulated fare upfront. Drivers and conductors cannot modify the fare or solicit extra charges.
               </p>
-              <div className="flex flex-col gap-2 mt-2 text-sm text-gray-300">
+              <div className="flex flex-col gap-2 mt-1 sm:mt-2 text-xs sm:text-sm text-gray-300">
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-brand-emerald flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-emerald flex-shrink-0" />
                   <span>Exact official fare breakdown before you pay</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-brand-emerald flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-emerald flex-shrink-0" />
                   <span>Verified server-side financial transaction records</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-brand-emerald flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-emerald flex-shrink-0" />
                   <span>Direct integration with Telebirr and Ethiopian banking</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md rounded-cardLg p-8 border border-white/10 flex flex-col gap-6">
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl sm:rounded-cardLg p-4 sm:p-8 border border-white/10 flex flex-col gap-4 sm:gap-6">
               <span className="text-xs uppercase font-extrabold tracking-wider text-brand-gold">
                 Price Transparency Example
               </span>
-              <div className="flex justify-between items-center py-2 border-b border-white/10 text-sm">
-                <span className="text-gray-300">Addis Ababa → Debre Berhan (130 km)</span>
-                <span className="font-bold text-white">250 ETB</span>
+              <div className="flex justify-between items-center py-2 border-b border-white/10 text-xs sm:text-sm gap-2">
+                <span className="text-gray-300 truncate">Addis Ababa → Debre Berhan (130 km)</span>
+                <span className="font-bold text-white shrink-0">250 ETB</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-white/10 text-sm">
-                <span className="text-gray-300">Addis Ababa → Bahir Dar (565 km)</span>
-                <span className="font-bold text-white">1,250 ETB</span>
+              <div className="flex justify-between items-center py-2 border-b border-white/10 text-xs sm:text-sm gap-2">
+                <span className="text-gray-300 truncate">Addis Ababa → Bahir Dar (565 km)</span>
+                <span className="font-bold text-white shrink-0">1,250 ETB</span>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-white/10 text-sm">
-                <span className="text-gray-300">Platform Technology Fee</span>
-                <span className="font-bold text-brand-gold">15 ETB</span>
+              <div className="flex justify-between items-center py-2 border-b border-white/10 text-xs sm:text-sm gap-2">
+                <span className="text-gray-300 truncate">Platform Technology Fee</span>
+                <span className="font-bold text-brand-gold shrink-0">15 ETB</span>
               </div>
-              <div className="p-4 rounded-btn bg-brand-emerald/20 border border-brand-emerald/40 text-xs text-emerald-200">
+              <div className="p-3 sm:p-4 rounded-btn bg-brand-emerald/20 border border-brand-emerald/40 text-[11px] sm:text-xs text-emerald-200">
                 Official fare is established in partnership with certified transport associations and Ministry standards.
               </div>
             </div>
@@ -439,23 +519,23 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 7. FEATURED OPERATORS */}
-      <section className="py-14 bg-white border-b border-gray-100">
+      <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <span className="text-xs font-bold uppercase tracking-wider text-brand-textLight">
             Official Transportation Partners
           </span>
-          <h2 className="text-xl font-black text-brand-dark mt-1 mb-8">
+          <h2 className="text-lg sm:text-xl font-black text-brand-dark mt-1 mb-6 sm:mb-8">
             Authorized Intercity Operators
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 items-center justify-center max-w-3xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5 items-center justify-center max-w-3xl mx-auto">
             {['Selam Bus Line S.C.', 'Sky Bus Transport', 'Oda Bus Transport S.C.', 'Golden Bus Express'].map(
               (name, idx) => (
                 <div
                   key={idx}
-                  className="p-5 rounded-xl bg-gray-50 border border-gray-100 font-bold text-sm text-brand-textMain text-center hover:bg-emerald-50/50 hover:border-brand-emerald transition-all cursor-default"
+                  className="p-3.5 sm:p-5 rounded-xl bg-gray-50 border border-gray-100 font-bold text-xs sm:text-sm text-brand-textMain text-center hover:bg-emerald-50/50 hover:border-brand-emerald transition-all cursor-default"
                 >
-                  <Bus className="w-5 h-5 text-brand-emerald mx-auto mb-2" />
-                  <span className="text-xs">{name}</span>
+                  <Bus className="w-5 h-5 text-brand-emerald mx-auto mb-1.5 sm:mb-2" />
+                  <span className="text-[11px] sm:text-xs">{name}</span>
                 </div>
               )
             )}

@@ -77,17 +77,17 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#031d12] to-[#063B2A] text-white py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto flex items-center gap-5">
+      <div className="bg-gradient-to-r from-[#031d12] to-[#063B2A] text-white py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto flex items-center gap-4 sm:gap-5">
           {/* Avatar */}
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-emerald to-[#063B2A] flex items-center justify-center text-2xl font-black text-white border-2 border-emerald-400/40 shadow-xl">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-brand-emerald to-[#063B2A] flex items-center justify-center text-xl sm:text-2xl font-black text-white border-2 border-emerald-400/40 shadow-xl shrink-0">
             {initials}
           </div>
-          <div>
-            <h1 className="text-2xl font-black">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black truncate">
               {user?.firstName} {user?.lastName}
             </h1>
-            <p className="text-emerald-200/70 text-sm mt-0.5">{user?.email}</p>
+            <p className="text-emerald-200/70 text-xs sm:text-sm mt-0.5 truncate">{user?.email}</p>
             <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
               <Bus className="w-3 h-3" />
               {user?.role}
@@ -96,7 +96,7 @@ export const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Success / Error banners */}
         {successMsg && (
           <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-card text-emerald-800 text-sm font-semibold animate-fade-in-up">
@@ -113,24 +113,24 @@ export const ProfilePage: React.FC = () => {
 
         {/* Personal Information */}
         <div className="bg-white rounded-card border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gray-50/50">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                 <User className="w-4 h-4 text-brand-emerald" />
               </div>
-              <h2 className="font-extrabold text-brand-dark text-base">Personal Information</h2>
+              <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">Personal Information</h2>
             </div>
             {!editMode && (
               <button
                 onClick={() => setEditMode(true)}
-                className="text-xs font-bold text-brand-emerald hover:text-brand-deep transition-colors px-4 py-2 rounded-btn hover:bg-emerald-50 shadow-sm border border-emerald-100"
+                className="text-xs font-bold text-brand-emerald hover:text-brand-deep transition-colors px-3 sm:px-4 py-1.5 sm:py-2 rounded-btn hover:bg-emerald-50 shadow-sm border border-emerald-100"
               >
                 Edit Profile
               </button>
             )}
           </div>
 
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* First Name */}
             <div>
               <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
@@ -218,7 +218,7 @@ export const ProfilePage: React.FC = () => {
           </div>
 
           {editMode && (
-            <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-3">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50/80 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
               <button
                 onClick={() => {
                   setEditMode(false);
@@ -226,7 +226,7 @@ export const ProfilePage: React.FC = () => {
                   setLastName(user?.lastName || '');
                   setPhone(user?.phone || '');
                 }}
-                className="px-5 py-2.5 rounded-btn bg-white border border-gray-200 text-sm font-bold text-brand-textMuted hover:bg-gray-50 hover:text-brand-dark transition-colors shadow-sm"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-btn bg-white border border-gray-200 text-sm font-bold text-brand-textMuted hover:bg-gray-50 hover:text-brand-dark transition-colors shadow-sm text-center"
               >
                 Cancel
               </button>
@@ -235,7 +235,7 @@ export const ProfilePage: React.FC = () => {
                   setEditMode(false);
                   showSuccess('Profile updated successfully!');
                 }}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-btn bg-brand-emerald text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:bg-brand-deep transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-btn bg-brand-emerald text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:bg-brand-deep transition-all text-center"
               >
                 <Save className="w-4 h-4" />
                 Save Changes
@@ -246,23 +246,23 @@ export const ProfilePage: React.FC = () => {
 
         {/* Preferences */}
         <div className="bg-white rounded-card border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <div className="flex items-center gap-2.5 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gray-50/50">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
               <Globe className="w-4 h-4 text-brand-emerald" />
             </div>
-            <h2 className="font-extrabold text-brand-dark text-base">App Preferences</h2>
+            <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">App Preferences</h2>
           </div>
           <div className="divide-y divide-gray-50">
             {/* Language */}
-            <div className="px-6 py-5 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 hover:bg-gray-50/50 transition-colors">
               <div>
                 <p className="text-sm font-bold text-brand-dark">Display Language</p>
-                <p className="text-xs text-brand-textMuted mt-1">Choose your preferred language for the interface</p>
+                <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1">Choose your preferred language for the interface</p>
               </div>
-              <div className="flex rounded-lg p-1 bg-gray-100 border border-gray-200 text-xs font-bold">
+              <div className="flex rounded-lg p-1 bg-gray-100 border border-gray-200 text-xs font-bold self-start sm:self-auto">
                 <button
                   onClick={() => handleLanguageToggle('en')}
-                  className={`px-4 py-1.5 rounded-md transition-all ${
+                  className={`px-3.5 sm:px-4 py-1.5 rounded-md transition-all ${
                     language === 'en'
                       ? 'bg-white text-brand-emerald shadow-sm'
                       : 'text-brand-textMuted hover:text-brand-dark'
@@ -272,7 +272,7 @@ export const ProfilePage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => handleLanguageToggle('am')}
-                  className={`px-4 py-1.5 rounded-md transition-all font-ethiopic ${
+                  className={`px-3.5 sm:px-4 py-1.5 rounded-md transition-all font-ethiopic ${
                     language === 'am'
                       ? 'bg-white text-brand-emerald shadow-sm'
                       : 'text-brand-textMuted hover:text-brand-dark'
@@ -284,16 +284,16 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             {/* Notifications */}
-            <div className="px-6 py-5 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-              <div>
+            <div className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+              <div className="pr-2">
                 <p className="text-sm font-bold text-brand-dark flex items-center gap-2">
                   Push Notifications
                 </p>
-                <p className="text-xs text-brand-textMuted mt-1">Receive booking confirmations & trip alerts</p>
+                <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1">Receive booking confirmations & trip alerts</p>
               </div>
               <button
                 onClick={() => setNotifications(!notifications)}
-                className={`w-12 h-6 rounded-full transition-colors relative shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-emerald ${
+                className={`w-12 h-6 rounded-full transition-colors relative shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-emerald shrink-0 ${
                   notifications ? 'bg-brand-emerald' : 'bg-gray-300'
                 }`}
               >
@@ -309,33 +309,33 @@ export const ProfilePage: React.FC = () => {
 
         {/* Security */}
         <div className="bg-white rounded-card border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <div className="flex items-center gap-2.5 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gray-50/50">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
               <Shield className="w-4 h-4 text-brand-emerald" />
             </div>
-            <h2 className="font-extrabold text-brand-dark text-base">Account Security</h2>
+            <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">Account Security</h2>
           </div>
           <div className="divide-y divide-gray-50">
             <button
               onClick={() => setShowPasswordSection(!showPasswordSection)}
-              className="w-full px-6 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors text-left focus:outline-none"
+              className="w-full px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between hover:bg-gray-50 transition-colors text-left focus:outline-none"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
                   <Lock className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-brand-dark">Change Password</p>
-                  <p className="text-xs text-brand-textMuted mt-1">Update your account password regularly</p>
+                  <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1 truncate">Update your account password regularly</p>
                 </div>
               </div>
               <ChevronRight
-                className={`w-5 h-5 text-gray-400 transition-transform ${showPasswordSection ? 'rotate-90 text-brand-emerald' : ''}`}
+                className={`w-5 h-5 text-gray-400 transition-transform shrink-0 ${showPasswordSection ? 'rotate-90 text-brand-emerald' : ''}`}
               />
             </button>
 
             {showPasswordSection && (
-              <div className="px-6 py-6 bg-gray-50/80 flex flex-col gap-5 border-t border-gray-100 animate-fade-in-up">
+              <div className="px-4 sm:px-6 py-5 sm:py-6 bg-gray-50/80 flex flex-col gap-4 sm:gap-5 border-t border-gray-100 animate-fade-in-up">
                 <div>
                   <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
                     Current Password
@@ -380,7 +380,7 @@ export const ProfilePage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="flex justify-end mt-2">
+                <div className="flex justify-end mt-1 sm:mt-2">
                   <button
                     onClick={() => {
                       if (newPassword.length < 6) {
@@ -403,18 +403,18 @@ export const ProfilePage: React.FC = () => {
 
             <button
               onClick={handleLogout}
-              className="w-full px-6 py-5 flex items-center justify-between hover:bg-red-50/50 transition-colors text-left group border-t border-gray-100 focus:outline-none"
+              className="w-full px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between hover:bg-red-50/50 transition-colors text-left group border-t border-gray-100 focus:outline-none"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-50 group-hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors">
+              <div className="flex items-center gap-3 min-w-0 pr-2">
+                <div className="w-10 h-10 rounded-full bg-red-50 group-hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors shrink-0">
                   <LogOut className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-status-error">Logout from Account</p>
-                  <p className="text-xs text-red-400/80 mt-1">You will need to sign in again</p>
+                  <p className="text-xs text-red-400/80 mt-0.5 sm:mt-1 truncate">You will need to sign in again</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-red-200 group-hover:text-red-400 transition-colors group-hover:translate-x-1" />
+              <ChevronRight className="w-5 h-5 text-red-200 group-hover:text-red-400 transition-colors group-hover:translate-x-1 shrink-0" />
             </button>
           </div>
         </div>

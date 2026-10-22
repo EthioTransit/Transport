@@ -184,11 +184,12 @@ export const AdminLayout: React.FC = () => {
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 bg-white border-b border-gray-200/80 px-4 sm:px-6 flex items-center justify-between z-20 shadow-xs">
-          <div className="flex items-center gap-4">
+        <header className="h-16 bg-white border-b border-gray-200/80 px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -206,7 +207,7 @@ export const AdminLayout: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Live Addis Ababa Time */}
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-mono font-medium text-gray-600">
               <Clock className="w-3.5 h-3.5 text-brand-emerald" />
@@ -214,9 +215,9 @@ export const AdminLayout: React.FC = () => {
             </div>
 
             {/* Backend Connectivity Status */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 border border-gray-200">
+            <div className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-50 border border-gray-200">
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   backendStatus === 'online'
                     ? 'bg-emerald-500 animate-pulse'
                     : backendStatus === 'offline'
@@ -224,15 +225,15 @@ export const AdminLayout: React.FC = () => {
                     : 'bg-amber-500'
                 }`}
               />
-              <span className="text-[11px] text-gray-600 font-medium">
+              <span className="text-[11px] text-gray-600 font-medium hidden sm:inline">
                 {backendStatus === 'online' ? 'API Online' : backendStatus === 'offline' ? 'API Offline' : 'Connecting...'}
               </span>
             </div>
 
             {/* Admin User Profile Chip */}
-            <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
+            <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-gray-200">
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-bold text-brand-dark">
+                <div className="text-xs font-bold text-brand-dark truncate max-w-[120px]">
                   {user ? `${user.firstName} ${user.lastName}` : 'Administrator'}
                 </div>
                 <div className="text-[10px] font-bold text-brand-emerald uppercase tracking-wider">
@@ -240,14 +241,14 @@ export const AdminLayout: React.FC = () => {
                 </div>
               </div>
 
-              <div className="w-9 h-9 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-xs shadow-xs border border-slate-700">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-xs shadow-xs border border-slate-700 shrink-0">
                 {user?.firstName?.[0] || 'A'}
               </div>
 
               <button
                 onClick={handleLogout}
                 title="Sign Out of Console"
-                className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -258,29 +259,29 @@ export const AdminLayout: React.FC = () => {
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs md:hidden">
-            <div className="w-64 h-full bg-brand-slate text-slate-300 p-4 flex flex-col">
+            <div className="w-64 max-w-[80vw] h-full bg-brand-slate text-slate-300 p-4 flex flex-col safe-area-pb shadow-2xl">
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <span className="font-bold text-white text-sm">Console Menu</span>
-                <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400">
+                <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 hover:text-white p-1">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <nav className="flex-1 py-4 space-y-1">
+              <nav className="flex-1 py-4 space-y-1 overflow-y-auto touch-scroll">
                 {navItems.map((item) => (
                   <a
                     key={item.path}
                     href={item.path}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-btn text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-btn text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
                   >
-                    <item.icon className="w-4 h-4" />
+                    <item.icon className="w-4 h-4 shrink-0" />
                     <span>{item.label}</span>
                   </a>
                 ))}
               </nav>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 rounded-btn text-xs font-bold text-rose-400 hover:bg-rose-950/40"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-btn text-xs font-bold text-rose-400 hover:bg-rose-950/40 transition-colors mt-auto pt-3 border-t border-slate-800"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
@@ -290,7 +291,7 @@ export const AdminLayout: React.FC = () => {
         )}
 
         {/* Content Outlet */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

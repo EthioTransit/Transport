@@ -69,23 +69,23 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
           </div>
 
           {/* Route Timeline */}
-          <div className="flex items-center gap-3 sm:gap-6">
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-6">
             {/* Departure */}
             <div className="flex flex-col min-w-0">
-              <span className="text-2xl sm:text-3xl font-black text-brand-dark tabular-nums leading-none">
+              <span className="text-xl sm:text-2xl md:text-3xl font-black text-brand-dark tabular-nums leading-none">
                 {trip.departureTime}
               </span>
-              <span className="text-sm font-bold text-brand-textMain mt-0.5 truncate">{originCity}</span>
+              <span className="text-xs sm:text-sm font-bold text-brand-textMain mt-0.5 truncate">{originCity}</span>
               {trip.pickupLocation && (
-                <span className="text-xs text-brand-textMuted truncate max-w-[120px] sm:max-w-[160px]">
+                <span className="text-[11px] sm:text-xs text-brand-textMuted truncate max-w-[100px] sm:max-w-[160px]">
                   {trip.pickupLocation}
                 </span>
               )}
             </div>
 
             {/* Middle: duration + route line */}
-            <div className="flex-1 max-w-[140px] sm:max-w-[180px] flex flex-col items-center">
-              <span className="text-[11px] font-semibold text-brand-textLight flex items-center gap-1">
+            <div className="flex-1 min-w-[50px] max-w-[120px] sm:max-w-[180px] flex flex-col items-center">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-brand-textLight flex items-center gap-1">
                 <Clock className="w-3 h-3 text-brand-emerald" />
                 <span>{durationHours}h est.</span>
               </span>
@@ -94,19 +94,19 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
                 <div className="flex-1 h-0.5 bg-gradient-to-r from-brand-emerald via-brand-emerald/60 to-brand-gold" />
                 <div className="w-2 h-2 rounded-full bg-brand-gold flex-shrink-0" />
               </div>
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold text-gray-400">
                 Direct
               </span>
             </div>
 
             {/* Arrival */}
             <div className="flex flex-col min-w-0 text-right sm:text-left">
-              <span className="text-2xl sm:text-3xl font-black text-brand-dark tabular-nums leading-none">
+              <span className="text-xl sm:text-2xl md:text-3xl font-black text-brand-dark tabular-nums leading-none">
                 {trip.estimatedArrival || '—'}
               </span>
-              <span className="text-sm font-bold text-brand-textMain mt-0.5 truncate">{destCity}</span>
+              <span className="text-xs sm:text-sm font-bold text-brand-textMain mt-0.5 truncate">{destCity}</span>
               {trip.dropOffLocation && (
-                <span className="text-xs text-brand-textMuted truncate max-w-[120px] sm:max-w-[160px]">
+                <span className="text-[11px] sm:text-xs text-brand-textMuted truncate max-w-[100px] sm:max-w-[160px]">
                   {trip.dropOffLocation}
                 </span>
               )}
@@ -148,29 +148,29 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
         </div>
 
         {/* Right: Price & CTA */}
-        <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-6 gap-4 flex-shrink-0">
-          <div className="text-left lg:text-right">
-            <div className="text-[11px] font-bold text-brand-emerald uppercase tracking-wide">Official Fare</div>
+        <div className="flex flex-row md:flex-col items-center md:items-end justify-between border-t md:border-t-0 md:border-l border-gray-100 pt-3 md:pt-0 md:pl-6 gap-3 sm:gap-4 flex-shrink-0">
+          <div className="text-left md:text-right">
+            <div className="text-[10px] sm:text-[11px] font-bold text-brand-emerald uppercase tracking-wide">Official Fare</div>
             <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-3xl sm:text-4xl font-black text-brand-dark tabular-nums">
+              <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-brand-dark tabular-nums">
                 {trip.fare.toLocaleString()}
               </span>
-              <span className="text-sm font-bold text-brand-textMuted">{BRAND.currency}</span>
+              <span className="text-xs sm:text-sm font-bold text-brand-textMuted">{BRAND.currency}</span>
             </div>
-            <span className="text-[11px] text-brand-textLight">per passenger</span>
+            <span className="text-[10px] sm:text-[11px] text-brand-textLight">per passenger</span>
           </div>
 
           {trip.availableSeatsCount > 0 ? (
             <Link
               to={`/trips/${trip._id}/seats?date=${travelDate}&passengers=${passengersCount}`}
               id={`select-seat-btn-${trip._id}`}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-sm shadow-md shadow-brand-emerald/20 hover:shadow-lg hover:scale-105 active:scale-95 transition-all text-center flex-shrink-0 group"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-xs sm:text-sm shadow-md shadow-brand-emerald/20 hover:shadow-lg hover:scale-105 active:scale-95 transition-all text-center flex-shrink-0 group"
             >
               <span>Select Seat</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           ) : (
-            <div className="px-5 py-3 rounded-btn bg-gray-100 text-gray-400 font-extrabold text-sm text-center flex-shrink-0 cursor-not-allowed">
+            <div className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-btn bg-gray-100 text-gray-400 font-extrabold text-xs sm:text-sm text-center flex-shrink-0 cursor-not-allowed">
               Sold Out
             </div>
           )}

@@ -267,13 +267,13 @@ export const PassengerDashboardPage: React.FC = () => {
 
         {/* My Trips — Tabbed */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 pt-6 pb-0">
-            <h2 className="text-lg font-black text-brand-dark mb-5 flex items-center gap-2">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-0">
+            <h2 className="text-base sm:text-lg font-black text-brand-dark mb-4 sm:mb-5 flex items-center gap-2">
               <Luggage className="w-5 h-5 text-brand-emerald" />
               My Trips
             </h2>
             {/* Tabs */}
-            <div className="flex gap-1 border-b border-gray-100">
+            <div className="flex gap-1 border-b border-gray-100 overflow-x-auto touch-scroll no-scrollbar whitespace-nowrap">
               {(
                 [
                   { key: 'upcoming', label: isAmharic ? 'ቀጣይ' : 'Upcoming', count: upcomingBookings.length },
@@ -284,7 +284,7 @@ export const PassengerDashboardPage: React.FC = () => {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
-                  className={`px-4 py-2.5 text-sm font-bold rounded-t-lg transition-all relative -mb-px ${
+                  className={`px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-t-lg transition-all relative -mb-px shrink-0 ${
                     activeTab === key
                       ? 'text-brand-emerald border-b-2 border-brand-emerald'
                       : 'text-brand-textMuted hover:text-brand-dark'
@@ -305,7 +305,7 @@ export const PassengerDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {tabBookings.length === 0 ? (
               <div className="py-16 flex flex-col items-center text-center gap-3">
                 {activeTab === 'upcoming' ? (
@@ -361,7 +361,7 @@ export const PassengerDashboardPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:flex-shrink-0">
+                    <div className="flex items-center justify-between sm:justify-start gap-3 sm:flex-shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                       <span className="text-sm font-black text-brand-dark">
                         {booking.total} {BRAND.currency}
                       </span>

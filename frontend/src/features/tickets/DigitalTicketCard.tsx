@@ -32,7 +32,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
   const isCancelled = ticket.status === 'CANCELLED';
 
   return (
-    <div className="max-w-md mx-auto my-4">
+    <div className="max-w-md mx-auto my-2 sm:my-4 w-full">
       {/* Main Ticket Card */}
       <div
         className={`bg-white rounded-cardLg shadow-2xl overflow-hidden relative transition-all ${
@@ -44,8 +44,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
         {isCancelled && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
             <span
-              className="text-5xl font-black text-red-500/30 uppercase tracking-widest rotate-[-35deg]"
-              style={{ fontSize: '4rem' }}
+              className="text-4xl sm:text-5xl font-black text-red-500/30 uppercase tracking-widest rotate-[-35deg]"
             >
               CANCELLED
             </span>
@@ -53,7 +52,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
         )}
 
         {/* Header */}
-        <div className="bg-gradient-to-br from-[#031d12] via-[#063B2A] to-brand-emerald p-6 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#031d12] via-[#063B2A] to-brand-emerald p-4 sm:p-6 text-white relative overflow-hidden">
           {/* Background pattern */}
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <svg viewBox="0 0 400 160" className="w-full h-full">
@@ -112,7 +111,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
         </div>
 
         {/* Ticket Body */}
-        <div className="p-6 flex flex-col gap-5">
+        <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
           {/* Key Info Grid */}
           <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-100">
             <div>

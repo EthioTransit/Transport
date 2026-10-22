@@ -145,8 +145,8 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
   return (
     <div className="relative w-full bg-[#051810] text-white overflow-hidden select-none">
       
-      {/* 1. TOP PANORAMIC FILMSTRIP HEADER MONTAGE (Matching reference screenshot exactly) */}
-      <div className="relative w-full h-32 md:h-40 overflow-hidden border-b border-emerald-950/60">
+      {/* 1. TOP PANORAMIC FILMSTRIP HEADER MONTAGE */}
+      <div className="relative w-full h-20 sm:h-32 md:h-40 overflow-hidden border-b border-emerald-950/60">
         <img
           src="/ethiopia-filmstrip.jpg"
           alt="Ethiopian Transit Panoramic Heritage Montage"
@@ -158,21 +158,21 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
       </div>
 
       {/* 2. MAIN HERO STAGE */}
-      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           
           {/* LEFT COLUMN: HEADLINE & GOLDEN ACTION BUTTONS */}
-          <div className="lg:col-span-5 flex flex-col items-start pt-2 lg:pt-6 z-20">
+          <div className="lg:col-span-5 flex flex-col items-start pt-1 sm:pt-2 lg:pt-6 z-20 w-full">
             
             {/* Welcome Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900/60 border border-emerald-400/30 text-emerald-300 text-xs font-black tracking-wide shadow-md backdrop-blur-md mb-6 hover:border-emerald-400/60 transition-colors">
-              <Sparkles className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '8s' }} />
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-emerald-900/60 border border-emerald-400/30 text-emerald-300 text-[11px] sm:text-xs font-black tracking-wide shadow-md backdrop-blur-md mb-3 sm:mb-6 hover:border-emerald-400/60 transition-colors">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 animate-spin" style={{ animationDuration: '8s' }} />
               <span>{isAmharic ? 'እንኳን ወደ ኢትዮ ትራንስፖርት በደህና መጡ' : 'Welcome to Ethio Transport'}</span>
             </div>
 
             {/* Main Headline with Gold Light Wave */}
-            <div className="relative">
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black text-white tracking-tight leading-[1.12]">
+            <div className="relative w-full">
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[56px] font-black text-white tracking-tight leading-[1.15] sm:leading-[1.12]">
                 Travel Across Ethiopia,
                 <br />
                 <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#F4D58D] via-[#f7e4a8] to-[#D9A441] drop-shadow-md">
@@ -183,14 +183,14 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
               </h1>
             </div>
 
-            <p className="mt-4 text-sm sm:text-base text-emerald-100/75 leading-relaxed max-w-lg font-medium">
+            <p className="mt-2.5 sm:mt-4 text-xs sm:text-base text-emerald-100/75 leading-relaxed max-w-lg font-medium">
               {isAmharic
                 ? 'የአገር አቋራጭ አውቶቡስ መስመሮችን ይፈልጉ፣ ወንበርዎን በቅጽበት ይያዙ፣ በቴሌብር እና በሲቢኢ ብር በደህንነት ይክፈሉ።'
                 : 'Search verified intercity routes, select your seat with atomic reservation locks, and travel seamlessly with digital QR tickets.'}
             </p>
 
             {/* Golden & Glass Action Buttons matching image */}
-            <div className="flex flex-wrap items-center gap-4 mt-7">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mt-5 sm:mt-7 w-full sm:w-auto">
               <a
                 href="#search-section"
                 onClick={(e) => {
@@ -199,7 +199,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                     onSearchClick();
                   }
                 }}
-                className="group inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#D9A441] via-[#e5b352] to-[#c78f2d] hover:from-[#e5b352] hover:to-[#D9A441] text-emerald-950 font-black text-sm shadow-xl shadow-amber-950/40 hover:shadow-amber-500/20 transform hover:-translate-y-0.5 transition-all duration-200"
+                className="group inline-flex items-center justify-center gap-2.5 px-6 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#D9A441] via-[#e5b352] to-[#c78f2d] hover:from-[#e5b352] hover:to-[#D9A441] text-emerald-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/40 hover:shadow-amber-500/20 transform hover:-translate-y-0.5 transition-all duration-200"
               >
                 <Bus className="w-4 h-4 text-emerald-950 group-hover:scale-110 transition-transform" />
                 <span>{isAmharic ? 'ጉዞዎችን ፈልግ' : 'Search Trips'}</span>
@@ -207,7 +207,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
 
               <Link
                 to="/routes"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#8c6b29]/40 to-[#a37c2d]/30 hover:bg-[#a37c2d]/50 text-[#F4D58D] border border-[#D9A441]/50 font-black text-sm shadow-md backdrop-blur-sm transform hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#8c6b29]/40 to-[#a37c2d]/30 hover:bg-[#a37c2d]/50 text-[#F4D58D] border border-[#D9A441]/50 font-black text-xs sm:text-sm shadow-md backdrop-blur-sm transform hover:-translate-y-0.5 transition-all duration-200"
               >
                 <Navigation className="w-4 h-4 text-[#F4D58D]" />
                 <span>{isAmharic ? 'መስመሮችን አስስ' : 'Explore Routes'}</span>
@@ -215,8 +215,8 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
             </div>
 
             {/* LIVE TRIP FEED (Matching bottom left of screenshot) */}
-            <div className="w-full mt-10">
-              <div className="flex items-center justify-between mb-3">
+            <div className="w-full mt-6 sm:mt-10">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <h3 className="text-xs font-black uppercase tracking-wider text-emerald-100">
@@ -243,8 +243,8 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                 </div>
               </div>
 
-              {/* 3 Trip Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Trip Cards: Horizontal edge-to-edge swipe on small screens, 3-column grid on sm+ */}
+              <div className="flex sm:grid sm:grid-cols-3 gap-2.5 sm:gap-3 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 touch-scroll snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                 {LIVE_TRIPS_DATA.slice(activeTripOffset, activeTripOffset + 3).map((trip) => {
                   const todayIso = new Date().toISOString().split('T')[0];
                   const destCode = trip.to === 'Bahir Dar' ? 'BJR' : trip.to === 'Gondar' ? 'GDQ' : trip.to === 'Lalibela' ? 'LLI' : 'DIR';
@@ -252,7 +252,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                     <div
                       key={trip.id}
                       onClick={() => navigate(`/search?from=ADD&to=${destCode}&date=${todayIso}&passengers=1`)}
-                      className="relative group rounded-xl overflow-hidden border border-emerald-800/40 hover:border-amber-400 p-2.5 flex flex-col justify-between h-28 bg-[#092218] cursor-pointer shadow-lg hover:shadow-emerald-900/40 transition-all"
+                      className="relative group rounded-xl overflow-hidden border border-emerald-800/40 hover:border-amber-400 p-2.5 flex flex-col justify-between h-28 bg-[#092218] cursor-pointer shadow-lg hover:shadow-emerald-900/40 transition-all shrink-0 w-[220px] sm:w-auto snap-start"
                     >
                       {/* Photo Thumbnail */}
                       <div
@@ -293,10 +293,10 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
           </div>
 
           {/* RIGHT COLUMN: 3D ISOMETRIC RELIEF MAP OF ETHIOPIA + FLOATING PASSPORT & ANALYTICS WIDGET */}
-          <div className="lg:col-span-7 relative flex flex-col items-end">
+          <div className="lg:col-span-7 relative flex flex-col items-end w-full mt-4 lg:mt-0">
             
-            {/* FLOATING TOP-RIGHT GLASS WIDGET: ETHIOTRANSIT PASSPORT + LIVE ANALYTICS (Exact layout from screenshot) */}
-            <div className="w-full max-w-2xl bg-[#082419]/90 backdrop-blur-md rounded-2xl p-4 text-white shadow-2xl border border-emerald-500/30 mb-3 z-30">
+            {/* FLOATING TOP-RIGHT GLASS WIDGET: ETHIOTRANSIT PASSPORT + LIVE ANALYTICS (Shown on desktop/tablet to eliminate mobile clutter) */}
+            <div className="hidden lg:block w-full max-w-2xl bg-[#082419]/90 backdrop-blur-md rounded-2xl p-4 text-white shadow-2xl border border-emerald-500/30 mb-3 z-30">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 
                 {/* Left Half: EthioTransit Passport */}
@@ -398,13 +398,13 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
             </div>
 
             {/* 3D TOPOGRAPHICAL RELIEF MAP OF ETHIOPIA WITH ANIMATED BUSES & HIGHWAY GLOW */}
-            <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-[#03150e]">
+            <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-500/30 shadow-2xl bg-[#03150e] aspect-[1000/600] min-h-[220px] sm:min-h-[320px]">
               
               {/* 3D Isometric Map Image */}
               <img
                 src="/ethiopia-relief-map.jpg"
                 alt="3D Isometric Topographical Elevation Map of Ethiopia with Route Grid"
-                className="w-full h-auto object-cover object-center max-h-[460px] filter brightness-95 contrast-110"
+                className="w-full h-full object-cover object-center filter brightness-95 contrast-110"
               />
 
               {/* OVERLAY SVG FOR CONTINUOUS ANIMATED BUSES TRAVELLING THE ROUTES */}
@@ -507,32 +507,37 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                   >
                     {/* Glowing Ping */}
                     {city.isHub && (
-                      <span className="absolute w-8 h-8 rounded-full bg-amber-400/40 animate-ping pointer-events-none" />
+                      <span className="absolute w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-400/40 animate-ping pointer-events-none" />
                     )}
 
                     {/* Pin Icon */}
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shadow-lg transition-transform group-hover:scale-125 ${
+                      className={`w-4.5 h-4.5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[7px] sm:text-[10px] font-black shadow-lg transition-transform group-hover:scale-125 ${
                         city.isHub
-                          ? 'bg-amber-400 text-emerald-950 border-2 border-white'
-                          : 'bg-emerald-500 text-white border-2 border-white'
+                          ? 'bg-amber-400 text-emerald-950 border sm:border-2 border-white'
+                          : 'bg-emerald-500 text-white border sm:border-2 border-white'
                       }`}
                     >
-                      <Bus className="w-3 h-3" />
+                      <Bus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     </div>
 
-                    {/* City Label Tag */}
-                    <div className="mt-1 px-2 py-0.5 rounded bg-[#031d12]/90 border border-emerald-500/40 text-[10px] font-black text-white whitespace-nowrap shadow-md group-hover:border-amber-400 group-hover:text-amber-300 transition-colors">
+                    {/* City Label Tag on desktop/tablet */}
+                    <div className="hidden sm:block mt-1 px-2 py-0.5 rounded bg-[#031d12]/90 border border-emerald-500/40 text-[10px] font-black text-white whitespace-nowrap shadow-md group-hover:border-amber-400 group-hover:text-amber-300 transition-colors">
                       {isAmharic ? city.amharic : city.name}
+                    </div>
+
+                    {/* Compact Code Tag on mobile phones to prevent overlap */}
+                    <div className="sm:hidden mt-0.5 px-1 py-0.2 rounded bg-[#031d12]/95 border border-emerald-500/50 text-[7.5px] font-black text-amber-300 whitespace-nowrap leading-tight shadow-sm">
+                      {city.code}
                     </div>
                   </button>
                 ))}
               </div>
 
               {/* Map Floating Helper Tag */}
-              <div className="absolute bottom-2 right-2 text-[9px] font-black text-emerald-200 bg-[#031d12]/95 px-2.5 py-1 rounded-md border border-emerald-500/30 flex items-center gap-1.5 shadow-lg">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Click any hub to book seat instantly</span>
+              <div className="absolute bottom-2 right-2 text-[8px] sm:text-[9px] font-black text-emerald-200 bg-[#031d12]/95 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-emerald-500/30 flex items-center gap-1.5 shadow-lg max-w-[70%] sm:max-w-none truncate">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="truncate">Tap any hub to book instantly</span>
               </div>
             </div>
 

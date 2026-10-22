@@ -41,24 +41,24 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-[#031d12]/95 backdrop-blur-md border-b border-emerald-900/50 shadow-md transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200 border border-emerald-300/30">
-              <Bus className="w-6 h-6 text-white" />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200 border border-emerald-300/30 shrink-0">
+              <Bus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="font-black text-2xl tracking-tight text-white">
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <span className="font-black text-xl sm:text-2xl tracking-tight text-white">
                   Ethio
                 </span>
-                <span className="font-black text-2xl tracking-tight text-emerald-400">
+                <span className="font-black text-xl sm:text-2xl tracking-tight text-emerald-400">
                   Transit
                 </span>
-                <span className="w-2 h-2 rounded-full bg-amber-400 ml-0.5 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 ml-0.5 animate-pulse"></span>
               </div>
-              <span className="text-[10px] uppercase tracking-widest font-black text-emerald-300/80 -mt-1">
+              <span className="text-[8px] sm:text-[10px] uppercase tracking-widest font-black text-emerald-300/80 -mt-0.5 sm:-mt-1">
                 ETHIOPIAN MOBILITY
               </span>
             </div>
@@ -151,24 +151,29 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer (Requirement 53) */}
+      {/* Mobile Drawer Backdrop & Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-x-0 top-20 bg-white border-b border-gray-200 shadow-2xl p-6 z-50 animate-in slide-in-from-top-4 duration-200">
-          <div className="flex flex-col gap-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-btn text-base font-medium transition-colors ${
-                  isActive(link.to)
-                    ? 'bg-emerald-50 text-brand-emerald font-semibold'
-                    : 'text-brand-textMain hover:bg-gray-50'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+        <>
+          <div
+            className="lg:hidden fixed inset-0 top-16 sm:top-20 bg-black/60 backdrop-blur-xs z-40"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="lg:hidden fixed inset-x-0 top-16 sm:top-20 bg-white border-b border-gray-200 shadow-2xl p-4 sm:p-6 z-50 animate-in slide-in-from-top-4 duration-200 max-h-[calc(100vh-4.5rem)] overflow-y-auto">
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2.5 sm:py-3 rounded-btn text-base font-semibold transition-colors ${
+                    isActive(link.to)
+                      ? 'bg-emerald-50 text-brand-emerald'
+                      : 'text-brand-textMain hover:bg-gray-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
 
             <div className="my-3 border-t border-gray-100 pt-3">
               {isAuthenticated && user ? (
@@ -221,6 +226,7 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
+        </>
       )}
     </header>
   );

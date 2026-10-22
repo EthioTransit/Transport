@@ -83,7 +83,7 @@ export const PreFooterCta: React.FC = () => {
         </span>
 
         {/* Large Elegant Display Headline */}
-        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] leading-[1.1] font-bold text-white tracking-tight">
+        <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-[68px] leading-[1.15] font-bold text-white tracking-tight">
           <span className="font-serif">
             {isAmharic ? 'የእርስዎ ጉዞ፣ ' : 'Your journey, '}
           </span>
@@ -93,12 +93,12 @@ export const PreFooterCta: React.FC = () => {
         </h2>
 
         {/* Action Buttons matching layout with platform brand colors */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-8 sm:mt-10">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-10 w-full sm:w-auto px-4 sm:px-0">
           
           {/* Primary Button: FIND TRIPS */}
           <Link
             to="/search"
-            className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black text-xs uppercase tracking-[0.18em] shadow-xl shadow-emerald-950/60 hover:shadow-emerald-500/25 border border-emerald-400/30 transform hover:-translate-y-0.5 transition-all duration-200"
+            className="group inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-black text-xs uppercase tracking-[0.18em] shadow-xl shadow-emerald-950/60 hover:shadow-emerald-500/25 border border-emerald-400/30 transform hover:-translate-y-0.5 transition-all duration-200"
           >
             <Search className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform" />
             <span>{isAmharic ? 'ጉዞዎችን ፈልግ' : 'FIND TRIPS'}</span>
@@ -108,7 +108,7 @@ export const PreFooterCta: React.FC = () => {
           {/* Secondary Button: CREATE ACCOUNT */}
           <Link
             to="/register"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-100 hover:text-white border border-emerald-500/30 hover:border-emerald-400/60 font-black text-xs uppercase tracking-[0.18em] backdrop-blur-sm shadow-md transform hover:-translate-y-0.5 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-100 hover:text-white border border-emerald-500/30 hover:border-emerald-400/60 font-black text-xs uppercase tracking-[0.18em] backdrop-blur-sm shadow-md transform hover:-translate-y-0.5 transition-all duration-200"
           >
             <UserPlus className="w-4 h-4 text-amber-300" />
             <span>{isAmharic ? 'መለያ ፍጠር' : 'CREATE ACCOUNT'}</span>

@@ -53,44 +53,44 @@ export const PassengerManifestModal: React.FC<PassengerManifestModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-cardLg shadow-2xl border border-gray-100 p-6 md:p-8 w-full max-w-3xl max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4">
+      <div className="bg-white rounded-cardLg shadow-2xl border border-gray-100 p-4 sm:p-6 md:p-8 w-full max-w-3xl max-h-[90vh] sm:max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2.5">
-            <Users className="w-5 h-5 text-brand-emerald" />
-            <div>
-              <h3 className="font-extrabold text-lg text-brand-dark">Passenger Manifest</h3>
-              <p className="text-xs text-brand-textMuted">
+            <Users className="w-5 h-5 text-brand-emerald shrink-0" />
+            <div className="min-w-0">
+              <h3 className="font-extrabold text-base sm:text-lg text-brand-dark truncate">Passenger Manifest</h3>
+              <p className="text-xs text-brand-textMuted truncate">
                 {data?.trip?.tripCode} • {data?.trip?.departureDate} at {data?.trip?.departureTime}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:text-gray-600 shrink-0">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Boarding Stat Badges */}
         {data && (
-          <div className="grid grid-cols-3 gap-3 my-4">
-            <div className="p-3 bg-gray-50 rounded-card text-center border border-gray-100">
-              <span className="text-xs text-brand-textMuted font-bold">Total Booked</span>
-              <p className="text-xl font-black text-brand-dark">{data.totalTickets}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 my-3 sm:my-4">
+            <div className="p-2 sm:p-3 bg-gray-50 rounded-card text-center border border-gray-100">
+              <span className="text-[10px] sm:text-xs text-brand-textMuted font-bold block truncate">Total Booked</span>
+              <p className="text-base sm:text-xl font-black text-brand-dark mt-0.5">{data.totalTickets}</p>
             </div>
-            <div className="p-3 bg-emerald-50 rounded-card text-center border border-emerald-100">
-              <span className="text-xs text-emerald-800 font-bold">Boarded</span>
-              <p className="text-xl font-black text-brand-emerald">{data.boardedCount}</p>
+            <div className="p-2 sm:p-3 bg-emerald-50 rounded-card text-center border border-emerald-100">
+              <span className="text-[10px] sm:text-xs text-emerald-800 font-bold block truncate">Boarded</span>
+              <p className="text-base sm:text-xl font-black text-brand-emerald mt-0.5">{data.boardedCount}</p>
             </div>
-            <div className="p-3 bg-amber-50 rounded-card text-center border border-amber-100">
-              <span className="text-xs text-amber-800 font-bold">Pending Boarding</span>
-              <p className="text-xl font-black text-amber-700">{data.pendingCount}</p>
+            <div className="p-2 sm:p-3 bg-amber-50 rounded-card text-center border border-amber-100">
+              <span className="text-[10px] sm:text-xs text-amber-800 font-bold block truncate">Pending</span>
+              <p className="text-base sm:text-xl font-black text-amber-700 mt-0.5">{data.pendingCount}</p>
             </div>
           </div>
         )}
 
         {/* Filter Input */}
-        <div className="relative mb-4">
+        <div className="relative mb-3 sm:mb-4">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
           <input
             type="text"
@@ -102,13 +102,13 @@ export const PassengerManifestModal: React.FC<PassengerManifestModalProps> = ({
         </div>
 
         {/* Manifest Table */}
-        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 border rounded-card border-gray-200">
+        <div className="flex-1 overflow-x-auto overflow-y-auto touch-scroll divide-y divide-gray-100 border rounded-card border-gray-200">
           {loading ? (
             <div className="p-8 text-center text-sm text-gray-400">Loading manifest...</div>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center text-sm text-gray-400">No passengers found for this trip.</div>
           ) : (
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[500px] text-left text-xs">
               <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold sticky top-0 border-b border-gray-200">
                 <tr>
                   <th className="py-2.5 px-4">Seat</th>
@@ -153,10 +153,10 @@ export const PassengerManifestModal: React.FC<PassengerManifestModalProps> = ({
           )}
         </div>
 
-        <div className="pt-4 mt-2 flex justify-end">
+        <div className="pt-3 sm:pt-4 mt-2 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-btn bg-gray-100 hover:bg-gray-200 text-brand-textMain font-semibold text-xs transition-colors"
+            className="w-full sm:w-auto px-5 py-2 rounded-btn bg-gray-100 hover:bg-gray-200 text-brand-textMain font-semibold text-xs transition-colors text-center"
           >
             Close Manifest
           </button>

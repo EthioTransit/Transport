@@ -26,7 +26,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const sortedRows = Array.from(rowMap.entries()).sort(([a], [b]) => a - b);
 
   return (
-    <div className="bg-white rounded-cardLg p-6 md:p-8 border border-gray-100 shadow-card max-w-md mx-auto">
+    <div className="bg-white rounded-cardLg p-3.5 sm:p-6 md:p-8 border border-gray-100 shadow-card max-w-md mx-auto">
       {/* Front Bus Indicator */}
       <div className="flex items-center justify-between pb-6 mb-6 border-b-2 border-dashed border-gray-200">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-textMuted">
@@ -111,10 +111,10 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         id={`seat-btn-${seat.seatNumber}`}
         disabled={!canSelect}
         onClick={() => onToggleSeat(seat.seatNumber)}
-        className={`w-11 h-11 rounded-btn flex flex-col items-center justify-center transition-all duration-150 relative ${style}`}
+        className={`w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-btn flex flex-col items-center justify-center transition-all duration-150 relative shrink-0 ${style}`}
         title={`Seat ${seat.seatNumber} (${seat.seatType}) - ${seat.status}`}
       >
-        <span className="text-[11px] font-black">{seat.seatNumber}</span>
+        <span className="text-[10px] sm:text-[11px] font-black">{seat.seatNumber}</span>
       </button>
     );
   }

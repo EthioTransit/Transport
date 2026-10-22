@@ -82,13 +82,13 @@ export const SearchCard: React.FC<SearchCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-cardLg shadow-2xl border border-gray-100 p-6 md:p-8 transition-all ${
+      className={`bg-white rounded-2xl sm:rounded-cardLg shadow-2xl border border-gray-100 p-3.5 sm:p-6 md:p-8 transition-all ${
         compact ? 'shadow-md border-gray-200' : ''
       }`}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3.5 sm:mb-6">
         <div>
-          <h2 className="text-xl md:text-2xl font-black text-brand-dark tracking-tight">
+          <h2 className="text-base sm:text-xl md:text-2xl font-black text-brand-dark tracking-tight">
             {isAmharic ? 'በኢትዮጵያ ውስጥ ምርጥ መስመሮችን ያግኙ' : 'Find the best routes across Ethiopia'}
           </h2>
           <p className="text-xs md:text-sm text-brand-textMuted mt-0.5">
@@ -99,9 +99,9 @@ export const SearchCard: React.FC<SearchCardProps> = ({
         </div>
       </div>
 
-      <form onSubmit={handleSearch} className="flex flex-col gap-5">
+      <form onSubmit={handleSearch} className="flex flex-col gap-3.5 sm:gap-5">
         {/* Main Grid: From | Swap | To | Date | Passengers */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3 items-start">
           {/* From City */}
           <div className="md:col-span-3">
             <CitySelector
@@ -119,17 +119,17 @@ export const SearchCard: React.FC<SearchCardProps> = ({
           </div>
 
           {/* Swap Button */}
-          <div className="md:col-span-1 flex items-center justify-center pt-2 md:pt-6">
+          <div className="md:col-span-1 flex items-center justify-center -my-1.5 md:my-0 pt-0 md:pt-6">
             <button
               type="button"
               id="swap-cities-btn"
               onClick={handleSwapCities}
               title="Swap departure and arrival cities"
-              className={`w-11 h-11 rounded-full border border-gray-200 bg-white hover:bg-emerald-50 hover:border-brand-emerald text-brand-emerald flex items-center justify-center shadow-xs transition-all duration-200 ${
-                isSwapping ? 'rotate-180 scale-110' : 'hover:scale-105'
+              className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-gray-200 bg-white hover:bg-emerald-50 hover:border-brand-emerald text-brand-emerald flex items-center justify-center shadow-xs transition-all duration-200 z-10 ${
+                isSwapping ? 'scale-110' : 'hover:scale-105'
               }`}
             >
-              <ArrowLeftRight className="w-4 h-4" />
+              <ArrowLeftRight className="w-4 h-4 rotate-90 md:rotate-0 transition-transform" />
             </button>
           </div>
 
@@ -164,7 +164,7 @@ export const SearchCard: React.FC<SearchCardProps> = ({
                   setTravelDate(e.target.value);
                   setErrors((prev) => ({ ...prev, date: undefined }));
                 }}
-                className={`w-full h-13 px-3.5 rounded-input bg-gray-50/80 border text-sm font-semibold text-brand-textMain focus:bg-white focus:outline-none transition-colors ${
+                className={`w-full h-12 sm:h-13 px-3.5 rounded-input bg-gray-50/80 border text-sm font-semibold text-brand-textMain focus:bg-white focus:outline-none transition-colors ${
                   errors.date ? 'border-status-error' : 'border-gray-200 focus:border-brand-emerald'
                 }`}
               />
@@ -179,20 +179,20 @@ export const SearchCard: React.FC<SearchCardProps> = ({
         </div>
 
         {/* Quick Date Shortcuts (Requirement 21) */}
-        <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex-1">
-            <span className="block text-xs font-semibold text-brand-textLight mb-2">
+        <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex-1 min-w-0">
+            <span className="block text-xs font-semibold text-brand-textLight mb-1.5 sm:mb-2">
               {isAmharic ? 'ቀን በፍጥነት ይምረጡ:' : 'Select Quick Date:'}
             </span>
             <QuickDateCards selectedDate={travelDate} onSelectDate={setTravelDate} />
           </div>
 
           {/* Search Button */}
-          <div className="flex-shrink-0 pt-2 sm:pt-4">
+          <div className="flex-shrink-0 pt-1 sm:pt-4">
             <button
               type="submit"
               id="search-trips-submit-btn"
-              className="w-full sm:w-auto h-13 px-8 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-emerald/25 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
+              className="w-full sm:w-auto h-12 sm:h-13 px-6 sm:px-8 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-emerald/25 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
             >
               <Search className="w-5 h-5" />
               <span>{isAmharic ? 'ጉዞዎችን ፈልግ' : 'Search Trips'}</span>

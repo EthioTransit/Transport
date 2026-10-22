@@ -343,7 +343,7 @@ export const CheckoutPage: React.FC = () => {
             />
 
             {/* Payment Method Selector */}
-            <div className="bg-white rounded-card p-6 border border-gray-100 shadow-sm flex flex-col gap-5">
+            <div className="bg-white rounded-card p-4 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                 <div>
                   <h3 className="font-extrabold text-base text-brand-dark">Payment Method</h3>

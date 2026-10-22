@@ -32,7 +32,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
         return (
           <div
             key={seatNumber}
-            className="bg-white rounded-card p-6 border border-gray-100 shadow-sm"
+            className="bg-white rounded-card p-4 sm:p-6 border border-gray-100 shadow-sm"
           >
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
               <div className="flex items-center gap-2.5">

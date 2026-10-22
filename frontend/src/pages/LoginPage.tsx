@@ -56,7 +56,7 @@ export const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col lg:flex-row">
         
         {/* LEFT COLUMN: BRAND CINEMATIC PANEL (Deep Emerald with Constellation Network) */}
-        <div className="lg:w-1/2 bg-[#031d12] text-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between relative overflow-hidden min-h-[420px] lg:min-h-full">
+        <div className="lg:w-1/2 bg-[#031d12] text-white p-6 sm:p-12 lg:p-16 flex flex-col justify-between relative overflow-hidden min-h-0 lg:min-h-full">
           
           {/* Background Constellation Lines */}
           <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
@@ -88,8 +88,8 @@ export const LoginPage: React.FC = () => {
 
           {/* Top Logo & Tag */}
           <div className="relative z-10">
-            <Link to="/" className="inline-flex items-center gap-3 mb-10 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform border border-emerald-300/30">
+            <Link to="/" className="inline-flex items-center gap-3 mb-6 sm:mb-10 group">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform border border-emerald-300/30">
                 <Bus className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
@@ -105,12 +105,12 @@ export const LoginPage: React.FC = () => {
             </Link>
 
             {/* Section Step Indicator */}
-            <div className="text-[11px] font-mono tracking-widest uppercase text-emerald-300/80 font-bold mb-4">
+            <div className="text-[11px] font-mono tracking-widest uppercase text-emerald-300/80 font-bold mb-3 sm:mb-4">
               001 / SIGN IN
             </div>
 
             {/* Headline matching user image */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-bold tracking-tight leading-[1.12]">
+            <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-bold tracking-tight leading-[1.12]">
               <span className="font-serif text-white">Travel Ethiopia, </span>
               <br />
               <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#F4D58D] via-[#f7e4a8] to-[#D9A441] drop-shadow-md">
@@ -118,13 +118,13 @@ export const LoginPage: React.FC = () => {
               </span>
             </h1>
 
-            <p className="mt-4 text-emerald-100/80 text-sm sm:text-base leading-relaxed max-w-md font-medium">
+            <p className="mt-3 sm:mt-4 text-emerald-100/80 text-xs sm:text-base leading-relaxed max-w-md font-medium">
               Book verified bus tickets with atomic seat reservation locks and official government-aligned fares across Ethiopia.
             </p>
           </div>
 
-          {/* Feature List (Bottom Left) */}
-          <div className="relative z-10 space-y-4 pt-10 border-t border-emerald-900/60 mt-8 text-xs font-bold tracking-wider text-emerald-100 uppercase">
+          {/* Feature List (Bottom Left) - shown on sm+ */}
+          <div className="hidden sm:block relative z-10 space-y-4 pt-10 border-t border-emerald-900/60 mt-8 text-xs font-bold tracking-wider text-emerald-100 uppercase">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700/40 flex items-center justify-center text-emerald-300">
                 <Bus className="w-4 h-4" />
@@ -150,14 +150,14 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: AUTHENTICATION FORM (Clean Warm Light Theme) */}
-        <div className="lg:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center max-w-2xl mx-auto w-full">
+        <div className="lg:w-1/2 p-5 sm:p-12 lg:p-16 flex flex-col justify-center max-w-2xl mx-auto w-full">
           
           {/* Subheader */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
               WELCOME BACK
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold font-serif text-brand-dark tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-4xl font-bold font-serif text-brand-dark tracking-tight mt-2.5 sm:mt-3">
               Sign in
             </h2>
             <p className="text-xs sm:text-sm text-brand-textMuted mt-1">
