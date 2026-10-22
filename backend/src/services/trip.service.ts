@@ -4,6 +4,8 @@ import { Route } from '../models/Route';
 import { City } from '../models/City';
 import { Vehicle } from '../models/Vehicle';
 import { Seat } from '../models/Seat';
+import { Operator } from '../models/Operator';
+import { Driver } from '../models/Driver';
 import { TripStatus, SeatStatus, UserRole } from '../types';
 import { AuditService } from './audit.service';
 
@@ -64,6 +66,11 @@ export class TripService {
         destinationCity: { id: destinationCity._id, name: destinationCity.name, code: destinationCity.code },
         message: `No active route found between ${originCity.name} and ${destinationCity.name}.`,
       };
+    }
+
+    // Auto-ensure scheduled trips exist for this active route on the requested date
+    if (params.date) {
+      await this.ensureTripsForRouteAndDate(route._id, params.date);
     }
 
     // 3. Build search query for trips on that date
@@ -128,6 +135,9 @@ export class TripService {
         id: route._id,
         distanceKm: route.distanceKm,
         estimatedDurationHours: route.estimatedDurationHours,
+        operatingDays: route.operatingDays,
+        departureTimes: route.departureTimes,
+        baseFare: route.baseFare,
       },
       originCity: { id: originCity._id, name: originCity.name, code: originCity.code, region: originCity.region },
       destinationCity: { id: destinationCity._id, name: destinationCity.name, code: destinationCity.code, region: destinationCity.region },
@@ -276,5 +286,190 @@ export class TripService {
       })
       .sort({ departureDate: -1, departureTime: -1 })
       .lean();
+  }
+
+  static async ensureTripsForRouteAndDate(routeId: any, dateStr: string) {
+    try {
+      const route = await Route.findById(routeId).populate('origin destination');
+      if (!route || route.status !== 'ACTIVE') return;
+
+      const existingCount = await Trip.countDocuments({
+        route: route._id,
+        departureDate: dateStr,
+        status: { $in: [TripStatus.SCHEDULED, TripStatus.BOARDING] },
+      });
+      if (existingCount > 0) return;
+
+      // Check operating days
+      const dayOfWeekNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      const dayName = dayOfWeekNames[dateObj.getDay()];
+
+      const operatingDays = (route.operatingDays && route.operatingDays.length > 0)
+        ? route.operatingDays
+        : ['Daily', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+      const isOperatingToday = operatingDays.includes('Daily') || operatingDays.includes(dayName);
+      if (!isOperatingToday) {
+        return;
+      }
+
+      const [operators, vehicles, driver] = await Promise.all([
+        Operator.find({ status: 'ACTIVE' }),
+        Vehicle.find({ status: 'ACTIVE' }),
+        Driver.findOne({ status: 'ACTIVE' }),
+      ]);
+
+      const availableVehicles = vehicles.length > 0 ? vehicles : await Vehicle.find();
+      if (!availableVehicles || availableVehicles.length === 0) return;
+
+      const departureTimes = (route.departureTimes && route.departureTimes.length > 0)
+        ? route.departureTimes
+        : ['06:00 AM', '08:30 AM', '01:30 PM'];
+
+      const originName = (route.origin as any)?.name || 'Central';
+      const destName = (route.destination as any)?.name || 'Destination';
+      const pickupLocation = route.pickupPoints?.[0]?.name || `${originName} Main Intercity Terminal`;
+      const dropOffLocation = route.dropOffPoints?.[0]?.name || `${destName} Central Terminal`;
+
+      const distance = route.distanceKm || 150;
+      const calculatedFare = Math.max(120, Math.round(distance * 2.2));
+      const baseFare = (route.baseFare && route.baseFare > 0) ? route.baseFare : calculatedFare;
+
+      for (let i = 0; i < departureTimes.length; i++) {
+        const timeStr = departureTimes[i];
+        const vehicle = availableVehicles[i % availableVehicles.length];
+        const operatorId = route.operator || vehicle.operator || (operators.length > 0 ? operators[i % operators.length]._id : undefined);
+
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const tripCode = `ET-${dateStr.replace(/-/g, '')}-${(i + 1).toString().padStart(2, '0')}-${randomSuffix}`;
+
+        try {
+          const trip = await Trip.create({
+            tripCode,
+            route: route._id,
+            operator: operatorId,
+            vehicle: vehicle._id,
+            driver: driver?._id,
+            departureDate: dateStr,
+            departureTime: timeStr,
+            estimatedArrival: `~${route.estimatedDurationHours || 3} hrs travel`,
+            fare: baseFare,
+            serviceFee: 15,
+            status: TripStatus.SCHEDULED,
+            pickupLocation,
+            dropOffLocation,
+            totalSeatsCount: vehicle.seatCapacity || 44,
+            availableSeatsCount: vehicle.seatCapacity || 44,
+            amenities: vehicle.features || ['Air Conditioning', 'High-Speed Wi-Fi', 'USB Charging Port'],
+            boardingNotes: 'Please arrive 30 minutes before departure with your digital QR ticket.',
+          });
+
+          await this.generateSeatsForTrip(trip._id.toString(), vehicle);
+        } catch (err: any) {
+          if (err.code !== 11000) {
+            console.error('[TripService] Error auto-generating trip:', err);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[TripService] ensureTripsForRouteAndDate error:', err);
+    }
+  }
+
+  static async generateTripsForRouteSchedule(routeId: any, daysToSchedule = 14) {
+    try {
+      const route = await Route.findById(routeId).populate('origin destination');
+      if (!route || route.status !== 'ACTIVE') return;
+
+      const [operators, vehicles, driver] = await Promise.all([
+        Operator.find({ status: 'ACTIVE' }),
+        Vehicle.find({ status: 'ACTIVE' }),
+        Driver.findOne({ status: 'ACTIVE' }),
+      ]);
+
+      const availableVehicles = vehicles.length > 0 ? vehicles : await Vehicle.find();
+      if (!availableVehicles || availableVehicles.length === 0) return;
+
+      const operatingDays = (route.operatingDays && route.operatingDays.length > 0)
+        ? route.operatingDays
+        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+      const departureTimes = (route.departureTimes && route.departureTimes.length > 0)
+        ? route.departureTimes
+        : ['06:00 AM', '08:30 AM', '01:30 PM'];
+
+      const originName = (route.origin as any)?.name || 'Central';
+      const destName = (route.destination as any)?.name || 'Destination';
+      const pickupLocation = route.pickupPoints?.[0]?.name || `${originName} Main Intercity Terminal`;
+      const dropOffLocation = route.dropOffPoints?.[0]?.name || `${destName} Central Terminal`;
+
+      const dayOfWeekNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const isDaily = operatingDays.includes('Daily') || operatingDays.length === 7;
+      const today = new Date();
+
+      const distance = route.distanceKm || 150;
+      const calculatedFare = Math.max(120, Math.round(distance * 2.2));
+      const baseFare = (route.baseFare && route.baseFare > 0) ? route.baseFare : calculatedFare;
+
+      for (let dayOffset = 0; dayOffset < daysToSchedule; dayOffset++) {
+        const targetDate = new Date(today);
+        targetDate.setDate(targetDate.getDate() + dayOffset);
+        const dateStr = targetDate.toISOString().split('T')[0];
+        const dayOfWeek = dayOfWeekNames[targetDate.getDay()];
+
+        if (!isDaily && !operatingDays.includes(dayOfWeek)) {
+          continue;
+        }
+
+        for (let tIndex = 0; tIndex < departureTimes.length; tIndex++) {
+          const timeStr = departureTimes[tIndex];
+
+          const exists = await Trip.findOne({
+            route: route._id,
+            departureDate: dateStr,
+            departureTime: timeStr,
+          });
+
+          if (exists) continue;
+
+          const vehicle = availableVehicles[tIndex % availableVehicles.length];
+          const operatorId = route.operator || vehicle.operator || (operators.length > 0 ? operators[tIndex % operators.length]._id : undefined);
+
+          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+          const tripCode = `ET-${dateStr.replace(/-/g, '')}-${(tIndex + 1).toString().padStart(2, '0')}-${randomSuffix}`;
+
+          try {
+            const trip = await Trip.create({
+              tripCode,
+              route: route._id,
+              operator: operatorId,
+              vehicle: vehicle._id,
+              driver: driver?._id,
+              departureDate: dateStr,
+              departureTime: timeStr,
+              estimatedArrival: `~${route.estimatedDurationHours || 3} hrs travel`,
+              fare: baseFare,
+              serviceFee: 15,
+              status: TripStatus.SCHEDULED,
+              pickupLocation,
+              dropOffLocation,
+              totalSeatsCount: vehicle.seatCapacity || 44,
+              availableSeatsCount: vehicle.seatCapacity || 44,
+              amenities: vehicle.features || ['Air Conditioning', 'High-Speed Wi-Fi', 'USB Charging Port'],
+              boardingNotes: 'Please arrive 30 minutes before departure with your digital QR ticket.',
+            });
+
+            await this.generateSeatsForTrip(trip._id.toString(), vehicle);
+          } catch (err: any) {
+            if (err.code !== 11000) {
+              console.error('[TripService] Schedule error:', err);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[TripService] generateTripsForRouteSchedule error:', err);
+    }
   }
 }

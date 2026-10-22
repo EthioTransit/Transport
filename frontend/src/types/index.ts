@@ -62,6 +62,10 @@ export interface Route {
   dropOffPoints: Array<{ name: string; locationNote?: string }>;
   status: 'ACTIVE' | 'INACTIVE';
   popularityScore: number;
+  operatingDays?: string[];
+  departureTimes?: string[];
+  baseFare?: number;
+  operator?: Operator | string;
 }
 
 export interface Operator {

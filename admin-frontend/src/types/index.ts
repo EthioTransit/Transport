@@ -84,6 +84,10 @@ export interface Route {
   }>;
   status: 'ACTIVE' | 'INACTIVE';
   popularityScore: number;
+  operatingDays?: string[];
+  departureTimes?: string[];
+  baseFare?: number;
+  operator?: Operator | string;
   createdAt: string;
 }
 

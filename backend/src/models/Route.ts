@@ -16,6 +16,10 @@ export interface IRoute extends Document {
   }>;
   status: 'ACTIVE' | 'INACTIVE';
   popularityScore: number;
+  operatingDays: string[];
+  departureTimes: string[];
+  baseFare?: number;
+  operator?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +45,16 @@ const RouteSchema = new Schema<IRoute>(
     ],
     status: { type: String, enum: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' },
     popularityScore: { type: Number, default: 10 },
+    operatingDays: {
+      type: [String],
+      default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    },
+    departureTimes: {
+      type: [String],
+      default: ['06:00 AM', '08:30 AM', '01:30 PM'],
+    },
+    baseFare: { type: Number },
+    operator: { type: Schema.Types.ObjectId, ref: 'Operator' },
   },
   { timestamps: true }
 );

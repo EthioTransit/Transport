@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Bus,
+  AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../features/auth/useAuth';
 import { authApi } from '../api/endpoints';

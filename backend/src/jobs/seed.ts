@@ -19,16 +19,17 @@ export async function runDatabaseSeed() {
   console.log('[Seed] Checking if database seeding is required...');
 
   const existingCityCount = await City.countDocuments();
-  if (existingCityCount > 0) {
-    console.log(`[Seed] Database already contains ${existingCityCount} cities. Checking trips...`);
-    const tripsCount = await Trip.countDocuments();
-    if (tripsCount > 0) {
-      console.log(`[Seed] Database already has ${tripsCount} trips. Skipping seed.`);
-      return;
-    }
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingTripsCount = await Trip.countDocuments({
+    departureDate: { $gte: todayStr },
+  });
+
+  if (existingCityCount > 0 && upcomingTripsCount >= 20) {
+    console.log(`[Seed] Database already contains ${existingCityCount} cities and ${upcomingTripsCount} upcoming trips from ${todayStr} onwards. Skipping seed.`);
+    return;
   }
 
-  console.log('[Seed] Seeding demo Ethiopian intercity transportation data...');
+  console.log(`[Seed] Seeding Ethiopian transportation data (cities: ${existingCityCount}, upcoming trips: ${upcomingTripsCount})...`);
 
   // 1. Seed Cities
   const citiesData = [
@@ -370,8 +371,11 @@ export async function runDatabaseSeed() {
     tripDateObj.setDate(tripDateObj.getDate() + dayOffset);
     const dateStr = formatYMD(tripDateObj);
 
-    for (let rIndex = 0; rIndex < routeList.length; rIndex++) {
-      const route = routeList[rIndex];
+    const allActiveRoutes = await Route.find({ status: 'ACTIVE' });
+    const targetRoutes = allActiveRoutes.length > 0 ? allActiveRoutes : routeList;
+
+    for (let rIndex = 0; rIndex < targetRoutes.length; rIndex++) {
+      const route = targetRoutes[rIndex];
       // Pick vehicle & operator alternately
       const vehicle = vehicleList[rIndex % vehicleList.length];
       const operator = vehicle.operator;
@@ -432,4 +436,19 @@ export async function runDatabaseSeed() {
   }
 
   console.log(`[Seed] Seeded ${tripsCreatedCount} trips across multiple dynamic dates with complete seat layouts!`);
+}
+
+if (process.argv[1]?.includes('seed.ts')) {
+  import('dotenv').then((dotenv) => {
+    dotenv.config();
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ethiotransit';
+    mongoose.connect(uri).then(async () => {
+      await runDatabaseSeed();
+      await mongoose.disconnect();
+      process.exit(0);
+    }).catch((err) => {
+      console.error('[Seed] Direct run failed:', err);
+      process.exit(1);
+    });
+  });
 }
