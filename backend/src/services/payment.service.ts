@@ -87,7 +87,7 @@ export class PaymentService {
 
     if (selectedProvider === 'chapa') {
       const txRef = `ET-CHP-${Date.now()}-${Math.floor(100000 + Math.random() * 900000)}`;
-      const returnUrl = `${ENV.CLIENT_URL}/verify-payment?ref=${txRef}&bookingId=${booking._id}`;
+      const returnUrl = `${ENV.CLIENT_URL}/verify-payment?ref=${txRef}`;
       const callbackUrl = `${ENV.API_BASE_URL || 'http://localhost:5000/api'}/payments/chapa/webhook`;
 
       const chapaSession = await ChapaService.initializePayment({
