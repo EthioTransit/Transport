@@ -5,28 +5,47 @@ import { UserRole } from '../types';
 import { TripService } from './trip.service';
 
 export class RouteService {
+  private static formatRoute(route: any) {
+    if (!route) return route;
+    return {
+      ...route,
+      operatingDays:
+        route.operatingDays && route.operatingDays.length > 0
+          ? route.operatingDays
+          : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      departureTimes:
+        route.departureTimes && route.departureTimes.length > 0
+          ? route.departureTimes
+          : ['06:00 AM', '08:30 AM', '01:30 PM'],
+    };
+  }
+
   static async getAllRoutes(options: { activeOnly?: boolean } = {}) {
     const filter: any = {};
     if (options.activeOnly) {
       filter.status = 'ACTIVE';
     }
 
-    return await Route.find(filter)
+    const routes = await Route.find(filter)
       .populate('origin', 'name amharicName code region')
       .populate('destination', 'name amharicName code region')
       .populate('operator', 'name legalName rating logoUrl')
       .sort({ popularityScore: -1 })
       .lean();
+
+    return routes.map((r) => this.formatRoute(r));
   }
 
   static async getPopularRoutes(limit = 6) {
-    return await Route.find({ status: 'ACTIVE' })
+    const routes = await Route.find({ status: 'ACTIVE' })
       .populate('origin', 'name amharicName code region')
       .populate('destination', 'name amharicName code region')
       .populate('operator', 'name legalName rating logoUrl')
       .sort({ popularityScore: -1 })
       .limit(limit)
       .lean();
+
+    return routes.map((r) => this.formatRoute(r));
   }
 
   static async getRouteById(id: string) {
@@ -36,17 +55,18 @@ export class RouteService {
       .populate('operator', 'name legalName rating logoUrl')
       .lean();
     if (!route) throw new Error('Route not found');
-    return route;
+    return this.formatRoute(route);
   }
 
   static async findRouteByCities(originCityId: string, destCityId: string) {
-    return await Route.findOne({
+    const route = await Route.findOne({
       origin: originCityId,
       destination: destCityId,
       status: 'ACTIVE',
     })
       .populate('origin destination operator')
       .lean();
+    return route ? this.formatRoute(route) : null;
   }
 
   static async createRoute(

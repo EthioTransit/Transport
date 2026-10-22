@@ -22,12 +22,13 @@ export const TripsPage: React.FC = () => {
     setLoading(true);
     try {
       const [tripsRes, routesRes, operatorsRes, vehiclesRes] = await Promise.all([
-        tripsApi.getAll().catch(() => ({ trips: [] })),
+        tripsApi.getAll().catch(() => []),
         routesApi.getAll().catch(() => []),
         operatorsApi.getAll().catch(() => []),
         vehiclesApi.getAll().catch(() => []),
       ]);
-      setTrips(tripsRes.trips || []);
+      const tripList = Array.isArray(tripsRes) ? tripsRes : ((tripsRes as any)?.trips || []);
+      setTrips(tripList);
       setRoutes(routesRes || []);
       setOperators(operatorsRes || []);
       setVehicles(vehiclesRes || []);
@@ -175,11 +176,33 @@ export const TripsPage: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-brand-textMain">{t.departureDate}</div>
-                      <div className="text-[11px] text-brand-emerald font-bold flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{t.departureTime}</span>
-                      </div>
+                      {(() => {
+                        let dayLabel = '';
+                        try {
+                          const dt = new Date(t.departureDate + 'T00:00:00');
+                          dayLabel = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                        } catch {
+                          dayLabel = t.departureDate;
+                        }
+                        const weekday = dayLabel.split(',')[0] || 'Day';
+                        return (
+                          <div>
+                            <div className="font-extrabold text-brand-dark flex items-center gap-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-brand-emerald text-[10px] font-black uppercase tracking-wider">
+                                {weekday}
+                              </span>
+                              <span>{dayLabel}</span>
+                            </div>
+                            <div className="text-[11px] text-brand-emerald font-bold flex items-center gap-1 mt-0.5">
+                              <Clock className="w-3 h-3 text-brand-emerald" />
+                              <span>{t.departureTime}</span>
+                              {t.estimatedArrival && (
+                                <span className="text-gray-400 font-medium">➔ {t.estimatedArrival}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-3.5 px-4">

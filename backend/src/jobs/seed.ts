@@ -344,6 +344,10 @@ export async function runDatabaseSeed() {
           pickupPoints: r.pickupPoints,
           dropOffPoints: r.dropOffPoints,
           status: 'ACTIVE',
+          operatingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+          departureTimes: ['05:30 AM', '06:00 AM', '07:30 AM', '11:00 AM', '01:30 PM'],
+          baseFare: Math.max(120, Math.round(r.distanceKm * 2.2)),
+          operator: operatorMap['Selam Bus Line S.C.']?._id,
         },
         { upsert: true, new: true }
       );

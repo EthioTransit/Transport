@@ -135,8 +135,14 @@ export class TripService {
         id: route._id,
         distanceKm: route.distanceKm,
         estimatedDurationHours: route.estimatedDurationHours,
-        operatingDays: route.operatingDays,
-        departureTimes: route.departureTimes,
+        operatingDays:
+          route.operatingDays && route.operatingDays.length > 0
+            ? route.operatingDays
+            : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        departureTimes:
+          route.departureTimes && route.departureTimes.length > 0
+            ? route.departureTimes
+            : ['06:00 AM', '08:30 AM', '01:30 PM'],
         baseFare: route.baseFare,
       },
       originCity: { id: originCity._id, name: originCity.name, code: originCity.code, region: originCity.region },
@@ -169,34 +175,90 @@ export class TripService {
     const route = await Route.findById(data.route);
     if (!route) throw new Error('Route not found');
 
-    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
-    const tripCode = `ET-${data.departureDate.replace(/-/g, '')}-${randomSuffix}`;
+    // 1. Determine target dates
+    const targetDates: string[] = [];
+    if (data.recurringDays && Array.isArray(data.recurringDays) && data.recurringDays.length > 0) {
+      const dayOfWeekNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const baseDate = data.departureDate ? new Date(data.departureDate + 'T00:00:00') : new Date();
+      const repeatWeeks = Number(data.repeatWeeks) || 2;
+      const totalDays = repeatWeeks * 7;
 
-    const trip = await Trip.create({
-      ...data,
-      tripCode,
-      totalSeatsCount: vehicle.seatCapacity,
-      availableSeatsCount: vehicle.seatCapacity,
-      status: TripStatus.SCHEDULED,
-      amenities: data.amenities || vehicle.features,
-    });
-
-    // Auto-generate seat documents for this trip based on vehicle layout
-    await this.generateSeatsForTrip(trip._id.toString(), vehicle);
-
-    if (userContext) {
-      await AuditService.log({
-        user: userContext.id,
-        userEmail: userContext.email,
-        role: userContext.role,
-        action: 'CREATED_TRIP',
-        resource: 'Trip',
-        resourceId: trip._id.toString(),
-        newValue: trip.toObject(),
-      });
+      for (let i = 0; i < totalDays; i++) {
+        const d = new Date(baseDate);
+        d.setDate(d.getDate() + i);
+        const dayName = dayOfWeekNames[d.getDay()];
+        if (data.recurringDays.includes(dayName)) {
+          targetDates.push(d.toISOString().split('T')[0]);
+        }
+      }
+    } else if (data.departureDates && Array.isArray(data.departureDates) && data.departureDates.length > 0) {
+      targetDates.push(...data.departureDates);
+    } else if (data.departureDate) {
+      targetDates.push(data.departureDate);
     }
 
-    return await this.getTripById(trip._id.toString());
+    if (targetDates.length === 0) {
+      throw new Error('No valid departure dates calculated.');
+    }
+
+    // 2. Determine target departure times
+    const times: string[] =
+      data.departureTimes && Array.isArray(data.departureTimes) && data.departureTimes.length > 0
+        ? data.departureTimes
+        : [data.departureTime];
+
+    const createdTrips: any[] = [];
+
+    for (const dDate of targetDates) {
+      for (const dTime of times) {
+        // Prevent duplicate trip for same route, vehicle, date and time
+        const existing = await Trip.findOne({
+          route: route._id,
+          vehicle: vehicle._id,
+          departureDate: dDate,
+          departureTime: dTime,
+          status: { $ne: TripStatus.CANCELLED },
+        });
+
+        if (existing) continue;
+
+        const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+        const tripCode = `ET-${dDate.replace(/-/g, '')}-${randomSuffix}`;
+
+        const trip = await Trip.create({
+          ...data,
+          departureDate: dDate,
+          departureTime: dTime,
+          tripCode,
+          totalSeatsCount: vehicle.seatCapacity,
+          availableSeatsCount: vehicle.seatCapacity,
+          status: TripStatus.SCHEDULED,
+          amenities: data.amenities || vehicle.features,
+        });
+
+        await this.generateSeatsForTrip(trip._id.toString(), vehicle);
+        createdTrips.push(trip);
+
+        if (userContext) {
+          await AuditService.log({
+            user: userContext.id,
+            userEmail: userContext.email,
+            role: userContext.role,
+            action: 'CREATED_TRIP',
+            resource: 'Trip',
+            resourceId: trip._id.toString(),
+            newValue: trip.toObject(),
+          });
+        }
+      }
+    }
+
+    const lastTrip = createdTrips[createdTrips.length - 1];
+    if (!lastTrip) {
+      throw new Error('All trips in this schedule already exist.');
+    }
+
+    return await this.getTripById(lastTrip._id.toString());
   }
 
   static async generateSeatsForTrip(tripId: string, vehicle: any) {

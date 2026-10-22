@@ -6,6 +6,7 @@ import {
   QrCode,
   CreditCard,
   Clock,
+  Calendar,
   ArrowRight,
   Bus,
   CheckCircle2,
@@ -180,12 +181,30 @@ export const HomePage: React.FC = () => {
                       <div className="p-4 flex flex-col justify-between flex-1 bg-white">
                         <div className="flex items-center justify-between text-xs text-brand-textMuted font-bold pb-2 border-b border-gray-100">
                           <span>{originAmharic || originName} ➔ {destAmharic || destName}</span>
-                          <span className="text-emerald-700 text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
-                            Daily
+                          <span className="text-emerald-700 text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-emerald-100">
+                            <Calendar className="w-3 h-3 text-brand-emerald" />
+                            <span>
+                              {route.operatingDays && route.operatingDays.length === 7
+                                ? 'Daily'
+                                : route.operatingDays && route.operatingDays.length > 0
+                                ? route.operatingDays.map((d: string) => d.slice(0, 3)).join(', ')
+                                : 'Daily'}
+                            </span>
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 mt-3 pt-1 text-xs text-brand-textMuted">
+                        {/* Daily Departures row */}
+                        <div className="mt-2.5 text-[11px] text-gray-500 flex items-center gap-1.5">
+                          <Clock className="w-3 h-3 text-brand-emerald shrink-0" />
+                          <span className="text-gray-400 font-medium">Times:</span>
+                          <span className="font-mono font-bold text-brand-dark truncate">
+                            {route.departureTimes && route.departureTimes.length > 0
+                              ? route.departureTimes.slice(0, 3).join(' • ')
+                              : '06:00 AM • 08:30 AM'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-2 pt-1 text-xs text-brand-textMuted">
                           <div className="flex items-center gap-1.5 font-semibold">
                             <span className="text-brand-emerald">🛣️</span>
                             <span>{route.distanceKm} km</span>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Route as RouteIcon, Search, ArrowRight, Clock, MapPin, Bus } from 'lucide-react';
+import { Route as RouteIcon, Search, ArrowRight, Clock, MapPin, Bus, Calendar } from 'lucide-react';
 import { routesApi } from '../api/endpoints';
 import { Route } from '../types';
 
@@ -151,11 +151,36 @@ export const RoutesPage: React.FC = () => {
                           Terminal: {route.pickupPoints[0].name}
                         </p>
                       )}
+
+                      {/* Operating Days & Departure Times Section */}
+                      <div className="mt-3 pt-2.5 border-t border-gray-100 space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-extrabold text-brand-dark flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-brand-emerald" />
+                            <span>
+                              {route.operatingDays && route.operatingDays.length === 7
+                                ? 'Daily (Mon-Sun)'
+                                : route.operatingDays && route.operatingDays.length > 0
+                                ? route.operatingDays.map((d: string) => d.slice(0, 3)).join(', ')
+                                : 'Daily'}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-gray-500 flex-wrap">
+                          <Clock className="w-3 h-3 text-brand-emerald shrink-0" />
+                          <span className="text-gray-400 font-semibold">Departures:</span>
+                          <span className="font-mono font-bold text-brand-dark">
+                            {route.departureTimes && route.departureTimes.length > 0
+                              ? route.departureTimes.join(' • ')
+                              : '06:00 AM • 08:30 AM'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                       <span className="text-[11px] font-bold text-brand-emerald bg-emerald-50 px-2 py-0.5 rounded-full">
-                        Daily Departures
+                        {route.operatingDays?.length === 7 ? 'Daily Service' : 'Scheduled Service'}
                       </span>
                       <Link
                         to={`/search?from=${route.origin?.code}&to=${route.destination?.code}&date=${todayIso}&passengers=1`}
