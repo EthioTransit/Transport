@@ -6,10 +6,7 @@ import {
   Lock,
   CheckCircle2,
   AlertCircle,
-  Smartphone,
   CreditCard,
-  Building2,
-  Zap,
   Clock,
   Sparkles,
   UserCheck,
@@ -25,56 +22,17 @@ import { BRAND } from '../config/brand';
 
 const PAYMENT_PROVIDERS = [
   {
-    id: 'mock' as const,
-    title: 'Instant Dev Gateway',
-    subtitle: 'Sandbox instant approval',
-    badge: 'Dev',
-    badgeColor: 'bg-gray-100 text-gray-600',
-    icon: Zap,
-    iconBg: 'bg-gray-50',
-    iconColor: 'text-gray-500',
-    border: 'border-gray-200',
-    activeBorder: 'border-gray-400',
-    activeBg: 'bg-gray-50/50',
-  },
-  {
-    id: 'telebirr' as const,
-    title: 'Telebirr SuperApp',
-    subtitle: 'Ethio Telecom Mobile Money',
-    badge: 'Popular',
-    badgeColor: 'bg-blue-50 text-blue-600',
-    icon: Smartphone,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-600',
-    border: 'border-gray-200',
-    activeBorder: 'border-blue-500',
-    activeBg: 'bg-blue-50/30',
-  },
-  {
-    id: 'cbe_birr' as const,
-    title: 'CBE Birr',
-    subtitle: 'Commercial Bank of Ethiopia',
-    badge: 'Bank',
-    badgeColor: 'bg-emerald-50 text-emerald-600',
-    icon: Building2,
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    border: 'border-gray-200',
-    activeBorder: 'border-brand-emerald',
-    activeBg: 'bg-emerald-50/30',
-  },
-  {
     id: 'chapa' as const,
     title: 'Chapa Pay',
-    subtitle: 'Debit card & digital wallet',
-    badge: 'Card',
-    badgeColor: 'bg-purple-50 text-purple-600',
+    subtitle: 'Visa, Mastercard, Telebirr & Ethiopian Commercial Banks',
+    badge: 'Official',
+    badgeColor: 'bg-purple-100 text-purple-700',
     icon: CreditCard,
     iconBg: 'bg-purple-50',
     iconColor: 'text-purple-600',
-    border: 'border-gray-200',
-    activeBorder: 'border-purple-500',
-    activeBg: 'bg-purple-50/30',
+    border: 'border-purple-200',
+    activeBorder: 'border-purple-600',
+    activeBg: 'bg-purple-50/40',
   },
 ];
 
@@ -102,7 +60,7 @@ export const CheckoutPage: React.FC = () => {
     }))
   );
 
-  const [paymentProvider, setPaymentProvider] = useState<'mock' | 'telebirr' | 'chapa' | 'cbe_birr'>('telebirr');
+  const [paymentProvider] = useState<'chapa'>('chapa');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -185,18 +143,11 @@ export const CheckoutPage: React.FC = () => {
 
       const paymentIntent = await paymentsApi.create({
         bookingId: booking._id,
-        provider: paymentProvider,
-        paymentMethod:
-          paymentProvider === 'telebirr'
-            ? 'Telebirr SuperApp'
-            : paymentProvider === 'cbe_birr'
-            ? 'CBE Birr Mobile'
-            : paymentProvider === 'chapa'
-            ? 'Chapa Gateway'
-            : 'Mock Instant Birr Gateway',
+        provider: 'chapa',
+        paymentMethod: 'Chapa Gateway',
       });
 
-      if (paymentIntent.checkoutUrl && paymentProvider === 'chapa') {
+      if (paymentIntent.checkoutUrl) {
         window.location.href = paymentIntent.checkoutUrl;
         return;
       }
@@ -414,74 +365,53 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                 <div>
                   <h3 className="font-extrabold text-base text-brand-dark">Payment Method</h3>
-                  <p className="text-xs text-brand-textMuted mt-0.5">Choose your preferred payment provider</p>
+                  <p className="text-xs text-brand-textMuted mt-0.5">Official Ethiopian digital payment provider</p>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-brand-emerald bg-emerald-50 px-3 py-1.5 rounded-btn">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Secure</span>
+                  <span>256-bit Encrypted</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {PAYMENT_PROVIDERS.map((prov) => {
-                  const Icon = prov.icon;
-                  const isSelected = paymentProvider === prov.id;
-                  return (
-                    <label
-                      key={prov.id}
-                      className={`relative p-4 rounded-card border-2 cursor-pointer flex flex-col gap-3 transition-all duration-150 ${
-                        isSelected
-                          ? `${prov.activeBorder} ${prov.activeBg} shadow-sm`
-                          : `${prov.border} bg-white hover:border-gray-300`
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className={`w-10 h-10 rounded-xl ${prov.iconBg} flex items-center justify-center flex-shrink-0`}>
-                          <Icon className={`w-5 h-5 ${prov.iconColor}`} />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${prov.badgeColor}`}>
-                            {prov.badge}
-                          </span>
-                          <input
-                            type="radio"
-                            name="paymentProvider"
-                            value={prov.id}
-                            checked={isSelected}
-                            onChange={() => setPaymentProvider(prov.id)}
-                            className="text-brand-emerald focus:ring-brand-emerald"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <span className="font-extrabold text-sm text-brand-textMain block">{prov.title}</span>
-                        <span className="text-xs text-brand-textMuted block mt-0.5">{prov.subtitle}</span>
-                      </div>
-                      {isSelected && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle2 className="w-4 h-4 text-brand-emerald" />
-                        </div>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
-              {paymentProvider === 'chapa' && (
-                <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200 text-xs text-purple-900 flex items-start gap-2.5 animate-in fade-in duration-150">
-                  <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <span className="font-bold block text-purple-950">Chapa Official Payment Gateway</span>
-                    <span className="text-[11px] text-purple-700 block mt-0.5 leading-relaxed">
-                      You will be securely routed to Chapa checkout to pay via Visa, Mastercard, Telebirr, or local commercial banking. Your seat will be confirmed immediately.
+              {/* Dedicated Chapa Card */}
+              <div className="relative p-5 rounded-card border-2 border-purple-500 bg-purple-50/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center flex-shrink-0 text-purple-600 shadow-xs">
+                    <CreditCard className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-base text-brand-dark">Chapa Pay</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                        Official Gateway
+                      </span>
+                    </div>
+                    <span className="text-xs text-brand-textMuted block mt-0.5">
+                      Pay via Debit Card, Visa, Mastercard, Telebirr, CBE Birr or local banks
                     </span>
                   </div>
                 </div>
-              )}
+
+                <div className="flex items-center gap-2 text-xs font-bold text-purple-700 bg-purple-100/70 px-3 py-1.5 rounded-btn shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                  <span>Selected</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200 text-xs text-purple-900 flex items-start gap-2.5 animate-in fade-in duration-150">
+                <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span className="font-bold block text-purple-950">Chapa Official Payment Gateway</span>
+                  <span className="text-[11px] text-purple-700 block mt-0.5 leading-relaxed">
+                    You will be securely routed to Chapa checkout to complete payment. Your seat will be confirmed immediately and a digital QR ticket will be issued.
+                  </span>
+                </div>
+              </div>
 
               {/* Seat reservation reminder */}
               <div className="flex items-center gap-2 p-3 rounded-btn bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">
                 <Clock className="w-4 h-4 flex-shrink-0 text-amber-600" />
-                <span>Your seat reservation expires in 10 minutes. Complete payment to secure your seat.</span>
+                <span>Your seat reservation is permanently held for this trip upon checkout.</span>
               </div>
             </div>
           </div>
@@ -503,7 +433,7 @@ export const CheckoutPage: React.FC = () => {
               className="w-full py-4 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-50 text-white font-extrabold text-base shadow-lg shadow-brand-emerald/25 hover:shadow-xl transition-all flex items-center justify-center gap-2 group"
             >
               <Lock className="w-5 h-5" />
-              <span>{submitting ? 'Processing Payment...' : 'Confirm & Pay'}</span>
+              <span>{submitting ? 'Redirecting to Chapa...' : 'Pay with Chapa'}</span>
             </button>
 
             {/* Trust indicators */}

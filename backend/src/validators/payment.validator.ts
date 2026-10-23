@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const createPaymentSchema = z.object({
   bookingId: z.string().min(1, 'Booking ID is required'),
-  provider: z.enum(['mock', 'telebirr', 'chapa', 'cbe_birr']).default('mock'),
-  paymentMethod: z.string().default('Mock Instant Birr'),
+  provider: z.enum(['chapa', 'mock', 'telebirr', 'cbe_birr']).default('chapa'),
+  paymentMethod: z.string().default('Chapa Gateway'),
 });
 
 export const verifyPaymentSchema = z.object({
