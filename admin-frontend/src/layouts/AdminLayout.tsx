@@ -136,18 +136,21 @@ export const AdminLayout: React.FC = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
-              <a
+              <NavLink
                 key={item.path}
-                href={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-btn text-xs font-semibold transition-all ${
-                  window.location.pathname === item.path
-                    ? 'bg-brand-emerald text-white shadow-sm shadow-brand-emerald/20 font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-btn text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-brand-emerald text-white shadow-sm shadow-brand-emerald/20 font-bold'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  }`
+                }
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
                 {sidebarOpen && <span>{item.label}</span>}
-              </a>
+              </NavLink>
             );
           })}
         </nav>
@@ -258,8 +261,14 @@ export const AdminLayout: React.FC = () => {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs md:hidden">
-            <div className="w-64 max-w-[80vw] h-full bg-brand-slate text-slate-300 p-4 flex flex-col safe-area-pb shadow-2xl">
+          <div
+            className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div
+              className="w-64 max-w-[80vw] h-full bg-brand-slate text-slate-300 p-4 flex flex-col safe-area-pb shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <span className="font-bold text-white text-sm">Console Menu</span>
                 <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 hover:text-white p-1">
@@ -268,15 +277,22 @@ export const AdminLayout: React.FC = () => {
               </div>
               <nav className="flex-1 py-4 space-y-1 overflow-y-auto touch-scroll">
                 {navItems.map((item) => (
-                  <a
+                  <NavLink
                     key={item.path}
-                    href={item.path}
+                    to={item.path}
+                    end={item.path === '/'}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-btn text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-btn text-xs font-semibold transition-colors ${
+                        isActive
+                          ? 'bg-brand-emerald text-white font-bold shadow-xs'
+                          : 'text-slate-300 hover:bg-slate-800'
+                      }`
+                    }
                   >
                     <item.icon className="w-4 h-4 shrink-0" />
                     <span>{item.label}</span>
-                  </a>
+                  </NavLink>
                 ))}
               </nav>
               <button

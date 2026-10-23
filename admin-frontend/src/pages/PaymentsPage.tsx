@@ -118,39 +118,39 @@ export const PaymentsPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold border-b border-gray-100">
               <tr>
-                <th className="py-3 px-4">Transaction / Ref</th>
-                <th className="py-3 px-4">Payer / Passenger</th>
-                <th className="py-3 px-4">Provider</th>
-                <th className="py-3 px-4">Base Fare</th>
-                <th className="py-3 px-4">Platform Fee</th>
-                <th className="py-3 px-4">Gross Total</th>
-                <th className="py-3 px-4">Payment Status</th>
+                <th className="py-3 px-4 whitespace-nowrap">Transaction / Ref</th>
+                <th className="py-3 px-4 whitespace-nowrap">Payer / Passenger</th>
+                <th className="py-3 px-4 whitespace-nowrap">Provider</th>
+                <th className="py-3 px-4 whitespace-nowrap">Base Fare</th>
+                <th className="py-3 px-4 whitespace-nowrap">Platform Fee</th>
+                <th className="py-3 px-4 whitespace-nowrap">Gross Total</th>
+                <th className="py-3 px-4 whitespace-nowrap">Payment Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredBookings.map((b) => (
                 <tr key={b._id} className="hover:bg-gray-50/50">
-                  <td className="py-3.5 px-4 font-mono font-bold text-brand-dark">
+                  <td className="py-3.5 px-4 font-mono font-bold text-brand-dark whitespace-nowrap">
                     {b.bookingReference}
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-brand-textMain">
+                  <td className="py-3.5 px-4 font-bold text-brand-textMain whitespace-nowrap">
                     {b.passengers?.[0]?.name || b.user?.firstName || 'Guest'}
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
                       Telebirr / Mock
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-semibold text-gray-600">
+                  <td className="py-3.5 px-4 font-semibold text-gray-600 whitespace-nowrap">
                     {b.fare} {BRAND.currency}
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-brand-emerald font-bold">
+                  <td className="py-3.5 px-4 font-mono text-brand-emerald font-bold whitespace-nowrap">
                     +{b.serviceFee || 15} {BRAND.currency}
                   </td>
-                  <td className="py-3.5 px-4 font-black text-brand-dark">
+                  <td className="py-3.5 px-4 font-black text-brand-dark whitespace-nowrap">
                     {b.total} {BRAND.currency}
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <StatusBadge status={b.status} />
                   </td>
                 </tr>

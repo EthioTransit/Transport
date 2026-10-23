@@ -29,6 +29,36 @@ export async function apiRequest<T = any>(
     headers,
   });
 
+  // Handle 401 session expiration
+  if (response.status === 401 && !endpoint.includes('/auth/login')) {
+    localStorage.removeItem('ethiotransit_token');
+    localStorage.removeItem('ethiotransit_user');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ethiotransit_auth_expired'));
+    }
+
+    // If an expired token was attached, retry once seamlessly as guest for booking and payment endpoints
+    if (token && (endpoint.includes('/bookings') || endpoint.includes('/payments'))) {
+      const retryHeaders = { ...headers };
+      delete retryHeaders['Authorization'];
+
+      const retryResponse = await fetch(url, {
+        ...options,
+        headers: retryHeaders,
+      });
+
+      const retryData: ApiResponse<T> = await retryResponse.json().catch(() => ({
+        success: false,
+        data: null as any,
+        message: 'Network response was not valid JSON.',
+      }));
+
+      if (retryResponse.ok && retryData.success) {
+        return retryData.data;
+      }
+    }
+  }
+
   const data: ApiResponse<T> = await response.json().catch(() => ({
     success: false,
     data: null as any,

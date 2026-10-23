@@ -105,24 +105,24 @@ export const BookingsPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold border-b border-gray-100">
               <tr>
-                <th className="py-3 px-4">Booking Ref</th>
-                <th className="py-3 px-4">Primary Passenger</th>
-                <th className="py-3 px-4">Seats</th>
-                <th className="py-3 px-4">Trip Corridor</th>
-                <th className="py-3 px-4">Official Fare</th>
-                <th className="py-3 px-4">Total Paid</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Details</th>
+                <th className="py-3 px-4 whitespace-nowrap">Booking Ref</th>
+                <th className="py-3 px-4 whitespace-nowrap">Primary Passenger</th>
+                <th className="py-3 px-4 whitespace-nowrap">Seats</th>
+                <th className="py-3 px-4 whitespace-nowrap">Trip Corridor</th>
+                <th className="py-3 px-4 whitespace-nowrap">Official Fare</th>
+                <th className="py-3 px-4 whitespace-nowrap">Total Paid</th>
+                <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredBookings.map((b) => (
                 <tr key={b._id} className="hover:bg-gray-50/50">
-                  <td className="py-3.5 px-4 font-mono font-bold text-brand-dark">
+                  <td className="py-3.5 px-4 font-mono font-bold text-brand-dark whitespace-nowrap">
                     {b.bookingReference}
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="font-bold text-brand-textMain">
                       {b.passengers?.[0]?.name || b.user?.firstName || 'Guest Passenger'}
                     </div>
@@ -131,11 +131,11 @@ export const BookingsPage: React.FC = () => {
                     </div>
                   </td>
 
-                  <td className="py-3.5 px-4 font-mono font-bold text-brand-emerald">
+                  <td className="py-3.5 px-4 font-mono font-bold text-brand-emerald whitespace-nowrap">
                     {b.seats?.join(', ')}
                   </td>
 
-                  <td className="py-3.5 px-4 text-gray-600 font-medium">
+                  <td className="py-3.5 px-4 text-gray-600 font-medium whitespace-nowrap">
                     {b.trip?.route?.origin?.name ? (
                       <div className="flex items-center gap-1">
                         <span>{b.trip.route.origin.name}</span>
@@ -147,19 +147,19 @@ export const BookingsPage: React.FC = () => {
                     )}
                   </td>
 
-                  <td className="py-3.5 px-4 font-semibold text-gray-600">
+                  <td className="py-3.5 px-4 font-semibold text-gray-600 whitespace-nowrap">
                     {b.fare} {BRAND.currency}
                   </td>
 
-                  <td className="py-3.5 px-4 font-black text-brand-dark">
+                  <td className="py-3.5 px-4 font-black text-brand-dark whitespace-nowrap">
                     {b.total} {BRAND.currency}
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <StatusBadge status={b.status} />
                   </td>
 
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <button
                       onClick={() => setSelectedBooking(b)}
                       className="p-1.5 rounded-lg bg-gray-50 hover:bg-emerald-50 text-gray-500 hover:text-brand-emerald transition-colors"

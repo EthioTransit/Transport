@@ -1,19 +1,49 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { BookingService } from '../services/booking.service';
+import { User } from '../models/User';
 import { sendSuccess, sendError } from '../utils/response.utils';
 import { UserRole } from '../types';
 
 export class BookingController {
   static async createBooking(req: Request, res: Response) {
     try {
-      if (!req.user) {
-        return sendError(res, 'Authentication required to create a booking', 401);
+      const { tripId, seats, passengers, guestLockId } = req.body;
+      let userId = req.user?.userId;
+
+      // If user is not authenticated (guest checkout or expired session), find or create a passenger record
+      if (!userId && passengers && passengers.length > 0) {
+        const primaryPhone = passengers[0].phone.trim();
+        let user = await User.findOne({ phone: primaryPhone });
+        if (!user) {
+          const parts = passengers[0].name.trim().split(' ');
+          const firstName = parts[0] || 'Passenger';
+          const lastName = parts.slice(1).join(' ') || 'Customer';
+          const cleanPhoneDigits = primaryPhone.replace(/\D/g, '');
+          const baseEmail = `passenger_${cleanPhoneDigits}@ethiotransit.et`;
+          const existingEmail = await User.findOne({ email: baseEmail });
+          const email = existingEmail ? `passenger_${cleanPhoneDigits}_${Date.now()}@ethiotransit.et` : baseEmail;
+
+          user = await User.create({
+            firstName,
+            lastName,
+            phone: primaryPhone,
+            email,
+            passwordHash: await bcrypt.hash('EthioTransit@2026', 10),
+            role: UserRole.PASSENGER,
+            isActive: true,
+          });
+        }
+        userId = user._id.toString();
       }
 
-      const { tripId, seats, passengers, guestLockId } = req.body;
+      if (!userId) {
+        return sendError(res, 'Authentication or passenger contact details required to create a booking', 401);
+      }
+
       const booking = await BookingService.createBooking({
         tripId,
-        userId: req.user.userId,
+        userId,
         seats,
         passengers,
         guestLockId,

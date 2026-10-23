@@ -12,11 +12,14 @@ import {
   Zap,
   Clock,
   Sparkles,
+  UserCheck,
+  User as UserIcon,
 } from 'lucide-react';
 import { tripsApi, bookingsApi, paymentsApi } from '../api/endpoints';
 import { PassengerForm } from '../features/booking/PassengerForm';
 import { PriceBreakdown } from '../features/booking/PriceBreakdown';
 import { useAuth } from '../features/auth/useAuth';
+import { authStore } from '../features/auth/authStore';
 import { Trip, PassengerInfo } from '../types';
 import { BRAND } from '../config/brand';
 
@@ -165,7 +168,7 @@ export const CheckoutPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCreateBookingAndPay = async (e: React.FormEvent) => {
+  const handleCreateBookingAndPay = async (e: React.FormEvent, isRetry = false) => {
     e.preventDefault();
     if (!validateForm() || !trip) return;
 
@@ -201,8 +204,23 @@ export const CheckoutPage: React.FC = () => {
       navigate(`/verify-payment?ref=${paymentIntent.transactionReference}&bookingId=${booking._id}`);
     } catch (err: any) {
       console.error('[Booking/Payment Error]:', err.message, err);
+
+      // Auto-retry once as guest if session expired or token was unauthorized
+      if (
+        !isRetry &&
+        (err.status === 401 ||
+          err.code === 'INVALID_TOKEN' ||
+          err.message?.includes('expired') ||
+          err.message?.includes('session') ||
+          err.message?.includes('Unauthorized'))
+      ) {
+        console.warn('[Checkout] Stale or expired session encountered. Resetting auth store and retrying as guest checkout...');
+        authStore.logout();
+        return handleCreateBookingAndPay(e, true);
+      }
+
       if (err.message && err.message.includes('Authentication required')) {
-        setError('Please sign in or create an account to finalize your booking ticket.');
+        setError('Please sign in or confirm passenger contact details to finalize your booking ticket.');
       } else {
         setError(err.message || 'Failed to initiate booking payment.');
       }
@@ -335,6 +353,55 @@ export const CheckoutPage: React.FC = () => {
         <form onSubmit={handleCreateBookingAndPay} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Passenger Info & Payment Options */}
           <div className="lg:col-span-7 flex flex-col gap-6">
+            {/* Passenger Session Status Indicator */}
+            <div className="bg-white rounded-card p-4 border border-gray-100 shadow-xs flex items-center justify-between gap-3">
+              {isAuthenticated && user ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-emerald-50 text-brand-emerald flex items-center justify-center shrink-0">
+                    <UserCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-brand-textMain">
+                        Booking as {user.firstName} {user.lastName}
+                      </span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        Signed In
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-brand-textMuted mt-0.5">
+                      Tickets will automatically link to your EthioTransit dashboard.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <UserIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-brand-textMain">Guest Passenger Checkout</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                        No Login Required
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-brand-textMuted mt-0.5">
+                      Enter passenger details below. Your QR ticket and receipt are issued immediately after payment.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {!isAuthenticated && (
+                <Link
+                  to={`/login?redirect=/checkout?tripId=${tripId}&seats=${seatsParam}`}
+                  className="text-xs font-bold text-brand-emerald hover:underline shrink-0"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+
             <PassengerForm
               seats={selectedSeats}
               passengers={passengers}

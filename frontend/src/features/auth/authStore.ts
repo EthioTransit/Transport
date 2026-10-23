@@ -22,6 +22,14 @@ if (storedUser) {
   }
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('ethiotransit_auth_expired', () => {
+    currentUser = null;
+    currentToken = null;
+    notify();
+  });
+}
+
 export const authStore = {
   getUser: () => currentUser,
   getToken: () => currentToken,

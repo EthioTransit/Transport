@@ -2,16 +2,26 @@ import { Request, Response } from 'express';
 import { PaymentService } from '../services/payment.service';
 import { ChapaService } from '../services/chapa.service';
 import { sendSuccess, sendError } from '../utils/response.utils';
+import { Booking } from '../models/Booking';
 
 export class PaymentController {
   static async createPayment(req: Request, res: Response) {
     try {
-      if (!req.user) return sendError(res, 'Authentication required', 401);
-
       const { bookingId, provider, paymentMethod } = req.body;
+
+      let userId = req.user?.userId;
+      if (!userId && bookingId) {
+        const booking = await Booking.findById(bookingId);
+        if (booking && booking.user) {
+          userId = booking.user.toString();
+        }
+      }
+
+      if (!userId) return sendError(res, 'Authentication required to initiate payment', 401);
+
       const paymentIntent = await PaymentService.initiatePayment({
         bookingId,
-        userId: req.user.userId,
+        userId,
         providerName: provider,
         paymentMethod,
       });

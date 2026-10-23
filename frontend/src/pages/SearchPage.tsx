@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw, Clock, Image as ImageIcon, Map as MapIcon } from 'lucide-react';
+import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw, Clock, Image as ImageIcon, Map as MapIcon, MapPin } from 'lucide-react';
 import { tripsApi, citiesApi, operatorsApi } from '../api/endpoints';
 import { TripCard } from '../features/search/TripCard';
 import { FilterSidebar } from '../features/search/FilterSidebar';
@@ -142,7 +142,7 @@ export const SearchPage: React.FC = () => {
                 <span className="mx-2 text-emerald-400">→</span>
                 {destCity ? (isAmharic ? destCity.amharicName || destCity.name : destCity.name) : toParam}
               </h1>
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-emerald-200/70 mt-0.5">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-semibold text-emerald-200/70 mt-0.5">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                   {formattedDate}
@@ -151,6 +151,12 @@ export const SearchPage: React.FC = () => {
                   <Users className="w-3.5 h-3.5 text-emerald-400" />
                   {passengersParam} {isAmharic ? 'ተጓዦች' : (passengersParam === 1 ? 'Passenger' : 'Passengers')}
                 </span>
+                {currentRoute?.distanceKm && (
+                  <span className="flex items-center gap-1.5 text-emerald-300">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                    {currentRoute.distanceKm} km (~{currentRoute.estimatedDurationHours} {isAmharic ? 'ሰዓት' : 'hrs'})
+                  </span>
+                )}
               </div>
 
               {/* Operating Schedule & Departures Pill */}

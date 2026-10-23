@@ -311,12 +311,12 @@ export const CitiesPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold border-b border-gray-100">
               <tr>
-                <th className="py-3 px-4">Code</th>
-                <th className="py-3 px-4">City Destination</th>
-                <th className="py-3 px-4">Region</th>
-                <th className="py-3 px-4">Primary Terminal</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-4 whitespace-nowrap">Code</th>
+                <th className="py-3 px-4 whitespace-nowrap">City Destination</th>
+                <th className="py-3 px-4 whitespace-nowrap">Region</th>
+                <th className="py-3 px-4 whitespace-nowrap">Primary Terminal</th>
+                <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -333,10 +333,10 @@ export const CitiesPage: React.FC = () => {
                         : 'hover:bg-gray-50/50'
                     }`}
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-brand-emerald text-xs">
+                    <td className="py-3.5 px-4 font-mono font-bold text-brand-emerald text-xs whitespace-nowrap">
                       {c.code}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div
                           onClick={() => handleOpenEdit(c)}
@@ -375,17 +375,17 @@ export const CitiesPage: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-brand-textMuted font-medium">{c.region}</td>
-                    <td className="py-3.5 px-4 text-gray-600">
+                    <td className="py-3.5 px-4 text-brand-textMuted font-medium whitespace-nowrap">{c.region}</td>
+                    <td className="py-3.5 px-4 text-gray-600 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span>{c.terminalName || 'Main Station'}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <StatusBadge status={c.status} />
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
                         {isInactive ? (
                           <button

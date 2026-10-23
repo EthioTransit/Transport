@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   DollarSign,
   Calendar,
@@ -69,12 +70,12 @@ export const DashboardOverviewPage: React.FC = () => {
           <div className="flex items-center gap-2 text-xs font-bold text-brand-emerald uppercase tracking-wider">
             <span>Executive Overview</span>
           </div>
-          <h1 className="text-2xl font-black text-brand-dark tracking-tight mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-black text-brand-dark tracking-tight mt-0.5">
             Operations & Fleet Control Center
           </h1>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button
             onClick={fetchDashboard}
             disabled={loading}
@@ -86,7 +87,7 @@ export const DashboardOverviewPage: React.FC = () => {
 
           <button
             onClick={() => setCityModalOpen(true)}
-            className="px-3.5 py-2 rounded-btn bg-white hover:bg-gray-50 border border-gray-200 text-xs font-bold text-brand-dark flex items-center gap-1.5 shadow-xs transition-colors"
+            className="px-3 sm:px-3.5 py-2 rounded-btn bg-white hover:bg-gray-50 border border-gray-200 text-xs font-bold text-brand-dark flex items-center gap-1.5 shadow-xs transition-colors"
           >
             <Building2 className="w-3.5 h-3.5 text-brand-emerald" />
             <span>Add City</span>
@@ -94,7 +95,7 @@ export const DashboardOverviewPage: React.FC = () => {
 
           <button
             onClick={() => setRouteModalOpen(true)}
-            className="px-4 py-2 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
+            className="px-3.5 sm:px-4 py-2 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Create Route</span>
@@ -142,45 +143,45 @@ export const DashboardOverviewPage: React.FC = () => {
       {/* Middle Grid: Revenue Trend & Popular Routes */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Popular Corridors */}
-        <div className="lg:col-span-8 bg-white rounded-card p-6 border border-gray-100 shadow-card">
+        <div className="lg:col-span-8 bg-white rounded-card p-4 sm:p-6 border border-gray-100 shadow-card">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-extrabold text-base text-brand-dark">
+              <h3 className="font-extrabold text-sm sm:text-base text-brand-dark">
                 Nationwide Intercity Corridors
               </h3>
               <p className="text-xs text-brand-textMuted">
                 Top performing intercity routes by distance and traveler demand.
               </p>
             </div>
-            <a
-              href="/routes"
+            <Link
+              to="/routes"
               className="text-xs font-bold text-brand-emerald hover:underline flex items-center gap-1"
             >
               <span>View All</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
-            </a>
+            </Link>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold border-b border-gray-100">
                 <tr>
-                  <th className="py-2.5 px-3">Route Origin → Destination</th>
-                  <th className="py-2.5 px-3">Distance</th>
-                  <th className="py-2.5 px-3">Duration</th>
-                  <th className="py-2.5 px-3">Popularity</th>
-                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Route Origin → Destination</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Distance</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Duration</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Popularity</th>
+                  <th className="py-2.5 px-3 whitespace-nowrap">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {routes.slice(0, 6).map((r) => (
                   <tr key={r._id} className="hover:bg-gray-50/50">
-                    <td className="py-3 px-3 font-bold text-brand-dark">
+                    <td className="py-3 px-3 font-bold text-brand-dark whitespace-nowrap">
                       {r.origin?.name} → {r.destination?.name}
                     </td>
-                    <td className="py-3 px-3 font-semibold text-brand-emerald">{r.distanceKm} km</td>
-                    <td className="py-3 px-3 text-gray-500">~{r.estimatedDurationHours} hrs</td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 font-semibold text-brand-emerald whitespace-nowrap">{r.distanceKm} km</td>
+                    <td className="py-3 px-3 text-gray-500 whitespace-nowrap">~{r.estimatedDurationHours} hrs</td>
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                           <div
@@ -193,7 +194,7 @@ export const DashboardOverviewPage: React.FC = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <StatusBadge status={r.status} />
                     </td>
                   </tr>
@@ -204,18 +205,18 @@ export const DashboardOverviewPage: React.FC = () => {
         </div>
 
         {/* Live Daily Schedules Snapshot */}
-        <div className="lg:col-span-4 bg-white rounded-card p-6 border border-gray-100 shadow-card">
+        <div className="lg:col-span-4 bg-white rounded-card p-4 sm:p-6 border border-gray-100 shadow-card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-extrabold text-base text-brand-dark">
+            <h3 className="font-extrabold text-sm sm:text-base text-brand-dark">
               Upcoming Trips
             </h3>
-            <a
-              href="/trips"
+            <Link
+              to="/trips"
               className="text-xs font-bold text-brand-emerald hover:underline flex items-center gap-1"
             >
               <span>Manage</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
-            </a>
+            </Link>
           </div>
 
           <div className="divide-y divide-gray-100 text-xs">

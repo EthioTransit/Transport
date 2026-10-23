@@ -5,22 +5,22 @@ import { BRAND } from '../config/brand';
 
 export const HowItWorksPage: React.FC = () => {
   return (
-    <div className="bg-brand-bg min-h-screen py-16">
+    <div className="bg-brand-bg min-h-screen py-8 sm:py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 sm:mb-14">
           <span className="text-xs font-bold uppercase tracking-wider text-brand-emerald">
             Passenger Guide
           </span>
-          <h1 className="text-3xl sm:text-5xl font-black text-brand-dark tracking-tight mt-1">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-brand-dark tracking-tight mt-1">
             How EthioTransit Works
           </h1>
-          <p className="mt-3 text-base text-brand-textMuted max-w-xl mx-auto">
+          <p className="mt-2 sm:mt-3 text-sm sm:text-base text-brand-textMuted max-w-xl mx-auto">
             Everything you need to know about booking verified intercity bus trips, reserving seats, and traveling across Ethiopia with a digital ticket.
           </p>
         </div>
 
         {/* 4 Steps */}
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4 sm:gap-6">
           {[
             {
               step: '01',
@@ -55,21 +55,21 @@ export const HowItWorksPage: React.FC = () => {
             return (
               <div
                 key={i}
-                className="bg-white rounded-cardLg p-8 border border-gray-100 shadow-card flex flex-col md:flex-row md:items-start gap-6"
+                className="bg-white rounded-2xl p-5 sm:p-8 border border-gray-100 shadow-card flex flex-col md:flex-row md:items-start gap-4 sm:gap-6"
               >
-                <div className="w-14 h-14 rounded-btn bg-emerald-50 text-brand-emerald flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <Icon className="w-7 h-7" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-emerald-50 text-brand-emerald flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-black text-brand-emerald uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <span className="text-[10px] sm:text-xs font-black text-brand-emerald uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded">
                       Step {s.step}
                     </span>
-                    <h2 className="text-xl font-black text-brand-dark">{s.title}</h2>
+                    <h2 className="text-base sm:text-xl font-black text-brand-dark">{s.title}</h2>
                   </div>
-                  <p className="text-sm text-brand-textMuted mt-2 leading-relaxed">{s.desc}</p>
+                  <p className="text-xs sm:text-sm text-brand-textMuted mt-2 leading-relaxed">{s.desc}</p>
                   <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-brand-emerald">
-                    <ShieldCheck className="w-4 h-4" />
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
                     <span>{s.highlight}</span>
                   </div>
                 </div>
@@ -79,16 +79,16 @@ export const HowItWorksPage: React.FC = () => {
         </div>
 
         {/* CTA */}
-        <div className="mt-16 bg-brand-dark rounded-cardLg p-8 md:p-12 text-white text-center flex flex-col items-center">
-          <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+        <div className="mt-10 sm:mt-16 bg-[#031d12] rounded-2xl p-6 sm:p-12 text-white text-center flex flex-col items-center shadow-xl">
+          <h2 className="text-xl sm:text-3xl font-black tracking-tight">
             Ready to experience modern Ethiopian transit?
           </h2>
-          <p className="text-sm text-gray-300 max-w-md mt-2">
+          <p className="text-xs sm:text-sm text-emerald-200/80 max-w-md mt-2">
             Search scheduled departures and book your verified seat in under 2 minutes.
           </p>
           <Link
             to="/search"
-            className="mt-6 px-8 py-3.5 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-sm shadow-lg shadow-brand-emerald/30 transition-all flex items-center gap-2"
+            className="mt-5 sm:mt-6 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-brand-emerald/30 transition-all flex items-center gap-2"
           >
             <span>Search Available Trips</span>
             <ArrowRight className="w-4 h-4" />

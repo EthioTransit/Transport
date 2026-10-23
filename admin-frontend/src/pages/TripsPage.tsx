@@ -178,15 +178,15 @@ export const TripsPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50 text-brand-textMuted uppercase font-bold border-b border-gray-100">
               <tr>
-                <th className="py-3 px-3 w-12 text-center text-gray-400 font-bold">#</th>
-                <th className="py-3 px-4">Trip Code</th>
-                <th className="py-3 px-4">Corridor</th>
-                <th className="py-3 px-4">Operator & Fleet</th>
-                <th className="py-3 px-4">Departure Time</th>
-                <th className="py-3 px-4">Fare</th>
-                <th className="py-3 px-4">Seat Occupancy</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-3 w-12 text-center text-gray-400 font-bold whitespace-nowrap">#</th>
+                <th className="py-3 px-4 whitespace-nowrap">Trip Code</th>
+                <th className="py-3 px-4 whitespace-nowrap">Corridor</th>
+                <th className="py-3 px-4 whitespace-nowrap">Operator & Fleet</th>
+                <th className="py-3 px-4 whitespace-nowrap">Departure Time</th>
+                <th className="py-3 px-4 whitespace-nowrap">Fare</th>
+                <th className="py-3 px-4 whitespace-nowrap">Seat Occupancy</th>
+                <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -198,17 +198,17 @@ export const TripsPage: React.FC = () => {
 
                 return (
                   <tr key={t._id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3.5 px-3 text-center">
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
                       <span className="font-mono text-[11px] font-bold text-gray-400 bg-gray-50 border border-gray-200/80 rounded px-1.5 py-0.5 inline-block min-w-[24px]">
                         {index + 1}
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 font-mono font-bold text-brand-dark">
+                    <td className="py-3.5 px-4 font-mono font-bold text-brand-dark whitespace-nowrap">
                       {t.tripCode}
                     </td>
 
-                    <td className="py-3.5 px-4 font-bold text-brand-textMain">
+                    <td className="py-3.5 px-4 font-bold text-brand-textMain whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <span>{t.route?.origin?.name || 'Origin'}</span>
                         <ArrowRight className="w-3 h-3 text-brand-emerald" />
@@ -219,7 +219,7 @@ export const TripsPage: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="font-semibold text-brand-dark">{t.operator?.name || 'Operator'}</div>
                       <div className="text-[10px] text-gray-400 font-mono">
                         {t.vehicle?.plateNumber || (t.vehicle as any)?.model || 'Fleet Coach'}
@@ -278,7 +278,7 @@ export const TripsPage: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <select
                         value={t.status}
                         onChange={(e) => handleStatusChange(t._id, e.target.value)}
@@ -292,7 +292,7 @@ export const TripsPage: React.FC = () => {
                       </select>
                     </td>
 
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <button
                         onClick={() => setSelectedTrip(t)}
                         className="px-3 py-1.5 rounded-btn bg-emerald-50 hover:bg-emerald-100 text-brand-emerald font-bold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
