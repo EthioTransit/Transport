@@ -162,4 +162,5 @@ EthioTransit includes a mock payment sandbox with provider adapters for Ethiopia
 ---
 
 ## 👥 Contributors & Maintainers
-- **Bereket Million** ([@bereketmillion8](https://github.com/EthioTransit))
+- Bereket Million - admin panel developer
+- Mulugeta Ababi - user panel developer
