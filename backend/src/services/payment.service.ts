@@ -1,6 +1,7 @@
 import { Payment, IPayment } from '../models/Payment';
 import { Booking } from '../models/Booking';
 import { Seat } from '../models/Seat';
+import { Trip } from '../models/Trip';
 import { User } from '../models/User';
 import { PaymentStatus, BookingStatus, SeatStatus, NotificationType, UserRole } from '../types';
 import { TicketService } from './ticket.service';
@@ -221,6 +222,14 @@ export class PaymentService {
           $unset: { lockExpiresAt: '', guestLockId: '' },
         }
       );
+
+      // Recalculate trip available seats
+      const availableCount = await Seat.countDocuments({
+        trip: booking.trip,
+        status: SeatStatus.AVAILABLE,
+        $or: [{ booking: { $exists: false } }, { booking: null }],
+      });
+      await Trip.findByIdAndUpdate(booking.trip, { availableSeatsCount: availableCount });
 
       // Generate Digital Tickets with secure QR tokens
       const tickets = await TicketService.generateTicketsForBooking(booking._id.toString());

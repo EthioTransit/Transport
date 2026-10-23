@@ -3,16 +3,22 @@ import { Seat, ISeat } from '../models/Seat';
 import { Trip } from '../models/Trip';
 import { SeatStatus } from '../types';
 import { BRAND_CONFIG } from '../config/brand';
+import { PersistenceService } from './persistence.service';
 
 export class SeatService {
   /**
-   * Automatically clears expired reservations so they become available again
+   * Automatically clears temporary unbooked reservations so they become available again.
+   * NEVER clears seats that have a booking attached (permanently reserved).
    */
   static async cleanupExpiredLocks(tripId?: string) {
     const now = new Date();
     const filter: any = {
       status: SeatStatus.RESERVED,
       lockExpiresAt: { $lt: now },
+      $or: [
+        { booking: { $exists: false } },
+        { booking: null },
+      ],
     };
     if (tripId) {
       filter.trip = tripId;
@@ -32,7 +38,6 @@ export class SeatService {
             guestLockId: '',
             lockedAt: '',
             lockExpiresAt: '',
-            booking: '',
           },
         }
       );
@@ -40,9 +45,14 @@ export class SeatService {
       // Recalculate trip availableSeatsCount
       const tripIdsToUpdate = Array.from(new Set(expiredSeats.map((s) => s.trip.toString())));
       for (const tId of tripIdsToUpdate) {
-        const availableCount = await Seat.countDocuments({ trip: tId, status: SeatStatus.AVAILABLE });
+        const availableCount = await Seat.countDocuments({
+          trip: tId,
+          status: SeatStatus.AVAILABLE,
+          $or: [{ booking: { $exists: false } }, { booking: null }],
+        });
         await Trip.findByIdAndUpdate(tId, { availableSeatsCount: availableCount });
       }
+      PersistenceService.queueSave();
     }
   }
 
@@ -56,12 +66,17 @@ export class SeatService {
 
     // Map seats to show client state
     const mappedSeats = seats.map((seat) => {
+      const hasBooking = Boolean(seat.booking);
+      const isPermanentlyBooked = seat.status === SeatStatus.BOOKED || hasBooking;
+
       const isMine =
         (userId && seat.lockedBy && seat.lockedBy.toString() === userId) ||
         (guestLockId && seat.guestLockId === guestLockId);
 
       let effectiveStatus = seat.status;
-      if (seat.status === SeatStatus.RESERVED) {
+      if (isPermanentlyBooked) {
+        effectiveStatus = SeatStatus.BOOKED;
+      } else if (seat.status === SeatStatus.RESERVED) {
         effectiveStatus = isMine ? SeatStatus.SELECTED : SeatStatus.RESERVED;
       }
 
@@ -72,19 +87,23 @@ export class SeatService {
         column: seat.column,
         seatType: seat.seatType,
         status: effectiveStatus,
-        isMine: !!isMine,
+        isMine: !!isMine && !isPermanentlyBooked,
         priceModifier: seat.priceModifier || 0,
         fare: trip.fare + (seat.priceModifier || 0),
-        lockExpiresAt: isMine ? seat.lockExpiresAt : undefined,
+        lockExpiresAt: isMine && !isPermanentlyBooked ? seat.lockExpiresAt : undefined,
       };
     });
+
+    const realAvailableCount = seats.filter(
+      (s) => s.status === SeatStatus.AVAILABLE && !s.booking
+    ).length;
 
     return {
       tripId,
       vehicle: trip.vehicle,
       seats: mappedSeats,
       totalSeats: seats.length,
-      availableCount: seats.filter((s) => s.status === SeatStatus.AVAILABLE).length,
+      availableCount: realAvailableCount,
     };
   }
 
@@ -127,8 +146,8 @@ export class SeatService {
           throw new Error(`Seat ${seatNumber} does not exist for this trip.`);
         }
 
-        if (seat.status === SeatStatus.BOOKED) {
-          throw new Error(`Seat ${seatNumber} has already been booked and paid for.`);
+        if (seat.status === SeatStatus.BOOKED || seat.booking) {
+          throw new Error(`Seat ${seatNumber} has already been reserved and booked.`);
         }
 
         if (seat.status === SeatStatus.BLOCKED) {
@@ -136,7 +155,7 @@ export class SeatService {
         }
 
         const isLockExpired = seat.lockExpiresAt ? new Date(seat.lockExpiresAt) < now : true;
-        const isAvailable = seat.status === SeatStatus.AVAILABLE || isLockExpired;
+        const isAvailable = (seat.status === SeatStatus.AVAILABLE || isLockExpired) && !seat.booking;
 
         let callerMatches = false;
         if (!isAvailable && seat.status === SeatStatus.RESERVED) {
@@ -174,8 +193,13 @@ export class SeatService {
       }
 
       // Update available count on trip
-      const availableCount = await Seat.countDocuments({ trip: tripObjectId, status: SeatStatus.AVAILABLE });
+      const availableCount = await Seat.countDocuments({
+        trip: tripObjectId,
+        status: SeatStatus.AVAILABLE,
+        $or: [{ booking: { $exists: false } }, { booking: null }],
+      });
       await Trip.findByIdAndUpdate(tripObjectId, { availableSeatsCount: availableCount });
+      PersistenceService.queueSave();
 
       return {
         success: true,
@@ -208,6 +232,7 @@ export class SeatService {
       trip: tripObjectId,
       seatNumber: { $in: params.seatNumbers },
       status: SeatStatus.RESERVED,
+      $or: [{ booking: { $exists: false } }, { booking: null }],
     };
 
     if (userObjectId) {
@@ -218,11 +243,16 @@ export class SeatService {
 
     await Seat.updateMany(filter, {
       $set: { status: SeatStatus.AVAILABLE },
-      $unset: { lockedBy: '', guestLockId: '', lockedAt: '', lockExpiresAt: '', booking: '' },
+      $unset: { lockedBy: '', guestLockId: '', lockedAt: '', lockExpiresAt: '' },
     });
 
-    const availableCount = await Seat.countDocuments({ trip: tripObjectId, status: SeatStatus.AVAILABLE });
+    const availableCount = await Seat.countDocuments({
+      trip: tripObjectId,
+      status: SeatStatus.AVAILABLE,
+      $or: [{ booking: { $exists: false } }, { booking: null }],
+    });
     await Trip.findByIdAndUpdate(tripObjectId, { availableSeatsCount: availableCount });
+    PersistenceService.queueSave();
 
     return { success: true };
   }

@@ -6,6 +6,7 @@ import { BookingStatus, SeatStatus, UserRole } from '../types';
 import { BRAND_CONFIG } from '../config/brand';
 import { SeatService } from './seat.service';
 import { AuditService } from './audit.service';
+import { PersistenceService } from './persistence.service';
 
 export class BookingService {
   static async createBooking(params: {
@@ -77,11 +78,31 @@ export class BookingService {
       expiresAt,
     });
 
-    // Update seats with booking reference
+    // Permanently mark seats as BOOKED for this trip and associate booking
     await Seat.updateMany(
       { trip: params.tripId, seatNumber: { $in: params.seats } },
-      { $set: { booking: booking._id } }
+      {
+        $set: {
+          status: SeatStatus.BOOKED,
+          booking: booking._id,
+          lockedBy: params.userId,
+        },
+        $unset: {
+          lockExpiresAt: '',
+        },
+      }
     );
+
+    // Recalculate and update availableSeatsCount on Trip
+    const availableSeatsCount = await Seat.countDocuments({
+      trip: params.tripId,
+      status: SeatStatus.AVAILABLE,
+      $or: [{ booking: { $exists: false } }, { booking: null }],
+    });
+    await Trip.findByIdAndUpdate(params.tripId, { availableSeatsCount });
+
+    // Persist permanently to disk
+    PersistenceService.queueSave();
 
     await AuditService.log({
       user: params.userId,
@@ -196,8 +217,13 @@ export class BookingService {
     );
 
     // Recalculate trip available seats
-    const availableCount = await Seat.countDocuments({ trip: booking.trip, status: SeatStatus.AVAILABLE });
+    const availableCount = await Seat.countDocuments({
+      trip: booking.trip,
+      status: SeatStatus.AVAILABLE,
+      $or: [{ booking: { $exists: false } }, { booking: null }],
+    });
     await Trip.findByIdAndUpdate(booking.trip, { availableSeatsCount: availableCount });
+    PersistenceService.queueSave();
 
     await AuditService.log({
       user: userContext.id,

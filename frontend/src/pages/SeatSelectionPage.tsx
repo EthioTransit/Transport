@@ -65,10 +65,34 @@ export const SeatSelectionPage: React.FC = () => {
     fetchTripAndSeats();
   }, [tripId]);
 
+  const getNextDateStr = (currentDateStr: string) => {
+    try {
+      const d = new Date(currentDateStr + 'T00:00:00');
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split('T')[0];
+    } catch {
+      return '';
+    }
+  };
+  const nextDateStr = trip?.departureDate ? getNextDateStr(trip.departureDate) : '';
+
   const handleToggleSeat = async (seatNumber: string) => {
     if (!tripId) return;
 
     setError(null);
+
+    // Guard: new or existing user CANNOT click reserved, booked, or blocked seats
+    const targetSeat = seats.find((s) => s.seatNumber === seatNumber);
+    if (!targetSeat) return;
+
+    const isBooked = targetSeat.status === 'BOOKED';
+    const isBlocked = targetSeat.status === 'BLOCKED';
+    const isReservedByOther = targetSeat.status === 'RESERVED' && !targetSeat.isMine;
+
+    if (isBooked || isBlocked || isReservedByOther) {
+      return;
+    }
+
     const isCurrentlySelected = selectedSeatNumbers.includes(seatNumber);
 
     if (isCurrentlySelected) {
@@ -277,6 +301,30 @@ export const SeatSelectionPage: React.FC = () => {
               onToggleSeat={handleToggleSeat}
               maxSelectable={passengersCount}
             />
+
+            {/* Next Day Reservation Quick Banner */}
+            {nextDateStr && trip.route?.origin?.code && trip.route?.destination?.code && (
+              <div className="bg-white rounded-card p-4 border border-emerald-100 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-brand-emerald flex items-center justify-center shrink-0">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-brand-textMain block">Planning for Next Day?</span>
+                    <span className="text-[11px] text-brand-textMuted block">
+                      Seats for this bus are reset per day. You can reserve this bus again for tomorrow ({nextDateStr}).
+                    </span>
+                  </div>
+                </div>
+                <Link
+                  to={`/search?from=${trip.route.origin.code}&to=${trip.route.destination.code}&date=${nextDateStr}&passengers=${passengersCount}`}
+                  className="px-3.5 py-2 rounded-btn bg-emerald-50 hover:bg-emerald-100 text-brand-emerald font-bold text-xs shrink-0 flex items-center gap-1.5 transition-colors border border-emerald-200"
+                >
+                  <span>Check Next Day ({nextDateStr})</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Right Sidebar: Booking Summary (desktop only) */}

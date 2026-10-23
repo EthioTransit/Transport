@@ -1,5 +1,5 @@
 import React from 'react';
-import { Armchair } from 'lucide-react';
+import { Armchair, Lock } from 'lucide-react';
 import { SeatItem, SeatStatus } from '../../types';
 
 interface SeatMapProps {
@@ -90,19 +90,21 @@ export const SeatMap: React.FC<SeatMapProps> = ({
     const isBlocked = seat.status === SeatStatus.BLOCKED;
     const isReserved = seat.status === SeatStatus.RESERVED && !seat.isMine;
 
-    const canSelect = isAvailable || isSelected;
+    const canSelect = (isAvailable || isSelected) && !isBooked && !isBlocked && !isReserved;
 
-    let style = 'bg-white border-2 border-gray-200 text-brand-textMain hover:border-brand-emerald hover:bg-emerald-50/50 shadow-xs';
+    let style = 'bg-white border-2 border-gray-200 text-brand-textMain hover:border-brand-emerald hover:bg-emerald-50/50 hover:scale-105 shadow-xs cursor-pointer active:scale-95';
 
     if (isSelected) {
-      style = 'bg-brand-emerald border-brand-emerald text-white font-extrabold shadow-md shadow-brand-emerald/30 scale-105';
+      style = 'bg-brand-emerald border-brand-emerald text-white font-extrabold shadow-md shadow-brand-emerald/30 scale-105 cursor-pointer z-10';
     } else if (isBooked) {
-      style = 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed';
+      style = 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none opacity-80 select-none';
     } else if (isReserved) {
-      style = 'bg-amber-100 border-amber-300 text-amber-800 cursor-not-allowed';
+      style = 'bg-amber-50 border-amber-300 text-amber-700 cursor-not-allowed pointer-events-none opacity-85 select-none';
     } else if (isBlocked) {
-      style = 'bg-red-100 border-red-200 text-red-400 cursor-not-allowed';
+      style = 'bg-red-50 border-red-200 text-red-400 cursor-not-allowed pointer-events-none opacity-70 select-none';
     }
+
+    const isLockedSeat = isBooked || isReserved || isBlocked;
 
     return (
       <button
@@ -110,11 +112,31 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         type="button"
         id={`seat-btn-${seat.seatNumber}`}
         disabled={!canSelect}
-        onClick={() => onToggleSeat(seat.seatNumber)}
-        className={`w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-btn flex flex-col items-center justify-center transition-all duration-150 relative shrink-0 ${style}`}
-        title={`Seat ${seat.seatNumber} (${seat.seatType}) - ${seat.status}`}
+        aria-disabled={!canSelect}
+        tabIndex={canSelect ? 0 : -1}
+        onClick={(e) => {
+          if (!canSelect) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+          onToggleSeat(seat.seatNumber);
+        }}
+        className={`w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-btn flex flex-col items-center justify-center transition-all duration-150 relative shrink-0 select-none ${style}`}
+        title={
+          isBooked
+            ? `Seat ${seat.seatNumber} - Permanently Booked`
+            : isReserved
+            ? `Seat ${seat.seatNumber} - Reserved by another passenger`
+            : isBlocked
+            ? `Seat ${seat.seatNumber} - Blocked`
+            : `Seat ${seat.seatNumber} (${seat.seatType}) - Available`
+        }
       >
         <span className="text-[10px] sm:text-[11px] font-black">{seat.seatNumber}</span>
+        {isLockedSeat && (
+          <Lock className="w-2.5 h-2.5 absolute top-1 right-1 opacity-60 text-current" />
+        )}
       </button>
     );
   }
