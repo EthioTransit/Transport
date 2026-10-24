@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Users, ShieldCheck, ArrowRight, Armchair, ChevronRight } from 'lucide-react';
 import { Trip } from '../../types';
 import { BRAND } from '../../config/brand';
+import { hasTripDeparted } from '../../utils/time.utils';
 
 interface TripCardProps {
   trip: Trip;
@@ -17,6 +18,7 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
   const vehicleName = trip.vehicle?.vehicleModel || trip.vehicle?.vehicleType || 'Intercity Coach';
   const durationHours = trip.route?.estimatedDurationHours || 3;
 
+  const isDeparted = hasTripDeparted(trip.departureDate || travelDate, trip.departureTime);
   const seatsAvailable = trip.availableSeatsCount;
   const seatsLow = seatsAvailable > 0 && seatsAvailable <= 5;
   const routeImage = trip.route?.image || (trip.route?.destination as any)?.image || '/dest-bahirdar.jpg';
@@ -116,22 +118,29 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
           {/* Amenities & Seat count */}
           <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-100">
             {/* Seats remaining */}
-            <span
-              className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${
-                seatsLow
-                  ? 'bg-red-50 text-red-600 border border-red-100'
-                  : seatsAvailable === 0
-                  ? 'bg-gray-100 text-gray-500 border border-gray-200'
-                  : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-              }`}
-            >
-              <Armchair className="w-3.5 h-3.5" />
-              {seatsAvailable === 0
-                ? 'Sold out'
-                : seatsLow
-                ? `${seatsAvailable} seats left`
-                : `${seatsAvailable} seats available`}
-            </span>
+            {isDeparted ? (
+              <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                Departed (Booking Closed)
+              </span>
+            ) : (
+              <span
+                className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${
+                  seatsLow
+                    ? 'bg-red-50 text-red-600 border border-red-100'
+                    : seatsAvailable === 0
+                    ? 'bg-gray-100 text-gray-500 border border-gray-200'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                }`}
+              >
+                <Armchair className="w-3.5 h-3.5" />
+                {seatsAvailable === 0
+                  ? 'Sold out'
+                  : seatsLow
+                  ? `${seatsAvailable} seats left`
+                  : `${seatsAvailable} seats available`}
+              </span>
+            )}
 
             {/* Amenities */}
             {trip.amenities?.slice(0, 3).map((am, i) => (
@@ -160,7 +169,15 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, travelDate, passengers
             <span className="text-[10px] sm:text-[11px] text-brand-textLight">per passenger</span>
           </div>
 
-          {trip.availableSeatsCount > 0 ? (
+          {isDeparted ? (
+            <div
+              className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-btn bg-slate-100 text-slate-500 font-extrabold text-xs sm:text-sm text-center flex-shrink-0 cursor-not-allowed border border-slate-200 flex items-center gap-1.5 select-none"
+              title="This journey has already departed. Seat reservations are closed."
+            >
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              <span>Departed</span>
+            </div>
+          ) : trip.availableSeatsCount > 0 ? (
             <Link
               to={`/trips/${trip._id}/seats?date=${travelDate}&passengers=${passengersCount}`}
               id={`select-seat-btn-${trip._id}`}

@@ -112,11 +112,12 @@ export const Footer: React.FC = () => {
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-gray-800">
-              <span className="text-[11px] text-gray-500 block mb-2">Accepted payments:</span>
+              <span className="text-[11px] text-gray-500 block mb-2">Accepted payment:</span>
               <div className="flex items-center gap-2 flex-wrap text-xs font-semibold text-gray-300">
-                <span className="px-2 py-1 bg-gray-800/80 rounded border border-gray-700">Telebirr</span>
-                <span className="px-2 py-1 bg-gray-800/80 rounded border border-gray-700">CBE Birr</span>
-                <span className="px-2 py-1 bg-gray-800/80 rounded border border-gray-700">Chapa</span>
+                <span className="px-2.5 py-1 bg-purple-950/60 text-purple-300 rounded border border-purple-800/80 font-bold flex items-center gap-1.5 shadow-xs">
+                  <CreditCard className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Chapa</span>
+                </span>
               </div>
             </div>
           </div>

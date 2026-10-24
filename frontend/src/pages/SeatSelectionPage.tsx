@@ -17,6 +17,7 @@ import { SeatLockTimer } from '../features/seats/SeatLockTimer';
 import { useAuth } from '../features/auth/useAuth';
 import { Trip, SeatItem } from '../types';
 import { BRAND } from '../config/brand';
+import { hasTripDeparted } from '../utils/time.utils';
 
 export const SeatSelectionPage: React.FC = () => {
   const { tripId } = useParams<{ tripId: string }>();
@@ -75,9 +76,15 @@ export const SeatSelectionPage: React.FC = () => {
     }
   };
   const nextDateStr = trip?.departureDate ? getNextDateStr(trip.departureDate) : '';
+  const isDeparted = trip ? hasTripDeparted(trip.departureDate, trip.departureTime) : false;
 
   const handleToggleSeat = async (seatNumber: string) => {
     if (!tripId) return;
+
+    if (isDeparted) {
+      setError('This journey has already departed. Seat reservations are closed.');
+      return;
+    }
 
     setError(null);
 
@@ -139,6 +146,11 @@ export const SeatSelectionPage: React.FC = () => {
   };
 
   const handleProceedToCheckout = () => {
+    if (isDeparted) {
+      setError('This journey has already departed. You cannot proceed to checkout.');
+      return;
+    }
+
     if (selectedSeatNumbers.length !== passengersCount) {
       setError(`Please select exactly ${passengersCount} seat(s) before proceeding.`);
       return;
@@ -267,8 +279,31 @@ export const SeatSelectionPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Departed Alert Banner */}
+        {isDeparted && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 font-bold">
+                <AlertCircle className="w-5 h-5 text-amber-800" />
+              </div>
+              <div>
+                <span className="font-extrabold text-sm block text-amber-950">Journey Has Already Departed</span>
+                <span className="text-xs text-amber-800 block mt-0.5">
+                  This bus was scheduled to depart at {trip.departureTime} on {trip.departureDate}. Seat reservations are strictly closed.
+                </span>
+              </div>
+            </div>
+            <Link
+              to={`/search?from=${trip.route?.origin?.code || 'ADD'}&to=${trip.route?.destination?.code || 'DBR'}&passengers=${passengersCount}`}
+              className="px-4 py-2 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-xs shrink-0 transition-colors shadow-xs"
+            >
+              Find Next Scheduled Departure
+            </Link>
+          </div>
+        )}
+
         {/* Reservation Timer */}
-        {lockExpiresAt && (
+        {lockExpiresAt && !isDeparted && (
           <div className="mb-6">
             <SeatLockTimer expiresAt={lockExpiresAt} onExpire={handleTimerExpired} />
           </div>
@@ -286,7 +321,9 @@ export const SeatSelectionPage: React.FC = () => {
         <div className="mb-6">
           <h2 className="text-xl font-black text-brand-dark">Choose Your Seat</h2>
           <p className="text-sm text-brand-textMuted mt-1">
-            Select {passengersCount} seat{passengersCount > 1 ? 's' : ''}. Your selection is held for 10 minutes.
+            {isDeparted
+              ? 'This departure has passed. Seat selection is disabled.'
+              : `Select ${passengersCount} seat${passengersCount > 1 ? 's' : ''}. Your selection is held for 10 minutes.`}
           </p>
         </div>
 
@@ -300,6 +337,7 @@ export const SeatSelectionPage: React.FC = () => {
               selectedSeatNumbers={selectedSeatNumbers}
               onToggleSeat={handleToggleSeat}
               maxSelectable={passengersCount}
+              isDeparted={isDeparted}
             />
 
             {/* Next Day Reservation Quick Banner */}
@@ -312,7 +350,7 @@ export const SeatSelectionPage: React.FC = () => {
                   <div>
                     <span className="font-bold text-brand-textMain block">Planning for Next Day?</span>
                     <span className="text-[11px] text-brand-textMuted block">
-                      Seats for this bus are reset per day. You can reserve this bus again for tomorrow ({nextDateStr}).
+                      Bus seat reservations remain secured across journeys on this fleet vehicle. Check next day departures ({nextDateStr}).
                     </span>
                   </div>
                 </div>
@@ -416,15 +454,15 @@ export const SeatSelectionPage: React.FC = () => {
             <button
               type="button"
               id="proceed-checkout-btn"
-              disabled={selectedSeatNumbers.length !== passengersCount || locking}
+              disabled={selectedSeatNumbers.length !== passengersCount || locking || isDeparted}
               onClick={handleProceedToCheckout}
               className="w-full px-6 py-4 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-brand-emerald/25 transition-all flex items-center justify-center gap-2 group"
             >
-              <span>Continue to Checkout</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <span>{isDeparted ? 'Journey Departed (Booking Closed)' : 'Continue to Checkout'}</span>
+              {!isDeparted && <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />}
             </button>
 
-            {selectedSeatNumbers.length !== passengersCount && (
+            {selectedSeatNumbers.length !== passengersCount && !isDeparted && (
               <p className="text-center text-xs text-brand-textMuted">
                 {selectedSeatNumbers.length} of {passengersCount} seat{passengersCount > 1 ? 's' : ''} selected
               </p>
@@ -453,12 +491,12 @@ export const SeatSelectionPage: React.FC = () => {
             <button
               type="button"
               id="proceed-checkout-btn-mobile"
-              disabled={selectedSeatNumbers.length !== passengersCount || locking}
+              disabled={selectedSeatNumbers.length !== passengersCount || locking || isDeparted}
               onClick={handleProceedToCheckout}
               className="px-6 py-3 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md transition-all flex items-center gap-1.5 flex-shrink-0"
             >
-              <span>Continue</span>
-              <ChevronRight className="w-4 h-4" />
+              <span>{isDeparted ? 'Departed' : 'Continue'}</span>
+              {!isDeparted && <ChevronRight className="w-4 h-4" />}
             </button>
           </div>
         </div>

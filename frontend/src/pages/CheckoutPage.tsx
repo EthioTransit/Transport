@@ -19,22 +19,8 @@ import { useAuth } from '../features/auth/useAuth';
 import { authStore } from '../features/auth/authStore';
 import { Trip, PassengerInfo } from '../types';
 import { BRAND } from '../config/brand';
+import { hasTripDeparted } from '../utils/time.utils';
 
-const PAYMENT_PROVIDERS = [
-  {
-    id: 'chapa' as const,
-    title: 'Chapa Pay',
-    subtitle: 'Visa, Mastercard, Telebirr & Ethiopian Commercial Banks',
-    badge: 'Official',
-    badgeColor: 'bg-purple-100 text-purple-700',
-    icon: CreditCard,
-    iconBg: 'bg-purple-50',
-    iconColor: 'text-purple-600',
-    border: 'border-purple-200',
-    activeBorder: 'border-purple-600',
-    activeBg: 'bg-purple-50/40',
-  },
-];
 
 export const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -49,6 +35,8 @@ export const CheckoutPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isDeparted = trip ? hasTripDeparted(trip.departureDate, trip.departureTime) : false;
 
   const [passengers, setPassengers] = useState<PassengerInfo[]>(
     selectedSeats.map((seatNumber, i) => ({
@@ -129,6 +117,11 @@ export const CheckoutPage: React.FC = () => {
   const handleCreateBookingAndPay = async (e: React.FormEvent, isRetry = false) => {
     e.preventDefault();
     if (!validateForm() || !trip) return;
+
+    if (isDeparted) {
+      setError('This journey has already departed. You cannot proceed to payment.');
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -273,6 +266,31 @@ export const CheckoutPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Departed Alert Banner */}
+      {isDeparted && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-200/80 text-amber-800 flex items-center justify-center shrink-0 font-bold">
+                <AlertCircle className="w-5 h-5 text-amber-800" />
+              </div>
+              <div>
+                <span className="font-extrabold text-sm block">Journey Has Already Departed</span>
+                <span className="text-xs text-amber-800 block mt-0.5">
+                  Departure was scheduled for {trip.departureTime} on {trip.departureDate}. Seat reservations and checkouts are closed for past journeys.
+                </span>
+              </div>
+            </div>
+            <Link
+              to={`/search?from=${trip.route?.origin?.code || 'ADD'}&to=${trip.route?.destination?.code || 'DBR'}`}
+              className="px-4 py-2 rounded-btn bg-brand-emerald text-white text-xs font-bold shrink-0 hover:bg-brand-deep transition-colors"
+            >
+              Search Upcoming Trips
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Error Banner */}
       {error && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
@@ -381,13 +399,13 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-base text-brand-dark">Chapa Pay</span>
+                      <span className="font-extrabold text-base text-brand-dark">Chapa</span>
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
                         Official Gateway
                       </span>
                     </div>
                     <span className="text-xs text-brand-textMuted block mt-0.5">
-                      Pay via Debit Card, Visa, Mastercard, Telebirr, CBE Birr or local banks
+                      Pay securely via Chapa
                     </span>
                   </div>
                 </div>
@@ -429,11 +447,17 @@ export const CheckoutPage: React.FC = () => {
             <button
               type="submit"
               id="confirm-pay-btn"
-              disabled={submitting}
+              disabled={submitting || isDeparted}
               className="w-full py-4 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-50 text-white font-extrabold text-base shadow-lg shadow-brand-emerald/25 hover:shadow-xl transition-all flex items-center justify-center gap-2 group"
             >
               <Lock className="w-5 h-5" />
-              <span>{submitting ? 'Redirecting to Chapa...' : 'Pay with Chapa'}</span>
+              <span>
+                {isDeparted
+                  ? 'Journey Departed (Booking Closed)'
+                  : submitting
+                  ? 'Redirecting to Chapa...'
+                  : 'Pay with Chapa'}
+              </span>
             </button>
 
             {/* Trust indicators */}

@@ -7,6 +7,7 @@ import { BRAND_CONFIG } from '../config/brand';
 import { SeatService } from './seat.service';
 import { AuditService } from './audit.service';
 import { PersistenceService } from './persistence.service';
+import { hasTripDeparted } from '../utils/time.utils';
 
 export class BookingService {
   static async createBooking(params: {
@@ -18,6 +19,12 @@ export class BookingService {
   }) {
     const trip = await Trip.findById(params.tripId).populate('route operator vehicle');
     if (!trip) throw new Error('Trip not found');
+
+    if (hasTripDeparted(trip.departureDate, trip.departureTime)) {
+      throw new Error(
+        `Cannot create booking: This trip has already departed (${trip.departureTime} on ${trip.departureDate}). Ticket booking is closed.`
+      );
+    }
 
     if (params.seats.length !== params.passengers.length) {
       throw new Error('Number of passenger details must match the number of selected seats.');
@@ -78,9 +85,14 @@ export class BookingService {
       expiresAt,
     });
 
-    // Permanently mark seats as BOOKED for this trip and associate booking
+    // Permanently mark seats as BOOKED for this trip and across all trips of this vehicle
+    const vehicleId = (trip.vehicle as any)?._id || trip.vehicle;
+    const vehicleTrips = vehicleId
+      ? await Trip.find({ vehicle: vehicleId }).distinct('_id')
+      : [params.tripId];
+
     await Seat.updateMany(
-      { trip: params.tripId, seatNumber: { $in: params.seats } },
+      { trip: { $in: vehicleTrips }, seatNumber: { $in: params.seats } },
       {
         $set: {
           status: SeatStatus.BOOKED,
@@ -93,13 +105,15 @@ export class BookingService {
       }
     );
 
-    // Recalculate and update availableSeatsCount on Trip
-    const availableSeatsCount = await Seat.countDocuments({
-      trip: params.tripId,
-      status: SeatStatus.AVAILABLE,
-      $or: [{ booking: { $exists: false } }, { booking: null }],
-    });
-    await Trip.findByIdAndUpdate(params.tripId, { availableSeatsCount });
+    // Recalculate and update availableSeatsCount on all trips of this vehicle
+    for (const vtId of vehicleTrips) {
+      const availableSeatsCount = await Seat.countDocuments({
+        trip: vtId,
+        status: SeatStatus.AVAILABLE,
+        $or: [{ booking: { $exists: false } }, { booking: null }],
+      });
+      await Trip.findByIdAndUpdate(vtId, { availableSeatsCount });
+    }
 
     // Persist permanently to disk
     PersistenceService.queueSave();
@@ -207,22 +221,34 @@ export class BookingService {
     booking.cancellationReason = reason;
     await booking.save();
 
-    // Release seats back to AVAILABLE
+    // Release seats back to AVAILABLE across trips of this vehicle
+    const trip = await Trip.findById(booking.trip);
+    const vehicleId = trip?.vehicle;
+    const vehicleTrips = vehicleId
+      ? await Trip.find({ vehicle: vehicleId }).distinct('_id')
+      : [booking.trip];
+
     await Seat.updateMany(
-      { trip: booking.trip, seatNumber: { $in: booking.seats } },
+      {
+        trip: { $in: vehicleTrips },
+        seatNumber: { $in: booking.seats },
+        booking: booking._id,
+      },
       {
         $set: { status: SeatStatus.AVAILABLE },
         $unset: { lockedBy: '', guestLockId: '', lockedAt: '', lockExpiresAt: '', booking: '' },
       }
     );
 
-    // Recalculate trip available seats
-    const availableCount = await Seat.countDocuments({
-      trip: booking.trip,
-      status: SeatStatus.AVAILABLE,
-      $or: [{ booking: { $exists: false } }, { booking: null }],
-    });
-    await Trip.findByIdAndUpdate(booking.trip, { availableSeatsCount: availableCount });
+    // Recalculate trip available seats on all vehicle trips
+    for (const vtId of vehicleTrips) {
+      const availableCount = await Seat.countDocuments({
+        trip: vtId,
+        status: SeatStatus.AVAILABLE,
+        $or: [{ booking: { $exists: false } }, { booking: null }],
+      });
+      await Trip.findByIdAndUpdate(vtId, { availableSeatsCount: availableCount });
+    }
     PersistenceService.queueSave();
 
     await AuditService.log({

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, CheckCircle2, XCircle, CreditCard, Smartphone, Building2, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
 import { BRAND } from '../config/brand';
 
 export const ChapaSandboxPage: React.FC = () => {
@@ -13,7 +13,6 @@ export const ChapaSandboxPage: React.FC = () => {
   const email = searchParams.get('email') || 'passenger@ethiotransit.et';
   const phone = searchParams.get('phone') || '0911000000';
 
-  const [selectedMethod, setSelectedMethod] = useState<'card' | 'telebirr' | 'cbe'>('telebirr');
   const [processing, setProcessing] = useState(false);
 
   const handleSimulateSuccess = () => {
@@ -101,50 +100,24 @@ export const ChapaSandboxPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Simulated Payment Channel Selector */}
+          {/* Chapa Payment Gateway */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-2">
-              Select Simulated Payment Channel
+              Payment Gateway
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedMethod('telebirr')}
-                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
-                  selectedMethod === 'telebirr'
-                    ? 'border-purple-600 bg-purple-50/70 text-purple-950 shadow-xs ring-1 ring-purple-600'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <Smartphone className="w-5 h-5 text-purple-600" />
-                <span className="text-[11px]">Telebirr</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedMethod('cbe')}
-                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
-                  selectedMethod === 'cbe'
-                    ? 'border-purple-600 bg-purple-50/70 text-purple-950 shadow-xs ring-1 ring-purple-600'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <Building2 className="w-5 h-5 text-emerald-600" />
-                <span className="text-[11px]">CBE Birr</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedMethod('card')}
-                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
-                  selectedMethod === 'card'
-                    ? 'border-purple-600 bg-purple-50/70 text-purple-950 shadow-xs ring-1 ring-purple-600'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                <span className="text-[11px]">Bank Card</span>
-              </button>
+            <div className="p-3.5 rounded-xl border border-purple-600 bg-purple-50/70 text-purple-950 shadow-xs ring-1 ring-purple-600 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
+                  C
+                </div>
+                <div>
+                  <span className="font-extrabold text-xs block text-slate-900">Chapa Gateway</span>
+                  <span className="text-[11px] text-slate-500 block">Express direct checkout</span>
+                </div>
+              </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-purple-100 text-purple-800">
+                Chapa
+              </span>
             </div>
           </div>
 

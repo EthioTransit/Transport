@@ -7,6 +7,7 @@ interface SeatMapProps {
   selectedSeatNumbers: string[];
   onToggleSeat: (seatNumber: string) => void;
   maxSelectable: number;
+  isDeparted?: boolean;
 }
 
 export const SeatMap: React.FC<SeatMapProps> = ({
@@ -14,6 +15,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   selectedSeatNumbers,
   onToggleSeat,
   maxSelectable,
+  isDeparted = false,
 }) => {
   // Group seats by row
   const rowMap = new Map<number, SeatItem[]>();
@@ -90,11 +92,17 @@ export const SeatMap: React.FC<SeatMapProps> = ({
     const isBlocked = seat.status === SeatStatus.BLOCKED;
     const isReserved = seat.status === SeatStatus.RESERVED && !seat.isMine;
 
-    const canSelect = (isAvailable || isSelected) && !isBooked && !isBlocked && !isReserved;
+    const canSelect = !isDeparted && (isAvailable || isSelected) && !isBooked && !isBlocked && !isReserved;
 
     let style = 'bg-white border-2 border-gray-200 text-brand-textMain hover:border-brand-emerald hover:bg-emerald-50/50 hover:scale-105 shadow-xs cursor-pointer active:scale-95';
 
-    if (isSelected) {
+    if (isDeparted) {
+      if (isBooked) {
+        style = 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none opacity-80 select-none';
+      } else {
+        style = 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed pointer-events-none opacity-60 select-none';
+      }
+    } else if (isSelected) {
       style = 'bg-brand-emerald border-brand-emerald text-white font-extrabold shadow-md shadow-brand-emerald/30 scale-105 cursor-pointer z-10';
     } else if (isBooked) {
       style = 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed pointer-events-none opacity-80 select-none';
@@ -104,7 +112,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
       style = 'bg-red-50 border-red-200 text-red-400 cursor-not-allowed pointer-events-none opacity-70 select-none';
     }
 
-    const isLockedSeat = isBooked || isReserved || isBlocked;
+    const isLockedSeat = isBooked || isReserved || isBlocked || isDeparted;
 
     return (
       <button
@@ -124,7 +132,9 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         }}
         className={`w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-btn flex flex-col items-center justify-center transition-all duration-150 relative shrink-0 select-none ${style}`}
         title={
-          isBooked
+          isDeparted
+            ? `Seat ${seat.seatNumber} - Journey Departed (Reservations Closed)`
+            : isBooked
             ? `Seat ${seat.seatNumber} - Permanently Booked`
             : isReserved
             ? `Seat ${seat.seatNumber} - Reserved by another passenger`

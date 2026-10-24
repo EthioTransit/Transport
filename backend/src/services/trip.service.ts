@@ -310,6 +310,19 @@ export class TripService {
     const colLetters = ['A', 'B', 'C', 'D', 'E'];
     const blockedList = new Set(vehicle.seatLayout?.blockedSeats || []);
 
+    // Inherit any existing booked seats on this vehicle across scheduled trips
+    const vehicleId = vehicle._id || vehicle;
+    const existingVehicleTrips = await Trip.find({ vehicle: vehicleId }).distinct('_id');
+    const existingBookedSeats = await Seat.find({
+      trip: { $in: existingVehicleTrips },
+      $or: [{ status: SeatStatus.BOOKED }, { booking: { $exists: true, $ne: null } }],
+    }).lean();
+    const vehicleBookedSeatNumbers = new Set(existingBookedSeats.map((s) => s.seatNumber));
+    const vehicleBookingMap = new Map<string, any>();
+    for (const s of existingBookedSeats) {
+      if (s.booking) vehicleBookingMap.set(s.seatNumber, s.booking);
+    }
+
     const seatsToInsert = [];
     let count = 0;
 
@@ -324,6 +337,11 @@ export class TripService {
         const seatType = isWindow ? 'WINDOW' : isAisle ? 'AISLE' : 'MIDDLE';
 
         const isBlocked = blockedList.has(seatNumber);
+        const isAlreadyBookedOnVehicle = vehicleBookedSeatNumbers.has(seatNumber);
+
+        let initialStatus = SeatStatus.AVAILABLE;
+        if (isBlocked) initialStatus = SeatStatus.BLOCKED;
+        else if (isAlreadyBookedOnVehicle) initialStatus = SeatStatus.BOOKED;
 
         seatsToInsert.push({
           trip: tripId,
@@ -331,7 +349,8 @@ export class TripService {
           row: r,
           column: c + 1,
           seatType,
-          status: isBlocked ? SeatStatus.BLOCKED : SeatStatus.AVAILABLE,
+          status: initialStatus,
+          booking: isAlreadyBookedOnVehicle ? vehicleBookingMap.get(seatNumber) : undefined,
           priceModifier: 0,
         });
         count++;
@@ -340,6 +359,10 @@ export class TripService {
 
     if (seatsToInsert.length > 0) {
       await Seat.insertMany(seatsToInsert);
+      const availCount = seatsToInsert.filter(
+        (s) => s.status === SeatStatus.AVAILABLE && !s.booking
+      ).length;
+      await Trip.findByIdAndUpdate(tripId, { availableSeatsCount: availCount });
     }
   }
 

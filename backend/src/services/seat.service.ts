@@ -4,6 +4,7 @@ import { Trip } from '../models/Trip';
 import { SeatStatus } from '../types';
 import { BRAND_CONFIG } from '../config/brand';
 import { PersistenceService } from './persistence.service';
+import { hasTripDeparted } from '../utils/time.utils';
 
 export class SeatService {
   /**
@@ -62,6 +63,41 @@ export class SeatService {
     const trip = await Trip.findById(tripId).populate('vehicle');
     if (!trip) throw new Error('Trip not found');
 
+    // Vehicle-level seat preservation: reflect seats booked on this bus across all its trips
+    const vehicleId = (trip.vehicle as any)?._id || trip.vehicle;
+    if (vehicleId) {
+      const vehicleTripIds = await Trip.find({ vehicle: vehicleId }).distinct('_id');
+      const bookedOnVehicle = await Seat.find({
+        trip: { $in: vehicleTripIds },
+        $or: [{ status: SeatStatus.BOOKED }, { booking: { $exists: true, $ne: null } }],
+      }).lean();
+
+      if (bookedOnVehicle.length > 0) {
+        const bookedSeatNumbers = Array.from(new Set(bookedOnVehicle.map((s) => s.seatNumber)));
+        const syncResult = await Seat.updateMany(
+          {
+            trip: tripId,
+            seatNumber: { $in: bookedSeatNumbers },
+            status: { $ne: SeatStatus.BOOKED },
+          },
+          {
+            $set: { status: SeatStatus.BOOKED },
+            $unset: { lockExpiresAt: '', guestLockId: '' },
+          }
+        );
+
+        if (syncResult.modifiedCount > 0) {
+          const avail = await Seat.countDocuments({
+            trip: tripId,
+            status: SeatStatus.AVAILABLE,
+            $or: [{ booking: { $exists: false } }, { booking: null }],
+          });
+          await Trip.findByIdAndUpdate(tripId, { availableSeatsCount: avail });
+          PersistenceService.queueSave();
+        }
+      }
+    }
+
     const seats = await Seat.find({ trip: tripId }).sort({ row: 1, column: 1 }).lean();
 
     // Map seats to show client state
@@ -98,12 +134,18 @@ export class SeatService {
       (s) => s.status === SeatStatus.AVAILABLE && !s.booking
     ).length;
 
+    const isDeparted = hasTripDeparted(trip.departureDate, trip.departureTime);
+
     return {
       tripId,
       vehicle: trip.vehicle,
       seats: mappedSeats,
       totalSeats: seats.length,
-      availableCount: realAvailableCount,
+      availableCount: isDeparted ? 0 : realAvailableCount,
+      isDeparted,
+      canReserve: !isDeparted,
+      departureDate: trip.departureDate,
+      departureTime: trip.departureTime,
     };
   }
 
@@ -119,13 +161,22 @@ export class SeatService {
   }) {
     await this.cleanupExpiredLocks(params.tripId);
 
-    const timeoutMinutes = BRAND_CONFIG.seatReservationTimeoutMinutes || 10;
-    const now = new Date();
-    const lockExpiresAt = new Date(now.getTime() + timeoutMinutes * 60 * 1000);
-
     const tripObjectId = mongoose.Types.ObjectId.isValid(params.tripId)
       ? new mongoose.Types.ObjectId(params.tripId)
       : params.tripId;
+
+    const trip = await Trip.findById(tripObjectId);
+    if (!trip) throw new Error('Trip not found');
+
+    if (hasTripDeparted(trip.departureDate, trip.departureTime)) {
+      throw new Error(
+        `Cannot reserve seat: This trip has already departed (${trip.departureTime} on ${trip.departureDate}). Seat reservations are closed.`
+      );
+    }
+
+    const timeoutMinutes = BRAND_CONFIG.seatReservationTimeoutMinutes || 10;
+    const now = new Date();
+    const lockExpiresAt = new Date(now.getTime() + timeoutMinutes * 60 * 1000);
 
     const userObjectId =
       params.userId && mongoose.Types.ObjectId.isValid(params.userId)
@@ -146,8 +197,23 @@ export class SeatService {
           throw new Error(`Seat ${seatNumber} does not exist for this trip.`);
         }
 
+        // Check if booked on this trip
         if (seat.status === SeatStatus.BOOKED || seat.booking) {
           throw new Error(`Seat ${seatNumber} has already been reserved and booked.`);
+        }
+
+        // Check if booked on this vehicle across any scheduled departure
+        const parentTrip = await Trip.findById(tripObjectId);
+        if (parentTrip?.vehicle) {
+          const vTrips = await Trip.find({ vehicle: parentTrip.vehicle }).distinct('_id');
+          const isBookedOnVehicle = await Seat.exists({
+            trip: { $in: vTrips },
+            seatNumber: cleanSeatNumber,
+            $or: [{ status: SeatStatus.BOOKED }, { booking: { $exists: true, $ne: null } }],
+          });
+          if (isBookedOnVehicle) {
+            throw new Error(`Seat ${seatNumber} is reserved and booked on this bus.`);
+          }
         }
 
         if (seat.status === SeatStatus.BLOCKED) {

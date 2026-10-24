@@ -11,6 +11,7 @@ import { ChapaService } from './chapa.service';
 import { PersistenceService } from './persistence.service';
 import { BRAND_CONFIG } from '../config/brand';
 import { ENV } from '../config/env';
+import { hasTripDeparted } from '../utils/time.utils';
 
 export interface PaymentProviderResult {
   transactionReference: string;
@@ -60,6 +61,11 @@ export class PaymentService {
   }) {
     const booking = await Booking.findById(params.bookingId).populate('trip');
     if (!booking) throw new Error('Booking not found');
+
+    const trip = booking.trip as any;
+    if (trip && hasTripDeparted(trip.departureDate, trip.departureTime)) {
+      throw new Error('Cannot process payment: This journey has already departed.');
+    }
 
     if (booking.status === BookingStatus.CONFIRMED) {
       throw new Error('This booking is already paid and confirmed.');
@@ -214,22 +220,29 @@ export class PaymentService {
       booking.status = BookingStatus.CONFIRMED;
       await booking.save();
 
-      // Mark Seats as permanently BOOKED
+      // Mark Seats as permanently BOOKED across this trip and all trips of this vehicle
+      const trip = await Trip.findById(booking.trip);
+      const vehicleTrips = trip?.vehicle
+        ? await Trip.find({ vehicle: trip.vehicle }).distinct('_id')
+        : [booking.trip];
+
       await Seat.updateMany(
-        { trip: booking.trip, seatNumber: { $in: booking.seats } },
+        { trip: { $in: vehicleTrips }, seatNumber: { $in: booking.seats } },
         {
-          $set: { status: SeatStatus.BOOKED },
+          $set: { status: SeatStatus.BOOKED, booking: booking._id },
           $unset: { lockExpiresAt: '', guestLockId: '' },
         }
       );
 
-      // Recalculate trip available seats
-      const availableCount = await Seat.countDocuments({
-        trip: booking.trip,
-        status: SeatStatus.AVAILABLE,
-        $or: [{ booking: { $exists: false } }, { booking: null }],
-      });
-      await Trip.findByIdAndUpdate(booking.trip, { availableSeatsCount: availableCount });
+      // Recalculate trip available seats on all vehicle trips
+      for (const vtId of vehicleTrips) {
+        const availableCount = await Seat.countDocuments({
+          trip: vtId,
+          status: SeatStatus.AVAILABLE,
+          $or: [{ booking: { $exists: false } }, { booking: null }],
+        });
+        await Trip.findByIdAndUpdate(vtId, { availableSeatsCount: availableCount });
+      }
 
       // Generate Digital Tickets with secure QR tokens
       const tickets = await TicketService.generateTicketsForBooking(booking._id.toString());
