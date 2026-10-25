@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, ArrowRight, Ticket, ShieldCheck, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { paymentsApi } from '../api/endpoints';
 import { Ticket as TicketType } from '../types';
 import { BRAND } from '../config/brand';
@@ -8,6 +9,8 @@ import { BRAND } from '../config/brand';
 export const PaymentVerificationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
 
   const rawRef =
     searchParams.get('ref') ||
@@ -27,7 +30,7 @@ export const PaymentVerificationPage: React.FC = () => {
 
   const performVerification = async () => {
     if (!ref) {
-      setError('Missing transaction reference.');
+      setError(isAmharic ? 'የክፍያ መለያ ቁጥር አልተገኘም።' : 'Missing transaction reference.');
       setVerifying(false);
       return;
     }
@@ -45,7 +48,7 @@ export const PaymentVerificationPage: React.FC = () => {
       if (res.tickets) setTickets(res.tickets);
       if (res.bookingReference) setBookingReference(res.bookingReference);
     } catch (err: any) {
-      setError(err.message || 'Payment verification failed.');
+      setError(err.message || (isAmharic ? 'የክፍያ ማረጋገጫው አልተሳካም።' : 'Payment verification failed.'));
     } finally {
       setVerifying(false);
     }
@@ -63,9 +66,13 @@ export const PaymentVerificationPage: React.FC = () => {
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="w-16 h-16 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
               <div className="flex flex-col gap-1">
-                <h3 className="font-extrabold text-xl text-brand-dark">Verifying Official Payment</h3>
+                <h3 className="font-extrabold text-xl text-brand-dark">
+                  {isAmharic ? 'ክፍያውን በማረጋገጥ ላይ' : 'Verifying Official Payment'}
+                </h3>
                 <p className="text-xs text-brand-textMuted max-w-xs">
-                  Connecting to payment gateway to confirm official fare receipt and generate digital boarding tickets...
+                  {isAmharic
+                    ? 'የክፍያ ደረሰኝን ለማረጋገጥ እና ዲጂታል የመሳፈሪያ ቲኬቶችን ለማዘጋጀት ከክፍያ ስርዓቱ ጋር በመገናኘት ላይ...'
+                    : 'Connecting to payment gateway to confirm official fare receipt and generate digital boarding tickets...'}
                 </p>
               </div>
             </div>
@@ -77,17 +84,23 @@ export const PaymentVerificationPage: React.FC = () => {
 
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-brand-emerald">
-                  Transaction Verified
+                  {isAmharic ? 'ክፍያው ተረጋግጧል' : 'Transaction Verified'}
                 </span>
-                <h2 className="text-2xl font-black text-brand-dark">Payment Confirmed!</h2>
+                <h2 className="text-2xl font-black text-brand-dark">
+                  {isAmharic ? 'ክፍያው በተሳካ ሁኔታ ተፈጽሟል!' : 'Payment Confirmed!'}
+                </h2>
                 <p className="text-xs text-brand-textMuted max-w-xs mt-1">
-                  Your seat booking is officially secured. Digital tickets with tamper-proof QR codes have been issued.
+                  {isAmharic
+                    ? 'የያዙት ወንበር በይፋ ተረጋግጧል። የማይደለዝ QR ኮድ ያለው ዲጂታል ቲኬት ተዘጋጅቷል።'
+                    : 'Your seat booking is officially secured. Digital tickets with tamper-proof QR codes have been issued.'}
                 </p>
               </div>
 
               {bookingReference && (
                 <div className="w-full my-2 p-3 bg-gray-50 rounded-btn border border-gray-200 text-xs flex justify-between items-center">
-                  <span className="text-brand-textMuted font-semibold">Booking Reference</span>
+                  <span className="text-brand-textMuted font-semibold">
+                    {isAmharic ? 'የማስያዣ መለያ' : 'Booking Reference'}
+                  </span>
                   <span className="font-mono font-bold text-brand-dark text-sm">{bookingReference}</span>
                 </div>
               )}
@@ -101,14 +114,14 @@ export const PaymentVerificationPage: React.FC = () => {
                     className="w-full py-3.5 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-sm shadow-md shadow-brand-emerald/20 transition-all flex items-center justify-center gap-2"
                   >
                     <Ticket className="w-4 h-4" />
-                    <span>View Digital Ticket</span>
+                    <span>{isAmharic ? 'ዲጂታል ቲኬትን ይመልከቱ' : 'View Digital Ticket'}</span>
                   </Link>
                 ) : (
                   <Link
                     to="/my-tickets"
                     className="w-full py-3.5 rounded-btn bg-brand-emerald text-white font-extrabold text-sm shadow-md"
                   >
-                    View My Tickets
+                    {isAmharic ? 'የእኔ ቲኬቶችን ይመልከቱ' : 'View My Tickets'}
                   </Link>
                 )}
 
@@ -116,7 +129,7 @@ export const PaymentVerificationPage: React.FC = () => {
                   to="/"
                   className="w-full py-3 rounded-btn text-xs font-bold text-brand-textMuted hover:bg-gray-100 transition-colors"
                 >
-                  Return to Home
+                  {isAmharic ? 'ወደ መነሻ ገጽ ተመለስ' : 'Return to Home'}
                 </Link>
               </div>
             </div>
@@ -127,7 +140,9 @@ export const PaymentVerificationPage: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-black text-brand-dark">Payment Authorization Failed</h2>
+                <h2 className="text-xl font-black text-brand-dark">
+                  {isAmharic ? 'ክፍያውን ማረጋገጥ አልተቻለም' : 'Payment Authorization Failed'}
+                </h2>
                 <p className="text-xs text-brand-textMuted">{error}</p>
               </div>
 
@@ -137,13 +152,13 @@ export const PaymentVerificationPage: React.FC = () => {
                   className="w-full py-3 rounded-btn bg-brand-emerald text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  <span>Retry Verification</span>
+                  <span>{isAmharic ? 'እንደገና ሞክር' : 'Retry Verification'}</span>
                 </button>
                 <Link
                   to="/search"
                   className="w-full py-2.5 rounded-btn text-xs font-semibold text-gray-500 hover:bg-gray-50"
                 >
-                  Return to Search
+                  {isAmharic ? 'ወደ ፍለጋ ተመለስ' : 'Return to Search'}
                 </Link>
               </div>
             </div>
@@ -153,3 +168,4 @@ export const PaymentVerificationPage: React.FC = () => {
     </div>
   );
 };
+

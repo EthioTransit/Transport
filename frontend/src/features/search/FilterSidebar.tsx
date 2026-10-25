@@ -93,7 +93,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             {isAmharic ? 'ከፍተኛ ዋጋ' : 'Max Price'}
           </label>
           <span className="text-sm font-black text-brand-emerald">
-            {priceMax > 0 ? `${priceMax} ETB` : (isAmharic ? 'ማንኛውም' : 'Any')}
+            {priceMax > 0 ? `${priceMax} ${isAmharic ? 'ብር' : 'ETB'}` : (isAmharic ? 'ማንኛውም' : 'Any')}
           </span>
         </div>
         <input
@@ -106,8 +106,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           className="w-full accent-brand-emerald cursor-pointer"
         />
         <div className="flex justify-between text-[11px] text-gray-400">
-          <span>100 ETB</span>
-          <span>3,000 ETB</span>
+          <span>100 {isAmharic ? 'ብር' : 'ETB'}</span>
+          <span>3,000 {isAmharic ? 'ብር' : 'ETB'}</span>
         </div>
       </div>
 
@@ -187,7 +187,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 onClick={onCloseMobile}
                 className="w-full py-3.5 rounded-btn bg-brand-emerald text-white font-bold text-sm shadow-md hover:bg-brand-deep transition-all text-center"
               >
-                Apply Filters
+                {isAmharic ? 'ማጣሪያዎችን ተግብር' : 'Apply Filters'}
               </button>
             </div>
           </div>

@@ -196,7 +196,7 @@ export const SearchPage: React.FC = () => {
                 className="lg:hidden px-4 py-2.5 rounded-btn bg-brand-emerald text-white text-xs font-bold flex items-center gap-1.5 shadow-sm hover:bg-brand-deep transition-colors"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span>Filters</span>
+                <span>{isAmharic ? 'ማጣሪያዎች' : 'Filters'}</span>
               </button>
             </div>
           </div>
@@ -255,7 +255,12 @@ export const SearchPage: React.FC = () => {
               </span>
               {!loading && trips.length > 0 && (
                 <span className="text-xs text-brand-textLight font-medium">
-                  Sorted by {sortBy === 'DEPARTURE_EARLIEST' ? 'earliest departure' : sortBy === 'PRICE_LOW' ? 'lowest price' : 'filter'}
+                  {isAmharic ? 'የተደረደረው በ: ' : 'Sorted by '}
+                  {sortBy === 'DEPARTURE_EARLIEST'
+                    ? (isAmharic ? 'በቅድሚያ የሚነሳ' : 'earliest departure')
+                    : sortBy === 'PRICE_LOW'
+                    ? (isAmharic ? 'በአነስተኛ ዋጋ' : 'lowest price')
+                    : (isAmharic ? 'ማጣሪያ' : 'filter')}
                 </span>
               )}
             </div>
@@ -324,7 +329,7 @@ export const SearchPage: React.FC = () => {
                     }`}
                   >
                     <ImageIcon className="w-3 h-3" />
-                    <span>Photo</span>
+                    <span>{isAmharic ? 'ፎቶ' : 'Photo'}</span>
                   </button>
                   <button
                     onClick={() => setSideView('map')}
@@ -335,7 +340,7 @@ export const SearchPage: React.FC = () => {
                     }`}
                   >
                     <MapIcon className="w-3 h-3" />
-                    <span>Map</span>
+                    <span>{isAmharic ? 'ካርታ' : 'Map'}</span>
                   </button>
                 </div>
 
@@ -351,7 +356,7 @@ export const SearchPage: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
                         <div className="absolute top-4 left-4 z-10">
                           <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-emerald-300 border border-emerald-500/30">
-                            Ethiopian Scenic Corridor
+                            {isAmharic ? 'የኢትዮጵያ ውብ የመንገድ ገጽታ' : 'Ethiopian Scenic Corridor'}
                           </span>
                         </div>
                       </div>

@@ -1,12 +1,17 @@
 import React from 'react';
 import { Users, Minus, Plus } from 'lucide-react';
 
+import { useTranslation } from 'react-i18next';
+
 interface PassengerSelectorProps {
   passengers: number;
   onChange: (count: number) => void;
 }
 
 export const PassengerSelector: React.FC<PassengerSelectorProps> = ({ passengers, onChange }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
     if (passengers > 1) {
@@ -24,13 +29,13 @@ export const PassengerSelector: React.FC<PassengerSelectorProps> = ({ passengers
   return (
     <div className="flex-1">
       <label className="block text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">
-        Passengers
+        {isAmharic ? 'ተጓዦች' : 'Passengers'}
       </label>
       <div className="h-13 px-3 rounded-input bg-gray-50/80 border border-gray-200 flex items-center justify-between hover:bg-white transition-colors">
         <div className="flex items-center gap-2.5">
           <Users className="w-5 h-5 text-brand-emerald" />
           <span className="text-sm font-bold text-brand-textMain">
-            {passengers} {passengers === 1 ? 'Passenger' : 'Passengers'}
+            {passengers} {isAmharic ? 'ተጓዥ' : passengers === 1 ? 'Passenger' : 'Passengers'}
           </span>
         </div>
 

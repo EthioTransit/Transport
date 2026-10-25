@@ -99,7 +99,8 @@ const FALLBACK_POPULAR_ROUTES: Route[] = [
 ];
 
 export const HomePage: React.FC = () => {
-  const { t } = useTranslation(['common', 'navigation', 'search']);
+  const { t, i18n } = useTranslation(['common', 'navigation', 'search']);
+  const isAmharic = i18n.language === 'am';
   const [popularRoutes, setPopularRoutes] = useState<Route[]>(FALLBACK_POPULAR_ROUTES);
   const [loadingRoutes, setLoadingRoutes] = useState(false);
 
@@ -147,20 +148,22 @@ export const HomePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-10 gap-3 sm:gap-0">
             <div>
               <span className="text-xs font-black uppercase tracking-wider text-brand-emerald bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                Top Ethiopian Destinations
+                {isAmharic ? 'ተመራጭ የኢትዮጵያ መዳረሻዎች' : 'Top Ethiopian Destinations'}
               </span>
               <h2 className="text-xl sm:text-3xl font-black text-brand-dark mt-2">
-                Popular Intercity Routes
+                {isAmharic ? 'ተወዳጅ የከተማ አቋራጭ መስመሮች' : 'Popular Intercity Routes'}
               </h2>
               <p className="text-xs sm:text-sm text-brand-textMuted mt-1">
-                Explore Ethiopia's most traveled regional corridors with certified luxury buses.
+                {isAmharic
+                  ? 'በፈቃድ በተሰጣቸው ምቹ አውቶቡሶች በኢትዮጵያ ተወዳጅ መስመሮች ይጓዙ።'
+                  : "Explore Ethiopia's most traveled regional corridors with certified luxury buses."}
               </p>
             </div>
             <Link
               to="/routes"
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-emerald hover:text-brand-deep transition-colors"
             >
-              <span>View All Routes</span>
+              <span>{isAmharic ? 'ሁሉንም መስመሮች ይመልከቱ' : 'View All Routes'}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -216,6 +219,9 @@ export const HomePage: React.FC = () => {
                   const todayIso = new Date().toISOString().split('T')[0];
                   const baseFare = Math.round(route.distanceKm * 1.5 + 50);
 
+                  const displayOrigin = isAmharic && originAmharic ? originAmharic : originName;
+                  const displayDest = isAmharic && destAmharic ? destAmharic : destName;
+
                   return (
                     <Link
                       key={route._id}
@@ -237,7 +243,7 @@ export const HomePage: React.FC = () => {
                             📍 {destRegion}
                           </span>
                           <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-400 text-emerald-950 shadow-md shrink-0">
-                            From {baseFare} ETB
+                            {isAmharic ? `ከ ${baseFare} ብር` : `From ${baseFare} ETB`}
                           </span>
                         </div>
 
@@ -245,10 +251,10 @@ export const HomePage: React.FC = () => {
                         <div className="absolute bottom-2.5 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 flex items-end justify-between gap-2">
                           <div className="flex flex-col min-w-0">
                             <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
-                              Direct Corridor
+                              {isAmharic ? 'ቀጥታ መስመር' : 'Direct Corridor'}
                             </span>
                             <div className="text-white text-sm sm:text-base font-black tracking-tight drop-shadow-sm truncate">
-                              {originName} ➔ {destName}
+                              {displayOrigin} ➔ {displayDest}
                             </div>
                           </div>
                           <div className="w-8 h-8 rounded-full bg-emerald-500 group-hover:bg-amber-400 text-white group-hover:text-emerald-950 flex items-center justify-center shadow-lg transition-colors shrink-0">
@@ -265,10 +271,10 @@ export const HomePage: React.FC = () => {
                             <Calendar className="w-3 h-3 text-brand-emerald" />
                             <span>
                               {route.operatingDays && route.operatingDays.length === 7
-                                ? 'Daily'
+                                ? (isAmharic ? 'በየቀኑ' : 'Daily')
                                 : route.operatingDays && route.operatingDays.length > 0
                                 ? route.operatingDays.map((d: string) => d.slice(0, 3)).join(', ')
-                                : 'Daily'}
+                                : (isAmharic ? 'በየቀኑ' : 'Daily')}
                             </span>
                           </span>
                         </div>
@@ -276,7 +282,7 @@ export const HomePage: React.FC = () => {
                         {/* Daily Departures row */}
                         <div className="mt-2 sm:mt-2.5 text-[11px] text-gray-500 flex items-center gap-1.5">
                           <Clock className="w-3 h-3 text-brand-emerald shrink-0" />
-                          <span className="text-gray-400 font-medium">Times:</span>
+                          <span className="text-gray-400 font-medium">{isAmharic ? 'ሰዓታት:' : 'Times:'}</span>
                           <span className="font-mono font-bold text-brand-dark truncate">
                             {route.departureTimes && route.departureTimes.length > 0
                               ? route.departureTimes.slice(0, 3).join(' • ')
@@ -291,7 +297,7 @@ export const HomePage: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-1.5 font-semibold justify-end">
                             <Clock className="w-3.5 h-3.5 text-brand-emerald" />
-                            <span>~{route.estimatedDurationHours}h</span>
+                            <span>~{route.estimatedDurationHours}{isAmharic ? 'ሰ' : 'h'}</span>
                           </div>
                         </div>
 
@@ -300,7 +306,7 @@ export const HomePage: React.FC = () => {
                             🚌 Selam • Abay • Oda Bus
                           </span>
                           <span className="text-xs font-black text-brand-emerald group-hover:text-brand-deep flex items-center gap-1 shrink-0">
-                            Book Seat →
+                            {isAmharic ? 'ወንበር ይያዙ →' : 'Book Seat →'}
                           </span>
                         </div>
                       </div>
@@ -316,13 +322,13 @@ export const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-16">
             <span className="text-xs font-extrabold uppercase tracking-wider text-brand-emerald">
-              Simple • Fast • Trustworthy
+              {isAmharic ? 'ቀላል • ፈጣን • አስተማማኝ' : 'Simple • Fast • Trustworthy'}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-brand-dark mt-1">
-              How EthioTransit Works
+              {isAmharic ? 'ኢትዮትራንዚት እንዴት ይሰራል?' : 'How EthioTransit Works'}
             </h2>
             <p className="text-xs sm:text-sm text-brand-textMuted mt-1 sm:mt-2">
-              From search to boarding in four simple steps.
+              {isAmharic ? 'ከፍለጋ እስከ መሳፈር በአራት ቀላል ደረጃዎች።' : 'From search to boarding in four simple steps.'}
             </p>
           </div>
 
@@ -330,29 +336,37 @@ export const HomePage: React.FC = () => {
             {[
               {
                 step: '01',
-                title: 'Search',
-                desc: 'Find buses traveling to your destination on your chosen date with real-time seat availability.',
+                title: isAmharic ? '1. ይፈልጉ' : 'Search',
+                desc: isAmharic
+                  ? 'የመነሻ እና መድረሻ ከተማዎን እንዲሁም የጉዞ ቀንዎን በመምረጥ ክፍት ወንበሮችን በእውነተኛ ጊዜ ያግኙ።'
+                  : 'Find buses traveling to your destination on your chosen date with real-time seat availability.',
                 icon: MapPin,
                 color: 'bg-emerald-50 text-brand-emerald',
               },
               {
                 step: '02',
-                title: 'Choose Your Seat',
-                desc: 'Select your preferred seat on an interactive bus map. Your seat is held for 10 minutes.',
+                title: isAmharic ? '2. ወንበርዎን ይምረጡ' : 'Choose Your Seat',
+                desc: isAmharic
+                  ? 'በይነተገናኝ የአውቶቡስ ካርታ ላይ የሚፈልጉትን ወንበር ይምረጡ። የመረጡት ወንበር ለ 10 ደቂቃ ተቆልፎ ይጠብቅዎታል።'
+                  : 'Select your preferred seat on an interactive bus map. Your seat is held for 10 minutes.',
                 icon: Armchair,
                 color: 'bg-blue-50 text-blue-600',
               },
               {
                 step: '03',
-                title: 'Pay Securely',
-                desc: 'Complete your booking using Telebirr, CBE Birr, or Chapa. Official fare, no hidden fees.',
+                title: isAmharic ? '3. በደህንነት ይክፈሉ' : 'Pay Securely',
+                desc: isAmharic
+                  ? 'በቻፓ፣ ቴሌብር ወይም ሲቢኢ ብር በደህንነት ክፍያ ይፈጽሙ። ያለ ምንም ድብቅ ክፍያ ትክክለኛውን ታሪፍ ይክፈሉ።'
+                  : 'Complete your booking using Telebirr, CBE Birr, or Chapa. Official fare, no hidden fees.',
                 icon: CreditCard,
                 color: 'bg-amber-50 text-amber-600',
               },
               {
                 step: '04',
-                title: 'Travel',
-                desc: 'Show your digital QR ticket when boarding. No paper needed — works right on your phone.',
+                title: isAmharic ? '4. ይጓዙ' : 'Travel',
+                desc: isAmharic
+                  ? 'በሚሳፈሩበት ወቅት ዲጂታል የQR ቲኬትዎን ያሳዩ። ወረቀት ማተም አያስፈልግም — በቀጥታ በስልክዎ ይሰራል!'
+                  : 'Show your digital QR ticket when boarding. No paper needed — works right on your phone.',
                 icon: QrCode,
                 color: 'bg-purple-50 text-purple-600',
               },
@@ -386,7 +400,7 @@ export const HomePage: React.FC = () => {
               to="/how-it-works"
               className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-brand-emerald hover:text-brand-deep transition-colors"
             >
-              <span>Learn more about the process</span>
+              <span>{isAmharic ? 'ስለ ሂደቱ ተጨማሪ ዝርዝር ይመልከቱ' : 'Learn more about the process'}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -398,13 +412,15 @@ export const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-14">
             <span className="text-xs font-extrabold uppercase tracking-wider text-brand-emerald">
-              Why Choose EthioTransit
+              {isAmharic ? 'ለምን ኢትዮትራንዚትን ይመርጣሉ?' : 'Why Choose EthioTransit'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-brand-dark mt-1 sm:mt-2">
-              Travel With Confidence
+              {isAmharic ? 'በእርግጠኝነት እና በሰላም ይጓዙ' : 'Travel With Confidence'}
             </h2>
             <p className="text-xs sm:text-sm text-brand-textMuted mt-1 sm:mt-2">
-              We've built EthioTransit to be simple, transparent, and trustworthy — so you can focus on your journey.
+              {isAmharic
+                ? 'ኢትዮትራንዚትን ቀላል፣ ግልጽ እና አስተማማኝ አድርገን የገነባነው በጉዞዎ ላይ ብቻ እንዲያተኩሩ ነው።'
+                : "We've built EthioTransit to be simple, transparent, and trustworthy — so you can focus on your journey."}
             </p>
           </div>
 
@@ -412,32 +428,40 @@ export const HomePage: React.FC = () => {
             {[
               {
                 icon: Lock,
-                title: 'Secure Booking',
-                desc: 'Your booking information is protected with bank-level security. No sensitive data is stored unnecessarily.',
+                title: isAmharic ? 'አስተማማኝ ቦታ ማስያዝ' : 'Secure Booking',
+                desc: isAmharic
+                  ? 'የቦታ ማስያዣ መረጃዎ በከፍተኛ የባንክ ደረጃ ጥበቃ የተደረገለት ነው። ምንም ሚስጥራዊ መረጃ አላስፈላጊ በሆነ ሁኔታ አይቀመጥም።'
+                  : 'Your booking information is protected with bank-level security. No sensitive data is stored unnecessarily.',
                 color: 'from-emerald-500 to-emerald-600',
                 bg: 'bg-emerald-50',
                 iconColor: 'text-brand-emerald',
               },
               {
                 icon: Armchair,
-                title: 'Choose Your Seat',
-                desc: 'Select your preferred seat — window, aisle, or middle — on an interactive bus seat map before you pay.',
+                title: isAmharic ? 'ወንበርዎን ይምረጡ' : 'Choose Your Seat',
+                desc: isAmharic
+                  ? 'ከመክፈልዎ በፊት የሚመርጡትን የመስኮት ወይም የመተላለፊያ ወንበር በካርታው ላይ ይምረጡ።'
+                  : 'Select your preferred seat — window, aisle, or middle — on an interactive bus seat map before you pay.',
                 color: 'from-blue-500 to-blue-600',
                 bg: 'bg-blue-50',
                 iconColor: 'text-blue-600',
               },
               {
                 icon: QrCode,
-                title: 'Digital Tickets',
-                desc: 'Your ticket is digital. Keep it right on your phone. Show the QR code when boarding — no printing needed.',
+                title: isAmharic ? 'ዲጂታል ቲኬቶች' : 'Digital Tickets',
+                desc: isAmharic
+                  ? 'ቲኬትዎ ዲጂታል ነው። በስልክዎ ውስጥ ያስቀምጡት። በሚሳፈሩበት ጊዜ የQR ኮዱን ያሳዩ — ማተም አያስፈልግም።'
+                  : 'Your ticket is digital. Keep it right on your phone. Show the QR code when boarding — no printing needed.',
                 color: 'from-purple-500 to-purple-600',
                 bg: 'bg-purple-50',
                 iconColor: 'text-purple-600',
               },
               {
                 icon: Smartphone,
-                title: 'Easy Booking',
-                desc: 'Book your entire journey from anywhere — from search to payment to boarding pass in under two minutes.',
+                title: isAmharic ? 'ፈጣን ቦታ ማስያዝ' : 'Easy Booking',
+                desc: isAmharic
+                  ? 'ከየትኛውም ቦታ ሆነው ከመፈለግ ጀምሮ እስከ ክፍያና ቲኬት ድረስ ከሁለት ደቂቃ ባነሰ ጊዜ ውስጥ ያጠናቅቁ።'
+                  : 'Book your entire journey from anywhere — from search to payment to boarding pass in under two minutes.',
                 color: 'from-amber-500 to-amber-600',
                 bg: 'bg-amber-50',
                 iconColor: 'text-amber-600',
@@ -470,48 +494,62 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-emerald/20 text-emerald-300 text-xs font-bold w-fit">
                 <ShieldCheck className="w-4 h-4" />
-                <span>100% Payment Transparency Guarantee</span>
+                <span>{isAmharic ? '100% ግልጽ የክፍያ ዋስትና' : '100% Payment Transparency Guarantee'}</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-                No Hidden Surcharges.<br className="hidden sm:inline" />No Unofficial Ticket Prices.
+                {isAmharic ? (
+                  <>ምንም ድብቅ ክፍያ የለም።<br className="hidden sm:inline" />ተጨማሪ ህገ-ወጥ የቲኬት ዋጋ የለም።</>
+                ) : (
+                  <>No Hidden Surcharges.<br className="hidden sm:inline" />No Unofficial Ticket Prices.</>
+                )}
               </h2>
               <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                Ethiopian travelers often face fluctuating fares and unofficial collections. EthioTransit locks the official government-regulated fare upfront. Drivers and conductors cannot modify the fare or solicit extra charges.
+                {isAmharic
+                  ? 'የኢትዮጵያ ተጓዦች አላስፈላጊ የዋጋ መዋዠቅ እና ተጨማሪ ህገ-ወጥ ክፍያዎች ያጋጥሟቸዋል። ኢትዮትራንዚት በመንግስት የተወሰነውን ትክክለኛ ታሪፍ ያረጋግጣል። አሽከርካሪዎች ወይም ረዳቶች ዋጋውን መለወጥ ወይም ተጨማሪ ክፍያ መጠየቅ አይችሉም።'
+                  : 'Ethiopian travelers often face fluctuating fares and unofficial collections. EthioTransit locks the official government-regulated fare upfront. Drivers and conductors cannot modify the fare or solicit extra charges.'}
               </p>
               <div className="flex flex-col gap-2 mt-1 sm:mt-2 text-xs sm:text-sm text-gray-300">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-emerald flex-shrink-0" />
-                  <span>Exact official fare breakdown before you pay</span>
+                  <span>{isAmharic ? 'ከመክፈልዎ በፊት ትክክለኛውን የታሪፍ ዝርዝር ማየት' : 'Exact official fare breakdown before you pay'}</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-emerald flex-shrink-0" />
-                  <span>Verified server-side financial transaction records</span>
+                  <span>{isAmharic ? 'በሲስተም የተረጋገጡ የገንዘብ ግብይት ሰነዶች' : 'Verified server-side financial transaction records'}</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-emerald flex-shrink-0" />
-                  <span>Direct integration with Telebirr and Ethiopian banking</span>
+                  <span>{isAmharic ? 'ከቻፓ እና ከኢትዮጵያ የክፍያ አሰራር ጋር በቀጥታ የተገናኘ' : 'Direct integration with Chapa and Ethiopian digital payments'}</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white/5 backdrop-blur-md rounded-2xl sm:rounded-cardLg p-4 sm:p-8 border border-white/10 flex flex-col gap-4 sm:gap-6">
               <span className="text-xs uppercase font-extrabold tracking-wider text-brand-gold">
-                Price Transparency Example
+                {isAmharic ? 'የግልጽ ዋጋ ምሳሌ' : 'Price Transparency Example'}
               </span>
               <div className="flex justify-between items-center py-2 border-b border-white/10 text-xs sm:text-sm gap-2">
-                <span className="text-gray-300 truncate">Addis Ababa → Debre Berhan (130 km)</span>
-                <span className="font-bold text-white shrink-0">250 ETB</span>
+                <span className="text-gray-300 truncate">
+                  {isAmharic ? 'አዲስ አበባ → ደብረ ብርሃን (130 ኪ.ሜ)' : 'Addis Ababa → Debre Berhan (130 km)'}
+                </span>
+                <span className="font-bold text-white shrink-0">250 {isAmharic ? 'ብር' : 'ETB'}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/10 text-xs sm:text-sm gap-2">
-                <span className="text-gray-300 truncate">Addis Ababa → Bahir Dar (565 km)</span>
-                <span className="font-bold text-white shrink-0">1,250 ETB</span>
+                <span className="text-gray-300 truncate">
+                  {isAmharic ? 'አዲስ አበባ → ባሕር ዳር (565 ኪ.ሜ)' : 'Addis Ababa → Bahir Dar (565 km)'}
+                </span>
+                <span className="font-bold text-white shrink-0">1,250 {isAmharic ? 'ብር' : 'ETB'}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/10 text-xs sm:text-sm gap-2">
-                <span className="text-gray-300 truncate">Platform Technology Fee</span>
-                <span className="font-bold text-brand-gold shrink-0">15 ETB</span>
+                <span className="text-gray-300 truncate">
+                  {isAmharic ? 'የሲስተም ቴክኖሎጂ ክፍያ' : 'Platform Technology Fee'}
+                </span>
+                <span className="font-bold text-brand-gold shrink-0">15 {isAmharic ? 'ብር' : 'ETB'}</span>
               </div>
               <div className="p-3 sm:p-4 rounded-btn bg-brand-emerald/20 border border-brand-emerald/40 text-[11px] sm:text-xs text-emerald-200">
-                Official fare is established in partnership with certified transport associations and Ministry standards.
+                {isAmharic
+                  ? 'ትክክለኛው ታሪፍ ከተረጋገጡ የትራንስፖርት ማህበራት እና ከሚኒስቴሩ መመሪያዎች ጋር በመተባበር የተዘጋጀ ነው።'
+                  : 'Official fare is established in partnership with certified transport associations and Ministry standards.'}
               </div>
             </div>
           </div>
@@ -522,10 +560,10 @@ export const HomePage: React.FC = () => {
       <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <span className="text-xs font-bold uppercase tracking-wider text-brand-textLight">
-            Official Transportation Partners
+            {isAmharic ? 'ሕጋዊ የትራንስፖርት አጋሮች' : 'Official Transportation Partners'}
           </span>
           <h2 className="text-lg sm:text-xl font-black text-brand-dark mt-1 mb-6 sm:mb-8">
-            Authorized Intercity Operators
+            {isAmharic ? 'ፈቃድ የተሰጣቸው አገር አቋራጭ ድርጅቶች' : 'Authorized Intercity Operators'}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5 items-center justify-center max-w-3xl mx-auto">
             {['Selam Bus Line S.C.', 'Sky Bus Transport', 'Oda Bus Transport S.C.', 'Golden Bus Express'].map(

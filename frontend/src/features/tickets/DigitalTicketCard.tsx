@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Ticket } from '../../types';
 import { BRAND } from '../../config/brand';
+import { useTranslation } from 'react-i18next';
 
 interface DigitalTicketCardProps {
   ticket: Ticket;
@@ -20,6 +21,9 @@ interface DigitalTicketCardProps {
 }
 
 export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, onPrint }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const handlePrint = () => {
     if (onPrint) {
       onPrint();
@@ -46,7 +50,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
             <span
               className="text-4xl sm:text-5xl font-black text-red-500/30 uppercase tracking-widest rotate-[-35deg]"
             >
-              CANCELLED
+              {isAmharic ? 'ተሰርዟል' : 'CANCELLED'}
             </span>
           </div>
         )}
@@ -86,7 +90,11 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
                     : 'bg-emerald-400 text-brand-dark'
                 }`}
               >
-                {isUsed ? '✓ BOARDED' : isCancelled ? 'CANCELLED' : '✓ CONFIRMED'}
+                {isUsed
+                  ? (isAmharic ? '✓ ተሳፍረዋል' : '✓ BOARDED')
+                  : isCancelled
+                  ? (isAmharic ? 'ተሰርዟል' : 'CANCELLED')
+                  : (isAmharic ? '✓ የተረጋገጠ' : '✓ CONFIRMED')}
               </span>
             </div>
 
@@ -116,7 +124,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
           <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-100">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight block">
-                Ticket No.
+                {isAmharic ? 'የቲኬት ቁጥር' : 'Ticket No.'}
               </span>
               <p className="font-mono font-black text-brand-textMain text-sm mt-0.5 tracking-wider">
                 {ticket.ticketNumber}
@@ -124,7 +132,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight block">
-                Seat
+                {isAmharic ? 'ወንበር' : 'Seat'}
               </span>
               <p className="font-black text-brand-emerald text-2xl mt-0.5 leading-none">
                 {ticket.seatNumber}
@@ -132,19 +140,19 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight block">
-                Vehicle Plate
+                {isAmharic ? 'የሰሌዳ ቁጥር' : 'Vehicle Plate'}
               </span>
               <p className="font-semibold text-brand-textMain text-sm mt-0.5">
-                {ticket.vehiclePlate || 'Assigned'}
+                {ticket.vehiclePlate || (isAmharic ? 'የተመደበ' : 'Assigned')}
               </p>
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight block">
-                Fare Paid
+                {isAmharic ? 'የተከፈለው ታሪፍ' : 'Fare Paid'}
               </span>
               <div className="flex items-baseline gap-1 mt-0.5">
                 <span className="font-black text-brand-dark text-base">{ticket.amountPaid.toLocaleString()}</span>
-                <span className="text-xs font-bold text-brand-textMuted">{BRAND.currency}</span>
+                <span className="text-xs font-bold text-brand-textMuted">{isAmharic ? 'ብር' : BRAND.currency}</span>
               </div>
             </div>
           </div>
@@ -156,7 +164,9 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
                 <User className="w-4 h-4 text-brand-emerald" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight">Passenger</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight">
+                  {isAmharic ? 'ተጓዥ' : 'Passenger'}
+                </span>
                 <p className="font-bold text-brand-textMain text-sm mt-0.5">{ticket.passengerName}</p>
                 <p className="text-xs text-brand-textMuted">{ticket.passengerPhone}</p>
               </div>
@@ -167,7 +177,9 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
                 <Calendar className="w-4 h-4 text-brand-emerald" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight">Departure</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-brand-textLight">
+                  {isAmharic ? 'መነሻ' : 'Departure'}
+                </span>
                 <p className="font-bold text-brand-textMain text-sm mt-0.5">{ticket.departureDate}</p>
                 <p className="text-xs text-brand-textMuted">{ticket.departureTime} · {ticket.pickupLocation}</p>
               </div>
@@ -199,14 +211,20 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
                 {ticket.qrVerificationToken.slice(0, 24)}...
               </span>
               <p className="text-xs text-brand-textMuted mt-1.5 max-w-xs">
-                Show this QR code to the driver when boarding your bus.
+                {isAmharic
+                  ? 'ሲሳፈሩ ይህን QR ኮድ ለአሽከርካሪው ያሳዩ።'
+                  : 'Show this QR code to the driver when boarding your bus.'}
               </p>
             </div>
 
             {isUsed && (
               <div className="mt-3 flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-full border border-amber-200">
                 <CheckCircle className="w-3.5 h-3.5" />
-                <span>Boarded {ticket.boardingTime ? `at ${new Date(ticket.boardingTime).toLocaleTimeString()}` : ''}</span>
+                <span>
+                  {isAmharic
+                    ? `ተሳፍረዋል ${ticket.boardingTime ? `በ ${new Date(ticket.boardingTime).toLocaleTimeString()}` : ''}`
+                    : `Boarded ${ticket.boardingTime ? `at ${new Date(ticket.boardingTime).toLocaleTimeString()}` : ''}`}
+                </span>
               </div>
             )}
           </div>
@@ -215,14 +233,14 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
               <ShieldCheck className="w-4 h-4 text-brand-emerald" />
-              <span>Verified Official Ticket</span>
+              <span>{isAmharic ? 'የተረጋገጠ ሕጋዊ ቲኬት' : 'Verified Official Ticket'}</span>
             </div>
             <button
               onClick={handlePrint}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-gray-100 hover:bg-gray-200 text-brand-textMain text-xs font-bold transition-colors"
             >
               <Printer className="w-3.5 h-3.5 text-brand-emerald" />
-              <span>Print</span>
+              <span>{isAmharic ? 'አትም' : 'Print'}</span>
             </button>
           </div>
         </div>

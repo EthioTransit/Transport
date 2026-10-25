@@ -40,11 +40,20 @@ export const resources = {
   },
 } as const;
 
+const getInitialLanguage = (): string => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('ethiotransit_language') || localStorage.getItem('i18nextLng');
+    if (saved && (saved.startsWith('am') || saved === 'am')) return 'am';
+    if (saved && (saved.startsWith('en') || saved === 'en')) return 'en';
+  }
+  return 'en';
+};
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en', // Explicit default language: ENGLISH
+    lng: getInitialLanguage(),
     fallbackLng: 'en',
     ns: ['common', 'navigation', 'search', 'booking', 'payment', 'dashboard', 'errors'],
     defaultNS: 'common',
@@ -55,5 +64,13 @@ i18n
       useSuspense: false,
     },
   });
+
+i18n.on('languageChanged', (lng) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('ethiotransit_language', lng);
+    localStorage.setItem('i18nextLng', lng);
+    document.documentElement.lang = lng;
+  }
+});
 
 export default i18n;

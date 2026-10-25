@@ -179,7 +179,9 @@ export const Navbar: React.FC = () => {
               {isAuthenticated && user ? (
                 <div className="flex flex-col gap-2">
                   <div className="px-4 py-2 text-xs font-semibold text-brand-textLight uppercase tracking-wider">
-                    Logged in as {user.firstName} ({user.role})
+                    {isAmharic
+                      ? `የገቡት እንደ ${user.firstName} (${user.role === 'PASSENGER' ? 'ተሳፋሪ' : user.role})`
+                      : `Logged in as ${user.firstName} (${user.role})`}
                   </div>
                   <Link
                     to={getDashboardLink()}
@@ -187,7 +189,7 @@ export const Navbar: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-3 rounded-btn bg-emerald-50 text-brand-emerald font-semibold"
                   >
                     <LayoutDashboard className="w-5 h-5" />
-                    <span>Dashboard</span>
+                    <span>{isAmharic ? 'ዳሽቦርድ' : 'Dashboard'}</span>
                   </Link>
                   <Link
                     to="/profile"
@@ -195,7 +197,7 @@ export const Navbar: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-3 rounded-btn text-brand-textMain hover:bg-gray-50 font-medium"
                   >
                     <User className="w-5 h-5 text-brand-textMuted" />
-                    <span>My Profile</span>
+                    <span>{isAmharic ? 'የእኔ ፕሮፋይል' : 'My Profile'}</span>
                   </Link>
                   <button
                     onClick={handleLogout}

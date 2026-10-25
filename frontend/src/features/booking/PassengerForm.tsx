@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, Phone, CreditCard, Shield } from 'lucide-react';
 import { PassengerInfo } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface PassengerFormProps {
   seats: string[];
@@ -15,6 +16,9 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
   onChange,
   errors,
 }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   return (
     <div className="flex flex-col gap-6">
       {seats.map((seatNumber, index) => {
@@ -40,11 +44,11 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
                   {index + 1}
                 </span>
                 <h4 className="font-extrabold text-base text-brand-textMain">
-                  Passenger for Seat {seatNumber}
+                  {isAmharic ? `ለወንበር ${seatNumber} ተጓዥ` : `Passenger for Seat ${seatNumber}`}
                 </h4>
               </div>
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-brand-emerald">
-                Seat {seatNumber}
+                {isAmharic ? `ወንበር ${seatNumber}` : `Seat ${seatNumber}`}
               </span>
             </div>
 
@@ -52,14 +56,14 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               {/* Full Name */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">
-                  Full Name (as on ID) *
+                  {isAmharic ? 'ሙሉ ስም (በመታወቂያው መሰረት) *' : 'Full Name (as on ID) *'}
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" />
                   <input
                     type="text"
                     id={`passenger-${index}-name`}
-                    placeholder="e.g. Almaz Ayana"
+                    placeholder={isAmharic ? 'ምሳሌ፡ አልማዝ አያና' : 'e.g. Almaz Ayana'}
                     value={passenger.name}
                     onChange={(e) => onChange(index, 'name', e.target.value)}
                     className={`w-full pl-9 pr-3 py-2.5 rounded-input text-sm border focus:outline-none ${
@@ -75,7 +79,7 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               {/* Phone Number */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">
-                  Phone Number (Ethiopian format) *
+                  {isAmharic ? 'ስልክ ቁጥር (የኢትዮጵያ ቅርጸት) *' : 'Phone Number (Ethiopian format) *'}
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" />
@@ -98,28 +102,28 @@ export const PassengerForm: React.FC<PassengerFormProps> = ({
               {/* Age Category */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">
-                  Age Category
+                  {isAmharic ? 'የእድሜ ምድብ' : 'Age Category'}
                 </label>
                 <select
                   value={passenger.ageGroup}
                   onChange={(e) => onChange(index, 'ageGroup', e.target.value)}
                   className="w-full px-3 py-2.5 rounded-input text-sm border border-gray-200 bg-white focus:outline-none focus:border-brand-emerald"
                 >
-                  <option value="ADULT">Adult (12+ years)</option>
-                  <option value="CHILD">Child (under 12 years)</option>
+                  <option value="ADULT">{isAmharic ? 'አዋቂ (ከ12 ዓመት በላይ)' : 'Adult (12+ years)'}</option>
+                  <option value="CHILD">{isAmharic ? 'ህፃን (ከ12 ዓመት በታች)' : 'Child (under 12 years)'}</option>
                 </select>
               </div>
 
               {/* National ID / Passport */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1.5">
-                  National ID / Kebele / Passport (Optional)
+                  {isAmharic ? 'የቀበሌ / ፋይዳ መታወቂያ / ፓስፖርት (አማራጭ)' : 'National ID / Kebele / Passport (Optional)'}
                 </label>
                 <div className="relative">
                   <CreditCard className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" />
                   <input
                     type="text"
-                    placeholder="e.g. FAYDA-8921"
+                    placeholder={isAmharic ? 'ምሳሌ፡ FAYDA-8921' : 'e.g. FAYDA-8921'}
                     value={passenger.idNumber || ''}
                     onChange={(e) => onChange(index, 'idNumber', e.target.value)}
                     className="w-full pl-9 pr-3 py-2.5 rounded-input text-sm border border-gray-200 focus:outline-none focus:border-brand-emerald"

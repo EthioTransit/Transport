@@ -1,5 +1,6 @@
 import React from 'react';
 import { Armchair, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SeatItem, SeatStatus } from '../../types';
 
 interface SeatMapProps {
@@ -17,6 +18,9 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   maxSelectable,
   isDeparted = false,
 }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   // Group seats by row
   const rowMap = new Map<number, SeatItem[]>();
   seats.forEach((seat) => {
@@ -33,7 +37,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
       <div className="flex items-center justify-between pb-6 mb-6 border-b-2 border-dashed border-gray-200">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-textMuted">
           <div className="w-2.5 h-2.5 rounded-full bg-brand-emerald animate-ping" />
-          <span>FRONT OF BUS</span>
+          <span>{isAmharic ? 'የአውቶቡስ ፊት' : 'FRONT OF BUS'}</span>
         </div>
 
         {/* Driver Cabin */}
@@ -41,7 +45,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
           <div className="w-4 h-4 rounded-full border-2 border-gray-700 flex items-center justify-center text-[10px]">
             D
           </div>
-          <span>Driver Cabin</span>
+          <span>{isAmharic ? 'የሹፌር ክፍል' : 'Driver Cabin'}</span>
         </div>
       </div>
 
@@ -79,7 +83,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
       {/* Back Bus Line */}
       <div className="mt-8 pt-4 border-t border-gray-100 text-center">
         <span className="text-[11px] uppercase tracking-wider font-semibold text-gray-400">
-          Rear of Vehicle
+          {isAmharic ? 'የአውቶቡስ የኋላ ክፍል' : 'Rear of Vehicle'}
         </span>
       </div>
     </div>
@@ -133,13 +137,23 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         className={`w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-btn flex flex-col items-center justify-center transition-all duration-150 relative shrink-0 select-none ${style}`}
         title={
           isDeparted
-            ? `Seat ${seat.seatNumber} - Journey Departed (Reservations Closed)`
+            ? isAmharic
+              ? `ወንበር ${seat.seatNumber} - ጉዞው ተነስቷል (ቦታ ማስያዝ ተዘግቷል)`
+              : `Seat ${seat.seatNumber} - Journey Departed (Reservations Closed)`
             : isBooked
-            ? `Seat ${seat.seatNumber} - Permanently Booked`
+            ? isAmharic
+              ? `ወንበር ${seat.seatNumber} - የተሸጠ ወንበር`
+              : `Seat ${seat.seatNumber} - Permanently Booked`
             : isReserved
-            ? `Seat ${seat.seatNumber} - Reserved by another passenger`
+            ? isAmharic
+              ? `ወንበር ${seat.seatNumber} - በሌላ ተጓዥ ተይዟል`
+              : `Seat ${seat.seatNumber} - Reserved by another passenger`
             : isBlocked
-            ? `Seat ${seat.seatNumber} - Blocked`
+            ? isAmharic
+              ? `ወንበር ${seat.seatNumber} - የታገደ`
+              : `Seat ${seat.seatNumber} - Blocked`
+            : isAmharic
+            ? `ወንበር ${seat.seatNumber} - ክፍት ወንበር`
             : `Seat ${seat.seatNumber} (${seat.seatType}) - Available`
         }
       >

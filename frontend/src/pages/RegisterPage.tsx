@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, Eye, EyeOff, Bus, ShieldCheck, ArrowRight, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../api/endpoints';
 
 import { Footer } from '../components/common/Footer';
@@ -8,7 +9,8 @@ import { UserRole } from '../types';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -25,7 +27,11 @@ export const RegisterPage: React.FC = () => {
     if (!firstName || !lastName || !email || !phone || !password) return;
 
     if (!agreeTerms) {
-      setError('Please accept the EthioTransit terms and conditions to register.');
+      setError(
+        isAmharic
+          ? 'እባክዎ ለመመዝገብ የኢትዮትራንዚትን የአገልግሎት ውሎች እና ደንቦች ይቀበሉ።'
+          : 'Please accept the EthioTransit terms and conditions to register.'
+      );
       return;
     }
 
@@ -45,12 +51,19 @@ export const RegisterPage: React.FC = () => {
       // ✅ Correct flow: redirect to login after signup
       navigate('/login', {
         state: {
-          successMessage: 'Account created successfully! Please sign in to continue.',
+          successMessage: isAmharic
+            ? 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል! እባክዎ ለመቀጠል ይግቡ።'
+            : 'Account created successfully! Please sign in to continue.',
           prefillEmail: email,
         },
       });
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please check your information and try again.');
+      setError(
+        err.message ||
+          (isAmharic
+            ? 'ምዝገባው አልተሳካም። እባክዎ መረጃዎን አረጋግጠው እንደገና ይሞክሩ።'
+            : 'Registration failed. Please check your information and try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -63,6 +76,7 @@ export const RegisterPage: React.FC = () => {
         
         {/* LEFT COLUMN: BRAND CINEMATIC PANEL (Deep Emerald with Constellation Network) */}
         <div className="lg:w-1/2 bg-[#031d12] text-white p-6 sm:p-12 lg:p-16 flex flex-col justify-between relative overflow-hidden min-h-0 lg:min-h-full">
+
           
           {/* Background Constellation Lines */}
           <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
@@ -117,15 +131,19 @@ export const RegisterPage: React.FC = () => {
 
             {/* Headline matching user image */}
             <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-bold tracking-tight leading-[1.12]">
-              <span className="font-serif text-white">Travel Ethiopia, </span>
+              <span className="font-serif text-white">
+                {isAmharic ? 'በኢትዮጵያ ይጓዙ፣ ' : 'Travel Ethiopia, '}
+              </span>
               <br />
               <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#F4D58D] via-[#f7e4a8] to-[#D9A441] drop-shadow-md">
-                with confidence.
+                {isAmharic ? 'በሙሉ መተማመን።' : 'with confidence.'}
               </span>
             </h1>
 
             <p className="mt-3 sm:mt-4 text-emerald-100/80 text-xs sm:text-base leading-relaxed max-w-md font-medium">
-              Join thousands of Ethiopian travelers booking verified seats with instant digital QR tickets and Telebirr checkout.
+              {isAmharic
+                ? 'በዲጂታል QR ቲኬቶች እና በቴሌብር ክፍያ የተረጋገጠ የአውቶቡስ ወንበር የሚይዙ በሺዎች የሚቆጠሩ መንገደኞችን ይቀላቀሉ።'
+                : 'Join thousands of Ethiopian travelers booking verified seats with instant digital QR tickets and Telebirr checkout.'}
             </p>
           </div>
 
@@ -135,21 +153,21 @@ export const RegisterPage: React.FC = () => {
               <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700/40 flex items-center justify-center text-emerald-300">
                 <Bus className="w-4 h-4" />
               </div>
-              <span>Instant Digital Seat Confirmation</span>
+              <span>{isAmharic ? 'ፈጣን የዲጂታል ወንበር ማረጋገጫ' : 'Instant Digital Seat Confirmation'}</span>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700/40 flex items-center justify-center text-amber-400">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <span>Official Government Regulated Fares</span>
+              <span>{isAmharic ? 'በመንግስት ቁጥጥር ስር ያሉ ታሪፎች' : 'Official Government Regulated Fares'}</span>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700/40 flex items-center justify-center text-emerald-300">
                 <Clock className="w-4 h-4" />
               </div>
-              <span>Tamper-Proof QR Boarding Passes</span>
+              <span>{isAmharic ? 'የማይደለዝ ደህንነቱ የተጠበቀ QR ቲኬት' : 'Tamper-Proof QR Boarding Passes'}</span>
             </div>
           </div>
 
@@ -161,13 +179,15 @@ export const RegisterPage: React.FC = () => {
           {/* Subheader */}
           <div className="mb-6">
             <span className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-              JOIN ETHIOTRANSIT
+              {isAmharic ? 'ኢትዮትራንዚትን ይቀላቀሉ' : 'JOIN ETHIOTRANSIT'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-bold font-serif text-brand-dark tracking-tight mt-2.5 sm:mt-3">
-              Create account
+              {isAmharic ? 'አዲስ መለያ ይክፈቱ' : 'Create account'}
             </h2>
             <p className="text-xs sm:text-sm text-brand-textMuted mt-1">
-              Book bus seats, manage digital boarding passes, and track trips
+              {isAmharic
+                ? 'የአውቶቡስ ወንበሮችን ይያዙ፣ የዲጂታል ቲኬቶችን ያስተዳድሩ እና ጉዞዎችን ይከታተሉ'
+                : 'Book bus seats, manage digital boarding passes, and track trips'}
             </p>
           </div>
 
@@ -185,7 +205,7 @@ export const RegisterPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark mb-1">
-                  First Name
+                  {isAmharic ? 'ስም' : 'First Name'}
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -194,7 +214,7 @@ export const RegisterPage: React.FC = () => {
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Abebe"
+                    placeholder={isAmharic ? 'አበበ' : 'Abebe'}
                     className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white border border-gray-300 text-sm font-semibold text-brand-dark focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all shadow-xs"
                   />
                 </div>
@@ -202,7 +222,7 @@ export const RegisterPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark mb-1">
-                  Last Name
+                  {isAmharic ? 'የአባት ስም' : 'Last Name'}
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -211,7 +231,7 @@ export const RegisterPage: React.FC = () => {
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Bikila"
+                    placeholder={isAmharic ? 'ቢቂላ' : 'Bikila'}
                     className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-white border border-gray-300 text-sm font-semibold text-brand-dark focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all shadow-xs"
                   />
                 </div>
@@ -221,7 +241,7 @@ export const RegisterPage: React.FC = () => {
             {/* Email Address */}
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark mb-1">
-                Email Address
+                {isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address'}
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -239,7 +259,7 @@ export const RegisterPage: React.FC = () => {
             {/* Phone Number */}
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark mb-1">
-                Phone Number (For Ticket SMS & Telebirr)
+                {isAmharic ? 'ስልክ ቁጥር (ለቲኬት SMS እና ቴሌብር)' : 'Phone Number (For Ticket SMS & Telebirr)'}
               </label>
               <div className="relative">
                 <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -257,7 +277,7 @@ export const RegisterPage: React.FC = () => {
             {/* Password */}
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark mb-1">
-                Password
+                {isAmharic ? 'የይለፍ ቃል' : 'Password'}
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
@@ -266,7 +286,7 @@ export const RegisterPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder={isAmharic ? 'ቢያንስ 6 ቁምፊዎች' : 'At least 6 characters'}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white border border-gray-300 text-sm font-semibold text-brand-dark focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all shadow-xs"
                 />
                 <button
@@ -290,7 +310,15 @@ export const RegisterPage: React.FC = () => {
                 className="w-4 h-4 mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300 cursor-pointer"
               />
               <label htmlFor="agree-terms" className="text-xs text-brand-textMuted cursor-pointer select-none">
-                I agree to the <span className="font-bold text-emerald-800">EthioTransit Terms of Service</span>, Fare Transparency Policy, and Passenger Rights.
+                {isAmharic ? (
+                  <>
+                    የኢትዮትራንዚት <span className="font-bold text-emerald-800">የአገልግሎት ውሎች</span>፣ የታሪፍ ግልጽነት ፖሊሲ እና የመንገደኞች መብቶችን እስማማለሁ።
+                  </>
+                ) : (
+                  <>
+                    I agree to the <span className="font-bold text-emerald-800">EthioTransit Terms of Service</span>, Fare Transparency Policy, and Passenger Rights.
+                  </>
+                )}
               </label>
             </div>
 
@@ -301,10 +329,10 @@ export const RegisterPage: React.FC = () => {
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#07472c] to-[#0a5c39] hover:from-[#0a5c39] hover:to-[#07472c] text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-emerald-950/20 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 mt-2 disabled:opacity-60"
             >
               {loading ? (
-                <span>Creating Account...</span>
+                <span>{isAmharic ? 'መለያ በመፍጠር ላይ...' : 'Creating Account...'}</span>
               ) : (
                 <>
-                  <span>Create account</span>
+                  <span>{isAmharic ? 'መለያ ፍጠር' : 'Create account'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -314,7 +342,12 @@ export const RegisterPage: React.FC = () => {
           {/* OPERATOR / BUS COMPANY NOTICE BOX */}
           <div className="mt-6 p-4 rounded-xl bg-[#F7EFE3] border border-[#E8DCB9] text-xs text-[#523e1f]">
             <div className="font-extrabold text-[#382b13] mb-1">
-              Bus Companies: <span className="font-medium text-[#5e4b2d]">Contact EthioTransit support to register your fleet or operator account.</span>
+              {isAmharic ? 'የትራንስፖርት ድርጅቶች:' : 'Bus Companies:'}{' '}
+              <span className="font-medium text-[#5e4b2d]">
+                {isAmharic
+                  ? 'የአውቶቡስ ድርጅት ወይም የተሽከርካሪ መለያ ለመክፈት የኢትዮትራንዚት ድጋፍ ሰጪ ቡድንን ያነጋግሩ።'
+                  : 'Contact EthioTransit support to register your fleet or operator account.'}
+              </span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-1.5 font-bold text-[11px] text-[#423118]">
               <span>📧 Email: support@ethiotransit.et</span>
@@ -324,9 +357,9 @@ export const RegisterPage: React.FC = () => {
 
           {/* Footer Link to Sign In */}
           <div className="mt-6 text-center text-xs text-brand-textMuted font-medium">
-            Already have an account?{' '}
+            {isAmharic ? 'ቀደም ሲል መለያ አለዎት?' : 'Already have an account?'}{' '}
             <Link to="/login" className="font-bold text-emerald-800 hover:text-emerald-950 underline transition-colors">
-              Sign in
+              {isAmharic ? 'ይግቡ' : 'Sign in'}
             </Link>
           </div>
 

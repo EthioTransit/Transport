@@ -50,16 +50,18 @@ export const SearchCard: React.FC<SearchCardProps> = ({
     const newErrors: { from?: string; to?: string; date?: string } = {};
 
     if (!fromCity) {
-      newErrors.from = 'Please select your departure city.';
+      newErrors.from = isAmharic ? 'እባክዎ መነሻ ከተማ ይምረጡ።' : 'Please select your departure city.';
     }
     if (!toCity) {
-      newErrors.to = 'Please select your arrival city.';
+      newErrors.to = isAmharic ? 'እባክዎ መድረሻ ከተማ ይምረጡ።' : 'Please select your arrival city.';
     }
     if (fromCity && toCity && fromCity._id === toCity._id) {
-      newErrors.to = 'Departure and arrival cities cannot be the same.';
+      newErrors.to = isAmharic
+        ? 'መነሻ እና መድረሻ ከተሞች አንድ አይነት መሆን አይችሉም።'
+        : 'Departure and arrival cities cannot be the same.';
     }
     if (!travelDate) {
-      newErrors.date = 'Please select a travel date.';
+      newErrors.date = isAmharic ? 'እባክዎ የጉዞ ቀን ይምረጡ።' : 'Please select a travel date.';
     }
 
     if (Object.keys(newErrors).length > 0) {

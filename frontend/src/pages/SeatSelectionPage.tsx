@@ -14,12 +14,16 @@ import { tripsApi } from '../api/endpoints';
 import { SeatMap } from '../features/seats/SeatMap';
 import { SeatLegend } from '../features/seats/SeatLegend';
 import { SeatLockTimer } from '../features/seats/SeatLockTimer';
-import { useAuth } from '../features/auth/useAuth';
 import { Trip, SeatItem } from '../types';
 import { BRAND } from '../config/brand';
 import { hasTripDeparted } from '../utils/time.utils';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../features/auth/useAuth';
 
 export const SeatSelectionPage: React.FC = () => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const { tripId } = useParams<{ tripId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -82,7 +86,11 @@ export const SeatSelectionPage: React.FC = () => {
     if (!tripId) return;
 
     if (isDeparted) {
-      setError('This journey has already departed. Seat reservations are closed.');
+      setError(
+        isAmharic
+          ? 'ይህ ጉዞ አስቀድሞ ተነስቷል። ቦታ ማስያዝ ተዘግቷል።'
+          : 'This journey has already departed. Seat reservations are closed.'
+      );
       return;
     }
 
@@ -116,7 +124,11 @@ export const SeatSelectionPage: React.FC = () => {
       }
     } else {
       if (selectedSeatNumbers.length >= passengersCount) {
-        setError(`You searched for ${passengersCount} passenger(s). Deselect a seat before choosing another.`);
+        setError(
+          isAmharic
+            ? `የፈለጉት ለ${passengersCount} ተጓዥ ነው። ሌላ ወንበር ለመምረጥ አስቀድመው ከመረጡት አንዱን ይሰርዙ።`
+            : `You searched for ${passengersCount} passenger(s). Deselect a seat before choosing another.`
+        );
         return;
       }
 
@@ -131,7 +143,7 @@ export const SeatSelectionPage: React.FC = () => {
         const updated = await tripsApi.getSeats(tripId, guestLockId);
         setSeats(updated.seats);
       } catch (err: any) {
-        setError(err.message || 'Seat could not be locked.');
+        setError(err.message || (isAmharic ? 'ወንበሩን መያዝ አልተቻለም።' : 'Seat could not be locked.'));
       } finally {
         setLocking(false);
       }
@@ -139,7 +151,11 @@ export const SeatSelectionPage: React.FC = () => {
   };
 
   const handleTimerExpired = () => {
-    setError('Your 10-minute seat reservation has expired. Please select your seats again.');
+    setError(
+      isAmharic
+        ? 'የ10 ደቂቃ የወንበር ማስያዣ ሰዓትዎ አልቋል። እባክዎ ወንበርዎን በድጋሚ ይምረጡ።'
+        : 'Your 10-minute seat reservation has expired. Please select your seats again.'
+    );
     setSelectedSeatNumbers([]);
     setLockExpiresAt(null);
     fetchTripAndSeats();
@@ -147,12 +163,20 @@ export const SeatSelectionPage: React.FC = () => {
 
   const handleProceedToCheckout = () => {
     if (isDeparted) {
-      setError('This journey has already departed. You cannot proceed to checkout.');
+      setError(
+        isAmharic
+          ? 'ይህ ጉዞ አስቀድሞ ተነስቷል። ወደ ክፍያ መቀጠል አይቻልም።'
+          : 'This journey has already departed. You cannot proceed to checkout.'
+      );
       return;
     }
 
     if (selectedSeatNumbers.length !== passengersCount) {
-      setError(`Please select exactly ${passengersCount} seat(s) before proceeding.`);
+      setError(
+        isAmharic
+          ? `እባክዎ ከመቀጠልዎ በፊት በትክክል ${passengersCount} ወንበር ይምረጡ።`
+          : `Please select exactly ${passengersCount} seat(s) before proceeding.`
+      );
       return;
     }
 
@@ -167,8 +191,12 @@ export const SeatSelectionPage: React.FC = () => {
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
           <div className="text-center">
-            <p className="text-sm font-black text-brand-textMain">Loading seat map...</p>
-            <p className="text-xs text-brand-textMuted mt-1">Fetching real-time seat availability</p>
+            <p className="text-sm font-black text-brand-textMain">
+              {isAmharic ? 'የወንበሮች ካርታ በመጫን ላይ...' : 'Loading seat map...'}
+            </p>
+            <p className="text-xs text-brand-textMuted mt-1">
+              {isAmharic ? 'የቀጥታ የወንበሮች መረጃ በማምጣት ላይ' : 'Fetching real-time seat availability'}
+            </p>
           </div>
         </div>
       </div>
@@ -178,9 +206,9 @@ export const SeatSelectionPage: React.FC = () => {
   if (!trip) {
     return (
       <div className="min-h-screen bg-brand-bg p-8 text-center">
-        <p className="text-red-600 font-bold">Trip not found.</p>
+        <p className="text-red-600 font-bold">{isAmharic ? 'ጉዞው አልተገኘም።' : 'Trip not found.'}</p>
         <Link to="/search" className="mt-4 inline-block text-brand-emerald font-semibold">
-          Return to Search
+          {isAmharic ? 'ወደ ፍለጋ ተመለስ' : 'Return to Search'}
         </Link>
       </div>
     );
@@ -192,6 +220,9 @@ export const SeatSelectionPage: React.FC = () => {
   const serviceFeeTotal = serviceFeePerSeat * selectedSeatNumbers.length;
   const grandTotal = fareTotal + serviceFeeTotal;
   const routePhoto = trip.route?.image || (trip.route?.destination as any)?.image;
+
+  const originName = isAmharic && trip.route?.origin?.amharicName ? trip.route.origin.amharicName : trip.route?.origin?.name;
+  const destinationName = isAmharic && trip.route?.destination?.amharicName ? trip.route.destination.amharicName : trip.route?.destination?.name;
 
   return (
     <div className="bg-brand-bg min-h-screen">
@@ -213,7 +244,7 @@ export const SeatSelectionPage: React.FC = () => {
             className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-white mb-4 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Trip Results</span>
+            <span>{isAmharic ? 'ወደ ጉዞዎች ዝርዝር ተመለስ' : 'Back to Trip Results'}</span>
           </Link>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -229,9 +260,9 @@ export const SeatSelectionPage: React.FC = () => {
                 )}
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {trip.route?.origin?.name}
+                {originName}
                 <span className="mx-2 text-emerald-400">→</span>
-                {trip.route?.destination?.name}
+                {destinationName}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-emerald-200/70 mt-1.5">
                 <span className="flex items-center gap-1.5">
@@ -258,19 +289,25 @@ export const SeatSelectionPage: React.FC = () => {
                     className="w-16 h-12 object-cover rounded-lg shrink-0"
                   />
                   <div className="pr-2 text-left">
-                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">Corridor</span>
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">
+                      {isAmharic ? 'የጉዞ ርቀት' : 'Corridor'}
+                    </span>
                     <span className="text-xs font-black text-white">{trip.route?.distanceKm} km</span>
                   </div>
                 </div>
               )}
 
               <div className="text-right hidden sm:block">
-                <span className="text-xs text-emerald-300/70 font-semibold uppercase">Official Fare</span>
+                <span className="text-xs text-emerald-300/70 font-semibold uppercase">
+                  {isAmharic ? 'ትክክለኛ ታሪፍ' : 'Official Fare'}
+                </span>
                 <div className="flex items-baseline gap-1 justify-end">
                   <span className="text-3xl font-black">{trip.fare}</span>
-                  <span className="text-sm font-bold text-emerald-300/70">{BRAND.currency}</span>
+                  <span className="text-sm font-bold text-emerald-300/70">{isAmharic ? 'ብር' : BRAND.currency}</span>
                 </div>
-                <span className="text-[11px] text-emerald-400 font-bold">Per Seat</span>
+                <span className="text-[11px] text-emerald-400 font-bold">
+                  {isAmharic ? 'በአንድ ወንበር' : 'Per Seat'}
+                </span>
               </div>
             </div>
           </div>
@@ -287,9 +324,13 @@ export const SeatSelectionPage: React.FC = () => {
                 <AlertCircle className="w-5 h-5 text-amber-800" />
               </div>
               <div>
-                <span className="font-extrabold text-sm block text-amber-950">Journey Has Already Departed</span>
+                <span className="font-extrabold text-sm block text-amber-950">
+                  {isAmharic ? 'ጉዞው አስቀድሞ ተነስቷል' : 'Journey Has Already Departed'}
+                </span>
                 <span className="text-xs text-amber-800 block mt-0.5">
-                  This bus was scheduled to depart at {trip.departureTime} on {trip.departureDate}. Seat reservations are strictly closed.
+                  {isAmharic
+                    ? `ይህ አውቶቡስ በ${trip.departureDate} በ${trip.departureTime} እንዲነሳ የተመደበ ነበር። የወንበር ማስያዝ ተዘግቷል።`
+                    : `This bus was scheduled to depart at ${trip.departureTime} on ${trip.departureDate}. Seat reservations are strictly closed.`}
                 </span>
               </div>
             </div>
@@ -297,7 +338,7 @@ export const SeatSelectionPage: React.FC = () => {
               to={`/search?from=${trip.route?.origin?.code || 'ADD'}&to=${trip.route?.destination?.code || 'DBR'}&passengers=${passengersCount}`}
               className="px-4 py-2 rounded-btn bg-brand-emerald hover:bg-brand-deep text-white font-extrabold text-xs shrink-0 transition-colors shadow-xs"
             >
-              Find Next Scheduled Departure
+              {isAmharic ? 'ቀጣይ ጉዞዎችን ፈልግ' : 'Find Next Scheduled Departure'}
             </Link>
           </div>
         )}
@@ -319,10 +360,16 @@ export const SeatSelectionPage: React.FC = () => {
 
         {/* Choose Your Seat heading */}
         <div className="mb-6">
-          <h2 className="text-xl font-black text-brand-dark">Choose Your Seat</h2>
+          <h2 className="text-xl font-black text-brand-dark">
+            {isAmharic ? 'የሚፈልጉትን ወንበር ይምረጡ' : 'Choose Your Seat'}
+          </h2>
           <p className="text-sm text-brand-textMuted mt-1">
             {isDeparted
-              ? 'This departure has passed. Seat selection is disabled.'
+              ? isAmharic
+                ? 'ይህ ጉዞ አልፏል። ወንበር መምረጥ አይቻልም።'
+                : 'This departure has passed. Seat selection is disabled.'
+              : isAmharic
+              ? `${passengersCount} ወንበር ይምረጡ። ምርጫዎ ለ10 ደቂቃ ተይዞ ይቆያል።`
               : `Select ${passengersCount} seat${passengersCount > 1 ? 's' : ''}. Your selection is held for 10 minutes.`}
           </p>
         </div>
@@ -348,9 +395,13 @@ export const SeatSelectionPage: React.FC = () => {
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-brand-textMain block">Planning for Next Day?</span>
+                    <span className="font-bold text-brand-textMain block">
+                      {isAmharic ? 'ለነገ ጉዞ እያቀዱ ነው?' : 'Planning for Next Day?'}
+                    </span>
                     <span className="text-[11px] text-brand-textMuted block">
-                      Bus seat reservations remain secured across journeys on this fleet vehicle. Check next day departures ({nextDateStr}).
+                      {isAmharic
+                        ? `የነገውን የ${nextDateStr} ጉዞዎች ይመልከቱ እና መቀመጫዎን ቀድመው ይያዙ።`
+                        : `Bus seat reservations remain secured across journeys on this fleet vehicle. Check next day departures (${nextDateStr}).`}
                     </span>
                   </div>
                 </div>
@@ -358,7 +409,7 @@ export const SeatSelectionPage: React.FC = () => {
                   to={`/search?from=${trip.route.origin.code}&to=${trip.route.destination.code}&date=${nextDateStr}&passengers=${passengersCount}`}
                   className="px-3.5 py-2 rounded-btn bg-emerald-50 hover:bg-emerald-100 text-brand-emerald font-bold text-xs shrink-0 flex items-center gap-1.5 transition-colors border border-emerald-200"
                 >
-                  <span>Check Next Day ({nextDateStr})</span>
+                  <span>{isAmharic ? `የነገ ጉዞዎችን ይመልከቱ (${nextDateStr})` : `Check Next Day (${nextDateStr})`}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -371,9 +422,11 @@ export const SeatSelectionPage: React.FC = () => {
             <div className="bg-white rounded-cardLg border border-gray-100 shadow-card overflow-hidden">
               {/* Card header */}
               <div className="bg-gradient-to-r from-[#031d12] to-[#063B2A] p-5 text-white">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">Your Trip</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+                  {isAmharic ? 'የእርስዎ ጉዞ' : 'Your Trip'}
+                </span>
                 <p className="font-black text-base mt-1">
-                  {trip.route?.origin?.name} → {trip.route?.destination?.name}
+                  {originName} → {destinationName}
                 </p>
                 <p className="text-xs text-emerald-200/70 mt-0.5">
                   {trip.departureDate} · {trip.departureTime}
@@ -383,7 +436,7 @@ export const SeatSelectionPage: React.FC = () => {
               {/* Seat selection status */}
               <div className="p-5 border-b border-gray-100">
                 <span className="text-xs font-bold uppercase tracking-wider text-brand-textMuted">
-                  Selected Seats
+                  {isAmharic ? 'የተመረጡ ወንበሮች' : 'Selected Seats'}
                 </span>
                 {selectedSeatNumbers.length === 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -396,7 +449,9 @@ export const SeatSelectionPage: React.FC = () => {
                       </div>
                     ))}
                     <p className="w-full text-xs text-brand-textMuted mt-1">
-                      Select {passengersCount} seat{passengersCount > 1 ? 's' : ''} from the map
+                      {isAmharic
+                        ? `ከካርታው ላይ ${passengersCount} ወንበር ይምረጡ`
+                        : `Select ${passengersCount} seat${passengersCount > 1 ? 's' : ''} from the map`}
                     </p>
                   </div>
                 ) : (
@@ -411,7 +466,9 @@ export const SeatSelectionPage: React.FC = () => {
                     ))}
                     {selectedSeatNumbers.length < passengersCount && (
                       <p className="w-full text-xs text-amber-600 font-semibold mt-1">
-                        {passengersCount - selectedSeatNumbers.length} more seat{passengersCount - selectedSeatNumbers.length > 1 ? 's' : ''} needed
+                        {isAmharic
+                          ? `ተጨማሪ ${passengersCount - selectedSeatNumbers.length} ወንበር ይምረጡ`
+                          : `${passengersCount - selectedSeatNumbers.length} more seat${passengersCount - selectedSeatNumbers.length > 1 ? 's' : ''} needed`}
                       </p>
                     )}
                   </div>
@@ -420,31 +477,35 @@ export const SeatSelectionPage: React.FC = () => {
 
               {/* Fare breakdown */}
               <div className="p-5 flex flex-col gap-2.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1">Fare Summary</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-textMuted mb-1">
+                  {isAmharic ? 'የዋጋ ዝርዝር' : 'Fare Summary'}
+                </span>
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-brand-textMuted font-medium">
-                    Fare ({selectedSeatNumbers.length || passengersCount}× seat)
+                    {isAmharic
+                      ? `የጉዞ ታሪፍ (${selectedSeatNumbers.length || passengersCount} ወንበር)`
+                      : `Fare (${selectedSeatNumbers.length || passengersCount}× seat)`}
                   </span>
                   <span className="font-bold text-brand-dark">
-                    {fareTotal || (farePerSeat * passengersCount)} {BRAND.currency}
+                    {fareTotal || (farePerSeat * passengersCount)} {isAmharic ? 'ብር' : BRAND.currency}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-brand-textMuted font-medium flex items-center gap-1">
                     <Tag className="w-3 h-3 text-brand-emerald" />
-                    Platform Fee
+                    {isAmharic ? 'የአገልግሎት ክፍያ' : 'Platform Fee'}
                   </span>
                   <span className="font-bold text-brand-dark">
-                    {serviceFeeTotal || (serviceFeePerSeat * passengersCount)} {BRAND.currency}
+                    {serviceFeeTotal || (serviceFeePerSeat * passengersCount)} {isAmharic ? 'ብር' : BRAND.currency}
                   </span>
                 </div>
 
                 <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between">
-                  <span className="font-black text-brand-dark">Total</span>
+                  <span className="font-black text-brand-dark">{isAmharic ? 'አጠቃላይ ድምር' : 'Total'}</span>
                   <span className="text-xl font-black text-brand-emerald">
-                    {grandTotal || ((farePerSeat + serviceFeePerSeat) * passengersCount)} {BRAND.currency}
+                    {grandTotal || ((farePerSeat + serviceFeePerSeat) * passengersCount)} {isAmharic ? 'ብር' : BRAND.currency}
                   </span>
                 </div>
               </div>
@@ -458,13 +519,23 @@ export const SeatSelectionPage: React.FC = () => {
               onClick={handleProceedToCheckout}
               className="w-full px-6 py-4 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-brand-emerald/25 transition-all flex items-center justify-center gap-2 group"
             >
-              <span>{isDeparted ? 'Journey Departed (Booking Closed)' : 'Continue to Checkout'}</span>
+              <span>
+                {isDeparted
+                  ? isAmharic
+                    ? 'ጉዞው ተነስቷል (ቦታ ማስያዝ ተዘግቷል)'
+                    : 'Journey Departed (Booking Closed)'
+                  : isAmharic
+                  ? 'ወደ ክፍያ ማጠናቀቂያ ቀጥል'
+                  : 'Continue to Checkout'}
+              </span>
               {!isDeparted && <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />}
             </button>
 
             {selectedSeatNumbers.length !== passengersCount && !isDeparted && (
               <p className="text-center text-xs text-brand-textMuted">
-                {selectedSeatNumbers.length} of {passengersCount} seat{passengersCount > 1 ? 's' : ''} selected
+                {isAmharic
+                  ? `ከ${passengersCount} ውስጥ ${selectedSeatNumbers.length} ወንበር ተመርጧል`
+                  : `${selectedSeatNumbers.length} of ${passengersCount} seat${passengersCount > 1 ? 's' : ''} selected`}
               </p>
             )}
           </div>
@@ -475,15 +546,17 @@ export const SeatSelectionPage: React.FC = () => {
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-brand-textMuted">Seats:</span>
+                <span className="text-xs font-bold text-brand-textMuted">
+                  {isAmharic ? 'ወንበሮች:' : 'Seats:'}
+                </span>
                 <span className="text-sm font-black text-brand-emerald">
-                  {selectedSeatNumbers.length > 0 ? selectedSeatNumbers.join(', ') : `0 of ${passengersCount}`}
+                  {selectedSeatNumbers.length > 0 ? selectedSeatNumbers.join(', ') : (isAmharic ? `0 ከ ${passengersCount}` : `0 of ${passengersCount}`)}
                 </span>
               </div>
               <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="text-xs text-brand-textMuted">Total:</span>
+                <span className="text-xs text-brand-textMuted">{isAmharic ? 'አጠቃላይ:' : 'Total:'}</span>
                 <span className="text-base font-black text-brand-dark ml-1">
-                  {grandTotal} {BRAND.currency}
+                  {grandTotal} {isAmharic ? 'ብር' : BRAND.currency}
                 </span>
               </div>
             </div>
@@ -495,7 +568,7 @@ export const SeatSelectionPage: React.FC = () => {
               onClick={handleProceedToCheckout}
               className="px-6 py-3 rounded-btn bg-brand-emerald hover:bg-brand-deep disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md transition-all flex items-center gap-1.5 flex-shrink-0"
             >
-              <span>{isDeparted ? 'Departed' : 'Continue'}</span>
+              <span>{isDeparted ? (isAmharic ? 'ተነስቷል' : 'Departed') : (isAmharic ? 'ቀጥል' : 'Continue')}</span>
               {!isDeparted && <ChevronRight className="w-4 h-4" />}
             </button>
           </div>

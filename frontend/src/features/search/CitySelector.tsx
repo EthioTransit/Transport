@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, ChevronDown, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { citiesApi } from '../../api/endpoints';
 import { City } from '../../types';
 
@@ -22,6 +23,8 @@ export const CitySelector: React.FC<CitySelectorProps> = ({
   error,
   idPrefix,
 }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [cities, setCities] = useState<City[]>([]);
@@ -86,7 +89,7 @@ export const CitySelector: React.FC<CitySelectorProps> = ({
           {selectedCity ? (
             <div className="flex flex-col truncate">
               <span className="text-sm font-bold text-brand-textMain truncate">
-                {selectedCity.name}
+                {isAmharic && selectedCity.amharicName ? selectedCity.amharicName : selectedCity.name}
               </span>
               <span className="text-[11px] text-brand-textMuted truncate">
                 {selectedCity.region} • {selectedCity.code}
@@ -110,7 +113,7 @@ export const CitySelector: React.FC<CitySelectorProps> = ({
               id={`${idPrefix}-search-input`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search departure city..."
+              placeholder={isAmharic ? 'ከተማ ይፈልጉ (ምሳሌ፡ አዲስ አበባ፣ ባህር ዳር)...' : 'Search departure city...'}
               autoFocus
               className="w-full pl-9 pr-3 py-2 text-sm rounded-input border border-gray-200 focus:outline-none focus:border-brand-emerald"
             />
@@ -118,13 +121,19 @@ export const CitySelector: React.FC<CitySelectorProps> = ({
 
           <div className="max-h-60 overflow-y-auto divide-y divide-gray-50">
             {loading ? (
-              <div className="p-4 text-center text-xs text-gray-400">Loading cities...</div>
+              <div className="p-4 text-center text-xs text-gray-400">
+                {isAmharic ? 'ከተሞችን በመጫን ላይ...' : 'Loading cities...'}
+              </div>
             ) : cities.length === 0 ? (
-              <div className="p-4 text-center text-xs text-gray-400">No matching cities found</div>
+              <div className="p-4 text-center text-xs text-gray-400">
+                {isAmharic ? 'ምንም የሚመሳሰል ከተማ አልተገኘም' : 'No matching cities found'}
+              </div>
             ) : (
               cities.map((city) => {
                 const isDisabled = Boolean(disabledCityCode && (city.code === disabledCityCode || city._id === disabledCityCode));
                 const isSelected = selectedCity?._id === city._id;
+                const primaryName = isAmharic && city.amharicName ? city.amharicName : city.name;
+                const secondaryName = isAmharic && city.amharicName ? city.name : city.amharicName;
 
                 return (
                   <button
@@ -147,13 +156,13 @@ export const CitySelector: React.FC<CitySelectorProps> = ({
                   >
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-semibold">{city.name}</span>
-                        {city.amharicName && (
-                          <span className="text-xs text-brand-textLight">({city.amharicName})</span>
+                        <span className="text-sm font-semibold">{primaryName}</span>
+                        {secondaryName && (
+                          <span className="text-xs text-brand-textLight">({secondaryName})</span>
                         )}
                       </div>
                       <span className="text-xs text-brand-textMuted">
-                        {city.region} Region {city.terminalName ? `• ${city.terminalName}` : ''}
+                        {city.region} {isAmharic ? 'ክልል' : 'Region'} {city.terminalName ? `• ${city.terminalName}` : ''}
                       </span>
                     </div>
                     {isSelected && <Check className="w-4 h-4 text-brand-emerald" />}

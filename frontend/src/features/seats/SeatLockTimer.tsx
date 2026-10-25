@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Timer, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SeatLockTimerProps {
   expiresAt: string | Date;
@@ -7,6 +8,9 @@ interface SeatLockTimerProps {
 }
 
 export const SeatLockTimer: React.FC<SeatLockTimerProps> = ({ expiresAt, onExpire }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const [secondsLeft, setSecondsLeft] = useState<number>(0);
 
   useEffect(() => {
@@ -47,10 +51,12 @@ export const SeatLockTimer: React.FC<SeatLockTimerProps> = ({ expiresAt, onExpir
         )}
         <div className="flex flex-col">
           <span className="text-xs font-bold uppercase tracking-wider">
-            Seat Reservation Timeout
+            {isAmharic ? 'የወንበር ማስያዣ ሰዓት ገደብ' : 'Seat Reservation Timeout'}
           </span>
           <span className="text-xs opacity-90">
-            Complete checkout before the seats are released back to other travelers.
+            {isAmharic
+              ? 'ወንበሮቹ ለሌሎች ተጓዦች ክፍት ከመደረጋቸው በፊት ክፍያውን ያጠናቅቁ።'
+              : 'Complete checkout before the seats are released back to other travelers.'}
           </span>
         </div>
       </div>

@@ -172,14 +172,28 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
 
             {/* Main Headline with Gold Light Wave */}
             <div className="relative w-full">
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[56px] font-black text-white tracking-tight leading-[1.15] sm:leading-[1.12]">
-                Travel Across Ethiopia,
-                <br />
-                <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#F4D58D] via-[#f7e4a8] to-[#D9A441] drop-shadow-md">
-                  Smarter.
-                  {/* Glowing golden sparkle arc trailing across Smarter */}
-                  <span className="absolute -top-3 left-full -translate-x-12 w-36 h-8 bg-gradient-to-r from-amber-400/40 via-amber-200/60 to-transparent blur-md pointer-events-none rounded-full" />
-                </span>
+              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-[1.15] sm:leading-[1.14]">
+                {isAmharic ? (
+                  <>
+                    በኢትዮጵያ ውስጥ፣
+                    <br />
+                    <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#F4D58D] via-[#f7e4a8] to-[#D9A441] drop-shadow-md">
+                      በዘመናዊ መንገድ ይጓዙ።
+                      {/* Glowing golden sparkle arc trailing across Smarter */}
+                      <span className="absolute -top-3 left-full -translate-x-12 w-36 h-8 bg-gradient-to-r from-amber-400/40 via-amber-200/60 to-transparent blur-md pointer-events-none rounded-full" />
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Travel Across Ethiopia,
+                    <br />
+                    <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#F4D58D] via-[#f7e4a8] to-[#D9A441] drop-shadow-md">
+                      Smarter.
+                      {/* Glowing golden sparkle arc trailing across Smarter */}
+                      <span className="absolute -top-3 left-full -translate-x-12 w-36 h-8 bg-gradient-to-r from-amber-400/40 via-amber-200/60 to-transparent blur-md pointer-events-none rounded-full" />
+                    </span>
+                  </>
+                )}
               </h1>
             </div>
 
@@ -277,7 +291,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                           <span className="text-amber-300 text-[10px]">{trip.price} ETB</span>
                         </div>
                         <div className="flex items-center justify-between text-[9px] text-emerald-200/80 font-bold mt-1">
-                          <span>{trip.seatsLeft} seats left</span>
+                          <span>{trip.seatsLeft} {isAmharic ? 'የቀሩ ወንበሮች' : 'seats left'}</span>
                           {/* Seat bar indicator */}
                           <div className="w-12 h-1.5 bg-emerald-950 rounded-full overflow-hidden">
                             <div className="w-3/4 h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" />
@@ -304,10 +318,10 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-black text-xs uppercase tracking-wider text-emerald-100 flex items-center gap-1.5">
                       <Sparkles className="w-3 h-3 text-amber-300" />
-                      EthioTransit Passport
+                      {isAmharic ? 'የኢትዮ ትራንስፖርት ፓስፖርት' : 'EthioTransit Passport'}
                     </span>
                     <span className="text-[10px] font-bold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/30">
-                      Instant Seat
+                      {isAmharic ? 'ፈጣን መቀመጫ' : 'Instant Seat'}
                     </span>
                   </div>
 
@@ -362,9 +376,9 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-black uppercase tracking-wider text-emerald-100 flex items-center gap-1.5">
                       <Activity className="w-3 h-3 text-emerald-400" />
-                      Live Analytics
+                      {isAmharic ? 'የቀጥታ ትንተና' : 'Live Analytics'}
                     </span>
-                    <span className="text-[10px] text-emerald-300 font-bold">Live Flow</span>
+                    <span className="text-[10px] text-emerald-300 font-bold">{isAmharic ? 'የቀጥታ ፍሰት' : 'Live Flow'}</span>
                   </div>
 
                   {/* Mini Vertical Bar Chart matching screenshot */}
@@ -378,7 +392,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                         <div className="w-1.5 bg-amber-400 rounded-t h-[85%]" />
                         <div className="w-1.5 bg-emerald-400 rounded-t h-[100%]" />
                       </div>
-                      <span className="text-[8px] font-bold text-emerald-300 uppercase">Passenger Count</span>
+                      <span className="text-[8px] font-bold text-emerald-300 uppercase">{isAmharic ? 'የተጓዦች ቁጥር' : 'Passenger Count'}</span>
                     </div>
 
                     <div className="w-[1px] h-8 bg-emerald-800/60 mx-1" />
@@ -389,7 +403,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
                         <div className="w-2 bg-emerald-400 rounded-t h-[70%]" />
                         <div className="w-2 bg-emerald-500 rounded-t h-[80%]" />
                       </div>
-                      <span className="text-[8px] font-bold text-emerald-300 uppercase">Key Trips</span>
+                      <span className="text-[8px] font-bold text-emerald-300 uppercase">{isAmharic ? 'ዋና ዋና ጉዞዎች' : 'Key Trips'}</span>
                     </div>
                   </div>
                 </div>
@@ -537,7 +551,7 @@ export const InteractiveEthiopiaHero: React.FC<InteractiveEthiopiaHeroProps> = (
               {/* Map Floating Helper Tag */}
               <div className="absolute bottom-2 right-2 text-[8px] sm:text-[9px] font-black text-emerald-200 bg-[#031d12]/95 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-emerald-500/30 flex items-center gap-1.5 shadow-lg max-w-[70%] sm:max-w-none truncate">
                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                <span className="truncate">Tap any hub to book instantly</span>
+                <span className="truncate">{isAmharic ? 'በቀጥታ ቦታ ለማስያዝ የትኛውንም ከተማ ይጫኑ' : 'Tap any hub to book instantly'}</span>
               </div>
             </div>
 

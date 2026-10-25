@@ -2,18 +2,21 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Ticket, Luggage, User } from 'lucide-react';
 import { useAuth } from '../../features/auth/useAuth';
-
-const navItems = [
-  { to: '/', icon: Home, label: 'Home' },
-  { to: '/search', icon: Search, label: 'Search' },
-  { to: '/my-tickets', icon: Ticket, label: 'Tickets' },
-  { to: '/my-trips', icon: Luggage, label: 'Bookings' },
-  { to: '/profile', icon: User, label: 'Profile' },
-];
+import { useTranslation } from 'react-i18next';
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
+  const navItems = [
+    { to: '/', icon: Home, label: isAmharic ? 'መነሻ' : 'Home' },
+    { to: '/search', icon: Search, label: isAmharic ? 'ፍለጋ' : 'Search' },
+    { to: '/my-tickets', icon: Ticket, label: isAmharic ? 'ቲኬቶች' : 'Tickets' },
+    { to: '/my-trips', icon: Luggage, label: isAmharic ? 'ጉዞዎች' : 'Bookings' },
+    { to: '/profile', icon: User, label: isAmharic ? 'ፕሮፋይል' : 'Profile' },
+  ];
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';

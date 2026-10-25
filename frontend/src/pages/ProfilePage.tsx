@@ -27,6 +27,7 @@ export const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
 
   const [editMode, setEditMode] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
@@ -58,6 +59,9 @@ export const ProfilePage: React.FC = () => {
   const handleLanguageToggle = (lang: 'en' | 'am') => {
     setLanguage(lang);
     i18n.changeLanguage(lang);
+    localStorage.setItem('ethiotransit_language', lang);
+    localStorage.setItem('i18nextLng', lang);
+    document.documentElement.lang = lang;
   };
 
   const handleLogout = () => {
@@ -90,7 +94,7 @@ export const ProfilePage: React.FC = () => {
             <p className="text-emerald-200/70 text-xs sm:text-sm mt-0.5 truncate">{user?.email}</p>
             <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
               <Bus className="w-3 h-3" />
-              {user?.role}
+              {user?.role === 'PASSENGER' ? (isAmharic ? 'ተሳፋሪ' : 'PASSENGER') : user?.role}
             </span>
           </div>
         </div>
@@ -118,23 +122,26 @@ export const ProfilePage: React.FC = () => {
               <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                 <User className="w-4 h-4 text-brand-emerald" />
               </div>
-              <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">Personal Information</h2>
+              <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">
+                {isAmharic ? 'የግል መረጃ' : 'Personal Information'}
+              </h2>
             </div>
             {!editMode && (
               <button
                 onClick={() => setEditMode(true)}
                 className="text-xs font-bold text-brand-emerald hover:text-brand-deep transition-colors px-3 sm:px-4 py-1.5 sm:py-2 rounded-btn hover:bg-emerald-50 shadow-sm border border-emerald-100"
               >
-                Edit Profile
+                {isAmharic ? 'መረጃ አሻሽል' : 'Edit Profile'}
               </button>
             )}
           </div>
+
 
           <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {/* First Name */}
             <div>
               <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
-                First Name
+                {isAmharic ? 'ስም' : 'First Name'}
               </label>
               {editMode ? (
                 <div className="relative">
@@ -156,7 +163,7 @@ export const ProfilePage: React.FC = () => {
             {/* Last Name */}
             <div>
               <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
-                Last Name
+                {isAmharic ? 'የአባት ስም' : 'Last Name'}
               </label>
               {editMode ? (
                 <div className="relative">
@@ -178,7 +185,7 @@ export const ProfilePage: React.FC = () => {
             {/* Email (read-only) */}
             <div className="sm:col-span-2 md:col-span-1">
               <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
-                Email Address
+                {isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address'}
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
@@ -187,14 +194,14 @@ export const ProfilePage: React.FC = () => {
                 </p>
               </div>
               <p className="text-[10px] text-amber-600 font-medium mt-1.5 flex items-center gap-1">
-                <Lock className="w-3 h-3" /> Email cannot be changed.
+                <Lock className="w-3 h-3" /> {isAmharic ? 'ኢሜይል መቀየር አይቻልም።' : 'Email cannot be changed.'}
               </p>
             </div>
 
             {/* Phone */}
             <div className="sm:col-span-2 md:col-span-1">
               <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
-                Phone Number
+                {isAmharic ? 'ስልክ ቁጥር' : 'Phone Number'}
               </label>
               {editMode ? (
                 <div className="relative">
@@ -228,17 +235,17 @@ export const ProfilePage: React.FC = () => {
                 }}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-btn bg-white border border-gray-200 text-sm font-bold text-brand-textMuted hover:bg-gray-50 hover:text-brand-dark transition-colors shadow-sm text-center"
               >
-                Cancel
+                {isAmharic ? 'ሰርዝ' : 'Cancel'}
               </button>
               <button
                 onClick={() => {
                   setEditMode(false);
-                  showSuccess('Profile updated successfully!');
+                  showSuccess(isAmharic ? 'መረጃዎ በተሳካ ሁኔታ ተሻሽሏል!' : 'Profile updated successfully!');
                 }}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-btn bg-brand-emerald text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:bg-brand-deep transition-all text-center"
               >
                 <Save className="w-4 h-4" />
-                Save Changes
+                {isAmharic ? 'ለውጦችን መዝግብ' : 'Save Changes'}
               </button>
             </div>
           )}
@@ -250,14 +257,20 @@ export const ProfilePage: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
               <Globe className="w-4 h-4 text-brand-emerald" />
             </div>
-            <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">App Preferences</h2>
+            <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">
+              {isAmharic ? 'የመተግበሪያ ምርጫዎች' : 'App Preferences'}
+            </h2>
           </div>
           <div className="divide-y divide-gray-50">
             {/* Language */}
             <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 hover:bg-gray-50/50 transition-colors">
               <div>
-                <p className="text-sm font-bold text-brand-dark">Display Language</p>
-                <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1">Choose your preferred language for the interface</p>
+                <p className="text-sm font-bold text-brand-dark">
+                  {isAmharic ? 'የማሳያ ቋንቋ' : 'Display Language'}
+                </p>
+                <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1">
+                  {isAmharic ? 'የመተግበሪያውን ተመራጭ ቋንቋ ይምረጡ' : 'Choose your preferred language for the interface'}
+                </p>
               </div>
               <div className="flex rounded-lg p-1 bg-gray-100 border border-gray-200 text-xs font-bold self-start sm:self-auto">
                 <button
@@ -287,9 +300,11 @@ export const ProfilePage: React.FC = () => {
             <div className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
               <div className="pr-2">
                 <p className="text-sm font-bold text-brand-dark flex items-center gap-2">
-                  Push Notifications
+                  {isAmharic ? 'የመልዕክት ማሳወቂያዎች' : 'Push Notifications'}
                 </p>
-                <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1">Receive booking confirmations & trip alerts</p>
+                <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1">
+                  {isAmharic ? 'የቲኬት ማረጋገጫ እና የጉዞ ማሳወቂያዎችን ይቀበሉ' : 'Receive booking confirmations & trip alerts'}
+                </p>
               </div>
               <button
                 onClick={() => setNotifications(!notifications)}
@@ -313,7 +328,9 @@ export const ProfilePage: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
               <Shield className="w-4 h-4 text-brand-emerald" />
             </div>
-            <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">Account Security</h2>
+            <h2 className="font-extrabold text-brand-dark text-sm sm:text-base">
+              {isAmharic ? 'የመለያ ደህንነት' : 'Account Security'}
+            </h2>
           </div>
           <div className="divide-y divide-gray-50">
             <button
@@ -325,8 +342,12 @@ export const ProfilePage: React.FC = () => {
                   <Lock className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-brand-dark">Change Password</p>
-                  <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1 truncate">Update your account password regularly</p>
+                  <p className="text-sm font-bold text-brand-dark">
+                    {isAmharic ? 'የይለፍ ቃል ቀይር' : 'Change Password'}
+                  </p>
+                  <p className="text-xs text-brand-textMuted mt-0.5 sm:mt-1 truncate">
+                    {isAmharic ? 'የመለያዎን የይለፍ ቃል በየጊዜው ይቀይሩ' : 'Update your account password regularly'}
+                  </p>
                 </div>
               </div>
               <ChevronRight
@@ -338,7 +359,7 @@ export const ProfilePage: React.FC = () => {
               <div className="px-4 sm:px-6 py-5 sm:py-6 bg-gray-50/80 flex flex-col gap-4 sm:gap-5 border-t border-gray-100 animate-fade-in-up">
                 <div>
                   <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
-                    Current Password
+                    {isAmharic ? 'የአሁኑ የይለፍ ቃል' : 'Current Password'}
                   </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
@@ -346,7 +367,7 @@ export const ProfilePage: React.FC = () => {
                       type={showOldPw ? 'text' : 'password'}
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
-                      placeholder="Enter current password"
+                      placeholder={isAmharic ? 'የአሁኑን የይለፍ ቃል ያስገቡ' : 'Enter current password'}
                       className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-brand-emerald focus:ring-1 focus:ring-brand-emerald transition-all"
                     />
                     <button
@@ -360,7 +381,7 @@ export const ProfilePage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-brand-textLight uppercase tracking-wider mb-2">
-                    New Password
+                    {isAmharic ? 'አዲስ የይለፍ ቃል' : 'New Password'}
                   </label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
@@ -368,7 +389,7 @@ export const ProfilePage: React.FC = () => {
                       type={showNewPw ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
+                      placeholder={isAmharic ? 'ቢያንስ 6 ቁምፊዎች' : 'Minimum 6 characters'}
                       className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold focus:outline-none focus:border-brand-emerald focus:ring-1 focus:ring-brand-emerald transition-all"
                     />
                     <button
@@ -384,18 +405,22 @@ export const ProfilePage: React.FC = () => {
                   <button
                     onClick={() => {
                       if (newPassword.length < 6) {
-                        setErrorMsg('New password must be at least 6 characters.');
+                        setErrorMsg(
+                          isAmharic
+                            ? 'አዲሱ የይለፍ ቃል ቢያንስ 6 ቁምፊዎች መሆን አለበት።'
+                            : 'New password must be at least 6 characters.'
+                        );
                         return;
                       }
                       setErrorMsg(null);
                       setOldPassword('');
                       setNewPassword('');
                       setShowPasswordSection(false);
-                      showSuccess('Password updated successfully!');
+                      showSuccess(isAmharic ? 'የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል!' : 'Password updated successfully!');
                     }}
                     className="px-6 py-2.5 bg-brand-dark hover:bg-black text-white font-bold text-sm rounded-btn shadow-md transition-colors w-full sm:w-auto text-center"
                   >
-                    Update Password
+                    {isAmharic ? 'የይለፍ ቃል አዘምን' : 'Update Password'}
                   </button>
                 </div>
               </div>
@@ -410,8 +435,12 @@ export const ProfilePage: React.FC = () => {
                   <LogOut className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-status-error">Logout from Account</p>
-                  <p className="text-xs text-red-400/80 mt-0.5 sm:mt-1 truncate">You will need to sign in again</p>
+                  <p className="text-sm font-bold text-status-error">
+                    {isAmharic ? 'ከመለያ ይውጡ' : 'Logout from Account'}
+                  </p>
+                  <p className="text-xs text-red-400/80 mt-0.5 sm:mt-1 truncate">
+                    {isAmharic ? 'እንደገና መግባት ያስፈልግዎታል' : 'You will need to sign in again'}
+                  </p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-red-200 group-hover:text-red-400 transition-colors group-hover:translate-x-1 shrink-0" />
@@ -422,3 +451,4 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 };
+

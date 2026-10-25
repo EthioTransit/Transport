@@ -1,6 +1,8 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 
+import { useTranslation } from 'react-i18next';
+
 interface QuickDateCardsProps {
   selectedDate: string; // YYYY-MM-DD
   onSelectDate: (date: string) => void;
@@ -12,9 +14,14 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
   onSelectDate,
   operatingDays,
 }) => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   // Dynamically calculate the next 7 days starting from today
   const today = new Date();
   const dayOfWeekNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const amharicDayNames = ['እሁድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'አርብ', 'ቅዳሜ'];
+  const amharicMonths = ['ጃን', 'ፌብ', 'ማር', 'ኤፕ', 'ሜይ', 'ጁን', 'ጁላ', 'ኦገ', 'ሴፕ', 'ኦክ', 'ኖቬ', 'ዲሴ'];
 
   const days = Array.from({ length: 7 }).map((_, index) => {
     const d = new Date(today);
@@ -25,14 +32,16 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
     const day = String(d.getDate()).padStart(2, '0');
     const isoString = `${year}-${month}-${day}`;
 
-    const monthShort = d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    const monthShort = isAmharic 
+      ? amharicMonths[d.getMonth()]
+      : d.toLocaleString('en-US', { month: 'short' }).toUpperCase();
     const weekdayName = dayOfWeekNames[d.getDay()];
     const dayName =
       index === 0
-        ? 'Today'
+        ? (isAmharic ? 'ዛሬ' : 'Today')
         : index === 1
-        ? 'Tomorrow'
-        : d.toLocaleString('en-US', { weekday: 'short' });
+        ? (isAmharic ? 'ነገ' : 'Tomorrow')
+        : (isAmharic ? amharicDayNames[d.getDay()] : d.toLocaleString('en-US', { weekday: 'short' }));
 
     const isOperating =
       !operatingDays ||
@@ -99,7 +108,9 @@ export const QuickDateCards: React.FC<QuickDateCardsProps> = ({
               )}
             </div>
             {operatingDays && operatingDays.length > 0 && operatingDays.length < 7 && !item.isOperating && (
-              <span className="text-[7.5px] sm:text-[8px] text-gray-400 font-bold uppercase mt-0.5">Off day</span>
+              <span className="text-[7.5px] sm:text-[8px] text-gray-400 font-bold uppercase mt-0.5">
+                {isAmharic ? 'እረፍት' : 'Off day'}
+              </span>
             )}
           </button>
         );

@@ -15,7 +15,10 @@ export const LanguageSwitcher: React.FC<{ isDarkBg?: boolean }> = ({ isDarkBg = 
   ];
 
   const handleSelectLanguage = (langCode: string) => {
+    localStorage.setItem('ethiotransit_language', langCode);
+    localStorage.setItem('i18nextLng', langCode);
     i18n.changeLanguage(langCode);
+    document.documentElement.lang = langCode;
     setIsOpen(false);
   };
 

@@ -17,121 +17,156 @@ import {
   MapPin,
 } from 'lucide-react';
 import { BRAND } from '../config/brand';
+import { useTranslation } from 'react-i18next';
 
-const topics = [
+const getTopics = (isAmharic: boolean) => [
   {
     id: 'booking',
     icon: Ticket,
-    title: 'Booking',
+    title: isAmharic ? 'ቦታ ማስያዝ' : 'Booking',
     color: 'bg-blue-50 text-blue-600 border-blue-100',
     faqs: [
       {
-        q: 'How do I book a bus ticket on EthioTransit?',
-        a: 'Go to the homepage, enter your origin city, destination, travel date, and number of passengers. Click "Search Trips", browse available trips, select your seat, fill in passenger details, and complete payment.',
+        q: isAmharic ? 'በኢትዮትራንዚት እንዴት የአውቶቡስ ቲኬት መቁረጥ እችላለሁ?' : 'How do I book a bus ticket on EthioTransit?',
+        a: isAmharic
+          ? 'ወደ መነሻ ገጽ ይሂዱ፣ መነሻዎን፣ መድረሻዎን፣ የጉዞ ቀንዎን እና የተጓዦች ብዛት ያስገቡ። "ጉዞዎችን ፈልግ" የሚለውን ይጫኑ፣ የተመደቡ አውቶቡሶችን ይመልከቱ፣ ወንበርዎን ይምረጡ፣ የተጓዥ መረጃ ይሙሉና ክፍያውን ያጠናቅቁ።'
+          : 'Go to the homepage, enter your origin city, destination, travel date, and number of passengers. Click "Search Trips", browse available trips, select your seat, fill in passenger details, and complete payment.',
       },
       {
-        q: 'Can I book for multiple passengers?',
-        a: 'Yes! On the search page, set the number of passengers. During seat selection, you can choose multiple seats and fill in each passenger\'s information at checkout.',
+        q: isAmharic ? 'ለብዙ ተጓዦች በአንድ ጊዜ መቁረጥ ይቻላል?' : 'Can I book for multiple passengers?',
+        a: isAmharic
+          ? 'አዎ! በፍለጋ ገጹ ላይ የተጓዦችን ቁጥር ይምረጡ። ወንበር በሚመርጡበት ወቅትም የፈለጉትን ያህል ወንበሮች መርጠው በክፍያ ወቅት የእያንዳንዳቸውን መረጃ መሙላት ይችላሉ።'
+          : 'Yes! On the search page, set the number of passengers. During seat selection, you can choose multiple seats and fill in each passenger\'s information at checkout.',
       },
       {
-        q: 'Can I cancel my booking?',
-        a: 'Yes, you can cancel from your dashboard under "My Trips". Cancellation policies vary by operator. Refunds are processed according to the fare policy.',
+        q: isAmharic ? 'የያዝኩትን ጉዞ መሰረዝ እችላለሁ?' : 'Can I cancel my booking?',
+        a: isAmharic
+          ? 'አዎ፣ በዳሽቦርድዎ ውስጥ "የእኔ ጉዞዎች" በሚለው ስር ገብተው መሰረዝ ይችላሉ። የተመላሽ ገንዘብ እንደ ድርጅቱ መመሪያ የሚፈጸም ይሆናል።'
+          : 'Yes, you can cancel from your dashboard under "My Trips". Cancellation policies vary by operator. Refunds are processed according to the fare policy.',
       },
     ],
   },
   {
     id: 'payment',
     icon: CreditCard,
-    title: 'Payment',
+    title: isAmharic ? 'ክፍያ' : 'Payment',
     color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
     faqs: [
       {
-        q: 'What payment methods are accepted?',
-        a: 'EthioTransit supports Telebirr, CBE Birr, Chapa, and an instant sandbox payment for testing. All payment gateways use secure, encrypted connections.',
+        q: isAmharic ? 'ምን ዓይነት የመክፈያ ዘዴዎች ይሰራሉ?' : 'What payment methods are accepted?',
+        a: isAmharic
+          ? 'ኢትዮትራንዚት ቻፓ (Chapa)፣ ቴሌብር፣ የኢትዮጵያ ንግድ ባንክ (CBE Birr) እና የሙከራ ሳንድቦክስ ክፍያዎችን ይደግፋል። ሁሉም ክፍያዎች በከፍተኛ ደህንነት የተመሰጠሩ ናቸው።'
+          : 'EthioTransit supports Telebirr, CBE Birr, Chapa, and an instant sandbox payment for testing. All payment gateways use secure, encrypted connections.',
       },
       {
-        q: 'Are there any hidden fees?',
-        a: 'No. EthioTransit displays the exact official operator fare plus a transparent platform service fee before you pay. There are absolutely no hidden surcharges.',
+        q: isAmharic ? 'ምንም ዓይነት ድብቅ ወይም ተጨማሪ ክፍያ አለ?' : 'Are there any hidden fees?',
+        a: isAmharic
+          ? 'በፍጹም የለም። ኢትዮትራንዚት ትክክለኛውን የመንግስት ታሪፍ እና ግልጽ የሲስተም አገልግሎት ክፍያ ብቻ ያሳያል። ምንም ዓይነት ድብቅ ተጨማሪ ክፍያ የለም።'
+          : 'No. EthioTransit displays the exact official operator fare plus a transparent platform service fee before you pay. There are absolutely no hidden surcharges.',
       },
       {
-        q: 'My payment failed. What should I do?',
-        a: 'Your seat reservation is held for 10 minutes. Retry payment on the verification page. If the issue persists, try a different payment method or contact support.',
+        q: isAmharic ? 'ክፍያዬ ባይሳካ ምን ማድረግ አለብኝ?' : 'My payment failed. What should I do?',
+        a: isAmharic
+          ? 'የመረጡት ወንበር ለ10 ደቂቃ ተይዞ ይቆያል። በማረጋገጫው ገጽ ላይ ክፍያውን በድጋሚ ይሞክሩ ወይም ሌላ የክፍያ አማራጭ ይጠቀሙ።'
+          : 'Your seat reservation is held for 10 minutes. Retry payment on the verification page. If the issue persists, try a different payment method or contact support.',
       },
     ],
   },
   {
     id: 'seats',
     icon: Armchair,
-    title: 'Seat Selection',
+    title: isAmharic ? 'ወንበር መምረጥ' : 'Seat Selection',
     color: 'bg-purple-50 text-purple-600 border-purple-100',
     faqs: [
       {
-        q: 'How does seat selection work?',
-        a: 'On the seat map, green seats are available, orange seats are temporarily locked by others, and black seats are already booked. Click a green seat to select it. You have 10 minutes to complete your booking.',
+        q: isAmharic ? 'የወንበር ምርጫ እንዴት ይሰራል?' : 'How does seat selection work?',
+        a: isAmharic
+          ? 'በወንበር ካርታው ላይ አረንጓዴ ወንበሮች ክፍት ናቸው፣ ቢጫዎች በሌሎች ለጊዜው የተያዙ ናቸው፣ ግራጫዎች ደግሞ የተሸጡ ናቸው። የሚፈልጉትን አረንጓዴ ወንበር ይጫኑ።'
+          : 'On the seat map, green seats are available, orange seats are temporarily locked by others, and black seats are already booked. Click a green seat to select it. You have 10 minutes to complete your booking.',
       },
       {
-        q: 'What happens if my seat lock expires?',
-        a: 'If you don\'t complete payment within 10 minutes, your seat reservation is automatically released back to availability so other passengers can book it.',
+        q: isAmharic ? 'የወንበር መያዣ ሰዓት ገደብ ቢያልፍ ምን ይሆናል?' : 'What happens if my seat lock expires?',
+        a: isAmharic
+          ? 'በ10 ደቂቃ ውስጥ ክፍያውን ካላጠናቀቁ፣ ወንበሩ ለሌሎች ተጓዦች ክፍት እንዲሆን በራስ-ሰር ይለቀቃል።'
+          : 'If you don\'t complete payment within 10 minutes, your seat reservation is automatically released back to availability so other passengers can book it.',
       },
       {
-        q: 'Can two people book the same seat simultaneously?',
-        a: 'No. EthioTransit uses atomic seat locking. The first person to lock the seat wins. The second request is immediately rejected with a conflict notification.',
+        q: isAmharic ? 'ሁለት ሰዎች አንድ ወንበር በአንድ ጊዜ መያዝ ይችላሉ?' : 'Can two people book the same seat simultaneously?',
+        a: isAmharic
+          ? 'አይችሉም። ሲስተማችን አቶሚክ ቴክኖሎጂን ስለሚጠቀም ቀድሞ የነካው ሰው ብቻ ወንበሩን ይቆልፋል፤ ለሁለተኛው ሰው ወዲያውኑ መልእክት ይደርሰዋል።'
+          : 'No. EthioTransit uses atomic seat locking. The first person to lock the seat wins. The second request is immediately rejected with a conflict notification.',
       },
     ],
   },
   {
     id: 'tickets',
     icon: QrCode,
-    title: 'Tickets & QR Code',
+    title: isAmharic ? 'ቲኬቶች እና QR ኮድ' : 'Tickets & QR Code',
     color: 'bg-amber-50 text-amber-600 border-amber-100',
     faqs: [
       {
-        q: 'Where can I find my ticket after booking?',
-        a: 'Go to "My Tickets" in the navigation. Click any ticket to view the full digital ticket with QR code. You can also access tickets from your dashboard.',
+        q: isAmharic ? 'ቦታ ከያዝኩ በኋላ ቲኬቴን የት ማግኘት እችላለሁ?' : 'Where can I find my ticket after booking?',
+        a: isAmharic
+          ? 'በላይኛው ማውጫ ውስጥ "የእኔ ቲኬቶች" የሚለውን ይጫኑ። የትኛውንም ቲኬት በመጫን ሙሉውን ዲጂታል ቲኬት ከQR ኮድ ጋር ማየት ይችላሉ።'
+          : 'Go to "My Tickets" in the navigation. Click any ticket to view the full digital ticket with QR code. You can also access tickets from your dashboard.',
       },
       {
-        q: 'Is the QR code secure?',
-        a: 'Yes. Each QR code contains a cryptographically verified token. The driver scanner validates the token server-side. Duplicate scan attempts are rejected with an "ALREADY_USED" response.',
+        q: isAmharic ? 'የQR ኮዱ አስተማማኝ ነው?' : 'Is the QR code secure?',
+        a: isAmharic
+          ? 'አዎ። እያንዳንዱ QR ኮድ በምስጠራ የተጠበቀ ነው። ሹፌሩ በተርሚናል ሲቃኘው ወዲያውኑ ያረጋግጣል፤ አንድ ቲኬት በድጋሚ ጥቅም ላይ መዋል አይችልም።'
+          : 'Yes. Each QR code contains a cryptographically verified token. The driver scanner validates the token server-side. Duplicate scan attempts are rejected with an "ALREADY_USED" response.',
       },
       {
-        q: 'Can I download or print my ticket?',
-        a: 'Yes. On the ticket page, click the "Print" button to print your boarding pass. The print view is optimized for letter-size paper.',
+        q: isAmharic ? 'ቲኬቴን ማውረድ ወይም ማተም እችላለሁ?' : 'Can I download or print my ticket?',
+        a: isAmharic
+          ? 'አዎ። በቲኬት ገጹ ላይ "አትም" (Print) የሚለውን በመጫን የወረቀት ቲኬት ማዘጋጀት ወይም በስልክዎ ማስቀመጥ ይችላሉ።'
+          : 'Yes. On the ticket page, click the "Print" button to print your boarding pass. The print view is optimized for letter-size paper.',
       },
     ],
   },
   {
     id: 'cancellation',
     icon: RefreshCw,
-    title: 'Cancellation & Refund',
+    title: isAmharic ? 'ስረዛ እና ተመላሽ' : 'Cancellation & Refund',
     color: 'bg-red-50 text-red-600 border-red-100',
     faqs: [
       {
-        q: 'How do I cancel my booking?',
-        a: 'Go to My Trips, find the booking you want to cancel, and click "Cancel Booking". You\'ll receive a confirmation and refund details.',
+        q: isAmharic ? 'የያዝኩትን ጉዞ እንዴት መሰረዝ እችላለሁ?' : 'How do I cancel my booking?',
+        a: isAmharic
+          ? 'ወደ "የእኔ ጉዞዎች" ይሂዱ፣ መሰረዝ የሚፈልጉትን ጉዞ ይምረጡ እና "ጉዞ ሰርዝ" የሚለውን ይጫኑ። የማረጋገጫ እና የተመላሽ ዝርዝር ይደርስዎታል።'
+          : 'Go to My Trips, find the booking you want to cancel, and click "Cancel Booking". You\'ll receive a confirmation and refund details.',
       },
       {
-        q: 'How long does a refund take?',
-        a: 'Refunds are processed within 3–5 business days to your original payment method. Telebirr and CBE Birr refunds are typically faster.',
+        q: isAmharic ? 'የተመላሽ ገንዘብ በስንት ጊዜ ውስጥ ይደርሳል?' : 'How long does a refund take?',
+        a: isAmharic
+          ? 'ተመላሽ ክፍያዎች ባሉበት የክፍያ መንገድ ከ3 እስከ 5 የስራ ቀናት ውስጥ ይፈጸማሉ። በቴሌብር እና በሲቢኢ ብር አብዛኛውን ጊዜ ፈጣን ነው።'
+          : 'Refunds are processed within 3–5 business days to your original payment method. Telebirr and CBE Birr refunds are typically faster.',
       },
     ],
   },
   {
     id: 'account',
     icon: User,
-    title: 'Account',
+    title: isAmharic ? 'መለያ' : 'Account',
     color: 'bg-gray-50 text-gray-600 border-gray-200',
     faqs: [
       {
-        q: 'How do I create an account?',
-        a: 'Click "Sign Up" on the navbar, fill in your name, email, phone, and password. After registration, you\'ll be redirected to sign in with your new credentials.',
+        q: isAmharic ? 'አዲስ መለያ እንዴት መክፈት እችላለሁ?' : 'How do I create an account?',
+        a: isAmharic
+          ? 'በላይኛው አሞሌ ላይ "ይመዝገቡ" የሚለውን ይጫኑ፣ ስምዎን፣ ኢሜይል፣ ስልክ እና የይለፍ ቃል ያስገቡ። ወዲያውኑ መለያዎ ዝግጁ ይሆናል።'
+          : 'Click "Sign Up" on the navbar, fill in your name, email, phone, and password. After registration, you\'ll be redirected to sign in with your new credentials.',
       },
       {
-        q: 'I forgot my password. How can I reset it?',
-        a: 'Currently, password reset requires contacting support at ' + BRAND.supportEmail + '. We\'re building self-service password reset — coming soon.',
+        q: isAmharic ? 'የይለፍ ቃሌን ከረሳሁት እንዴት መቀየር እችላለሁ?' : 'I forgot my password. How can I reset it?',
+        a: isAmharic
+          ? 'በአሁኑ ወቅት የይለፍ ቃል ለመቀየር የድጋፍ ሰጪ ቡድናችንን በ ' + BRAND.supportEmail + ' ያግኙ። ራሱን የቻለ የይለፍ ቃል መቀየሪያ በቅርቡ ይለቀቃል።'
+          : 'Currently, password reset requires contacting support at ' + BRAND.supportEmail + '. We\'re building self-service password reset — coming soon.',
       },
       {
-        q: 'Can I switch between English and Amharic?',
-        a: 'Yes! Click the EN | አማ toggle in the navbar or in your profile settings. The language switches instantly without any page reload.',
+        q: isAmharic ? 'ቋንቋን ከአማርኛ ወደ እንግሊዝኛ መቀየር እችላለሁ?' : 'Can I switch between English and Amharic?',
+        a: isAmharic
+          ? 'አዎ! በማውጫው ላይ ያለውን የቋንቋ መቀየሪያ (EN | አማ) ይጫኑ። ገጹ ሳይታደስ ወዲያውኑ ይቀየራል።'
+          : 'Yes! Click the EN | አማ toggle in the navbar or in your profile settings. The language switches instantly without any page reload.',
       },
     ],
   },
@@ -162,8 +197,13 @@ const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => {
 };
 
 export const HelpPage: React.FC = () => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const [search, setSearch] = useState('');
   const [activeTopic, setActiveTopic] = useState<string | null>(null);
+
+  const topics = getTopics(isAmharic);
 
   const filteredTopics = topics
     .map((topic) => ({
@@ -185,9 +225,13 @@ export const HelpPage: React.FC = () => {
           <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4 border border-white/10">
             <HelpCircle className="w-7 h-7 text-emerald-300" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black">How can we help?</h1>
+          <h1 className="text-3xl sm:text-4xl font-black">
+            {isAmharic ? 'እንዴት ልንረዳዎ እንችላለን?' : 'How can we help?'}
+          </h1>
           <p className="text-emerald-200/70 text-sm mt-2">
-            Find answers to common questions about EthioTransit.
+            {isAmharic
+              ? 'ስለ ኢትዮትራንዚት ለተደጋጋሚ ጥያቄዎች መልስ ያግኙ።'
+              : 'Find answers to common questions about EthioTransit.'}
           </p>
 
           {/* Search */}
@@ -197,7 +241,7 @@ export const HelpPage: React.FC = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search help topics..."
+              placeholder={isAmharic ? 'የእገዛ ርዕሶችን ይፈልጉ...' : 'Search help topics...'}
               className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white text-brand-dark text-sm font-semibold placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-emerald shadow-lg"
             />
           </div>
@@ -208,7 +252,9 @@ export const HelpPage: React.FC = () => {
         {/* Topic Grid */}
         {!search && (
           <div>
-            <h2 className="text-lg font-black text-brand-dark mb-4">Popular Topics</h2>
+            <h2 className="text-lg font-black text-brand-dark mb-4">
+              {isAmharic ? 'ዋና ዋና ርዕሶች' : 'Popular Topics'}
+            </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {topics.map((topic) => {
                 const Icon = topic.icon;
@@ -272,9 +318,13 @@ export const HelpPage: React.FC = () => {
 
         {/* Contact Support */}
         <div className="bg-gradient-to-r from-[#031d12] to-[#0a4729] rounded-2xl p-6 sm:p-8 text-white">
-          <h2 className="text-xl font-black mb-2">Still need help?</h2>
+          <h2 className="text-xl font-black mb-2">
+            {isAmharic ? 'ተጨማሪ እገዛ ይፈልጋሉ?' : 'Still need help?'}
+          </h2>
           <p className="text-emerald-200/70 text-sm mb-6">
-            Our support team is available Sunday–Thursday, 8AM–6PM EAT.
+            {isAmharic
+              ? 'የደንበኞች አገልግሎት ቡድናችን ከሰኞ - አርብ ከጠዋቱ 2:00 - ማታ 12:00 ዝግጁ ነው።'
+              : 'Our support team is available Sunday–Thursday, 8AM–6PM EAT.'}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <a
@@ -285,7 +335,9 @@ export const HelpPage: React.FC = () => {
                 <Phone className="w-4 h-4 text-emerald-300" />
               </div>
               <div>
-                <p className="text-[11px] text-emerald-300 font-bold uppercase tracking-wider">Call Us</p>
+                <p className="text-[11px] text-emerald-300 font-bold uppercase tracking-wider">
+                  {isAmharic ? 'ይደውሉልን' : 'Call Us'}
+                </p>
                 <p className="text-sm font-bold text-white">{BRAND.supportPhone}</p>
               </div>
             </a>
@@ -297,7 +349,9 @@ export const HelpPage: React.FC = () => {
                 <Mail className="w-4 h-4 text-emerald-300" />
               </div>
               <div>
-                <p className="text-[11px] text-emerald-300 font-bold uppercase tracking-wider">Email Us</p>
+                <p className="text-[11px] text-emerald-300 font-bold uppercase tracking-wider">
+                  {isAmharic ? 'ኢሜይል ይላኩልን' : 'Email Us'}
+                </p>
                 <p className="text-sm font-bold text-white">{BRAND.supportEmail}</p>
               </div>
             </a>
@@ -306,8 +360,12 @@ export const HelpPage: React.FC = () => {
                 <MapPin className="w-4 h-4 text-emerald-300" />
               </div>
               <div>
-                <p className="text-[11px] text-emerald-300 font-bold uppercase tracking-wider">Office</p>
-                <p className="text-sm font-bold text-white">Bole, Addis Ababa</p>
+                <p className="text-[11px] text-emerald-300 font-bold uppercase tracking-wider">
+                  {isAmharic ? 'ቢሮ' : 'Office'}
+                </p>
+                <p className="text-sm font-bold text-white">
+                  {isAmharic ? 'ቦሌ፣ አዲስ አበባ' : 'Bole, Addis Ababa'}
+                </p>
               </div>
             </div>
           </div>

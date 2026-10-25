@@ -20,9 +20,13 @@ import { authStore } from '../features/auth/authStore';
 import { Trip, PassengerInfo } from '../types';
 import { BRAND } from '../config/brand';
 import { hasTripDeparted } from '../utils/time.utils';
+import { useTranslation } from 'react-i18next';
 
 
 export const CheckoutPage: React.FC = () => {
+  const { i18n } = useTranslation();
+  const isAmharic = i18n.language === 'am';
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isAuthenticated, guestLockId } = useAuth();
@@ -72,12 +76,14 @@ export const CheckoutPage: React.FC = () => {
           );
           if (unavailable.length > 0) {
             setError(
-              `Seat ${unavailable.map((s) => s.seatNumber).join(', ')} has already been booked and paid for. Please choose an available seat.`
+              isAmharic
+                ? `ወንበር ${unavailable.map((s) => s.seatNumber).join(', ')} አስቀድሞ የተሸጠ ነው። እባክዎ ክፍት ወንበር ይምረጡ።`
+                : `Seat ${unavailable.map((s) => s.seatNumber).join(', ')} has already been booked and paid for. Please choose an available seat.`
             );
           }
         }
       } catch (err: any) {
-        setError(err.message || 'Failed to load trip details.');
+        setError(err.message || (isAmharic ? 'የጉዞ ዝርዝር መረጃዎችን ማምጣት አልተቻለም።' : 'Failed to load trip details.'));
       } finally {
         setLoading(false);
       }
@@ -101,12 +107,16 @@ export const CheckoutPage: React.FC = () => {
 
     passengers.forEach((p, idx) => {
       if (!p.name || p.name.trim().length < 2) {
-        errors[`passenger_${idx}_name`] = 'Full name is required (at least 2 letters)';
+        errors[`passenger_${idx}_name`] = isAmharic
+          ? 'ሙሉ ስም ማስገባት ግዴታ ነው (ቢያንስ 2 ፊደላት)'
+          : 'Full name is required (at least 2 letters)';
       }
       const cleanPhone = p.phone.trim();
       const phoneRegex = /^(\+251|0)[79]\d{8}$/;
       if (!cleanPhone || !phoneRegex.test(cleanPhone)) {
-        errors[`passenger_${idx}_phone`] = 'Valid Ethiopian phone required (e.g. 0911234567)';
+        errors[`passenger_${idx}_phone`] = isAmharic
+          ? 'ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (ምሳሌ፡ 0911234567)'
+          : 'Valid Ethiopian phone required (e.g. 0911234567)';
       }
     });
 
@@ -119,7 +129,11 @@ export const CheckoutPage: React.FC = () => {
     if (!validateForm() || !trip) return;
 
     if (isDeparted) {
-      setError('This journey has already departed. You cannot proceed to payment.');
+      setError(
+        isAmharic
+          ? 'ይህ ጉዞ አስቀድሞ ተነስቷል። ወደ ክፍያ መቀጠል አይቻልም።'
+          : 'This journey has already departed. You cannot proceed to payment.'
+      );
       return;
     }
 
@@ -164,9 +178,13 @@ export const CheckoutPage: React.FC = () => {
       }
 
       if (err.message && err.message.includes('Authentication required')) {
-        setError('Please sign in or confirm passenger contact details to finalize your booking ticket.');
+        setError(
+          isAmharic
+            ? 'የትኬት ማስያዣዎን ለማጠናቀቅ እባክዎ ይግቡ ወይም የተጓዥ አድራሻ መረጃዎችን ያረጋግጡ።'
+            : 'Please sign in or confirm passenger contact details to finalize your booking ticket.'
+        );
       } else {
-        setError(err.message || 'Failed to initiate booking payment.');
+        setError(err.message || (isAmharic ? 'የክፍያ ሂደቱን ማስጀመር አልተቻለም።' : 'Failed to initiate booking payment.'));
       }
     } finally {
       setSubmitting(false);
@@ -179,8 +197,12 @@ export const CheckoutPage: React.FC = () => {
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-brand-emerald border-t-transparent rounded-full animate-spin" />
           <div className="text-center">
-            <p className="text-sm font-black text-brand-textMain">Loading checkout...</p>
-            <p className="text-xs text-brand-textMuted mt-1">Preparing your booking details</p>
+            <p className="text-sm font-black text-brand-textMain">
+              {isAmharic ? 'የክፍያ ገጽ በመጫን ላይ...' : 'Loading checkout...'}
+            </p>
+            <p className="text-xs text-brand-textMuted mt-1">
+              {isAmharic ? 'የቦታ ማስያዣ ዝርዝሮችን በማዘጋጀት ላይ' : 'Preparing your booking details'}
+            </p>
           </div>
         </div>
       </div>
@@ -188,6 +210,9 @@ export const CheckoutPage: React.FC = () => {
   }
 
   if (!trip) return null;
+
+  const originName = isAmharic && trip.route?.origin?.amharicName ? trip.route.origin.amharicName : trip.route?.origin?.name;
+  const destinationName = isAmharic && trip.route?.destination?.amharicName ? trip.route.destination.amharicName : trip.route?.destination?.name;
 
   return (
     <div className="bg-brand-bg min-h-screen">
@@ -199,27 +224,31 @@ export const CheckoutPage: React.FC = () => {
             className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-white mb-4 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Change Selected Seats</span>
+            <span>{isAmharic ? 'የተመረጡ ወንበሮችን ቀይር' : 'Change Selected Seats'}</span>
           </Link>
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                Checkout
+                {isAmharic ? 'ክፍያ ማጠናቀቂያ' : 'Checkout'}
               </h1>
               <p className="text-emerald-200/70 text-sm mt-1 flex flex-wrap items-center gap-2">
-                <span>{trip.route?.origin?.name} → {trip.route?.destination?.name}</span>
+                <span>{originName} → {destinationName}</span>
                 <span>·</span>
-                <Clock className="w-3 h-3 inline" /> {trip.departureDate} at {trip.departureTime}
+                <Clock className="w-3 h-3 inline" /> {trip.departureDate} {isAmharic ? 'በ' : 'at'} {trip.departureTime}
               </p>
               <div className="flex flex-wrap items-center gap-4 mt-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Targa / Plate:</span>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                    {isAmharic ? 'የሰሌዳ ቁጥር:' : 'Targa / Plate:'}
+                  </span>
                   <span className="text-xs font-mono font-black bg-white/20 text-white px-2 py-0.5 rounded border border-white/20">
                     {trip.vehicle?.plateNumber || 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Chair / Seat:</span>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                    {isAmharic ? 'ወንበር:' : 'Chair / Seat:'}
+                  </span>
                   <div className="flex gap-1">
                     {selectedSeats.map((s) => (
                       <span key={s} className="text-xs font-black bg-brand-emerald/40 text-white px-2 py-0.5 rounded border border-emerald-400/50">
@@ -229,7 +258,9 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Bus:</span>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                    {isAmharic ? 'አውቶቡስ:' : 'Bus:'}
+                  </span>
                   <span className="text-xs font-bold text-white">
                     {trip.operator?.name || 'Operator'}
                   </span>
@@ -247,7 +278,9 @@ export const CheckoutPage: React.FC = () => {
                     className="w-16 h-12 object-cover rounded-lg shrink-0"
                   />
                   <div className="pr-2 text-left">
-                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">Scenic Route</span>
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block">
+                      {isAmharic ? 'የጉዞ ርቀት' : 'Scenic Route'}
+                    </span>
                     <span className="text-xs font-black text-white">{trip.route?.distanceKm} km</span>
                   </div>
                 </div>
@@ -257,8 +290,8 @@ export const CheckoutPage: React.FC = () => {
               <div className="hidden sm:flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex-shrink-0">
                 <Lock className="w-4 h-4 text-emerald-300" />
                 <div>
-                  <p className="text-xs font-black text-white">Secure Checkout</p>
-                  <p className="text-[10px] text-emerald-300/70">256-bit encrypted</p>
+                  <p className="text-xs font-black text-white">{isAmharic ? 'ደህንነቱ የተጠበቀ ክፍያ' : 'Secure Checkout'}</p>
+                  <p className="text-[10px] text-emerald-300/70">{isAmharic ? 'በ256-ቢት የተመሰጠረ' : '256-bit encrypted'}</p>
                 </div>
               </div>
             </div>
@@ -275,9 +308,13 @@ export const CheckoutPage: React.FC = () => {
                 <AlertCircle className="w-5 h-5 text-amber-800" />
               </div>
               <div>
-                <span className="font-extrabold text-sm block">Journey Has Already Departed</span>
+                <span className="font-extrabold text-sm block">
+                  {isAmharic ? 'ይህ ጉዞ አስቀድሞ ተነስቷል' : 'Journey Has Already Departed'}
+                </span>
                 <span className="text-xs text-amber-800 block mt-0.5">
-                  Departure was scheduled for {trip.departureTime} on {trip.departureDate}. Seat reservations and checkouts are closed for past journeys.
+                  {isAmharic
+                    ? `መነሻው በ${trip.departureDate} በ${trip.departureTime} ነበር። ያለፉ ጉዞዎች ላይ ቦታ ማስያዝና ክፍያ ተዘግቷል።`
+                    : `Departure was scheduled for ${trip.departureTime} on ${trip.departureDate}. Seat reservations and checkouts are closed for past journeys.`}
                 </span>
               </div>
             </div>
@@ -285,7 +322,7 @@ export const CheckoutPage: React.FC = () => {
               to={`/search?from=${trip.route?.origin?.code || 'ADD'}&to=${trip.route?.destination?.code || 'DBR'}`}
               className="px-4 py-2 rounded-btn bg-brand-emerald text-white text-xs font-bold shrink-0 hover:bg-brand-deep transition-colors"
             >
-              Search Upcoming Trips
+              {isAmharic ? 'ቀጣይ ጉዞዎችን ፈልግ' : 'Search Upcoming Trips'}
             </Link>
           </div>
         </div>
@@ -302,15 +339,15 @@ export const CheckoutPage: React.FC = () => {
             <div className="flex items-center gap-2">
               {error.includes('sign in') && (
                 <Link to="/login" className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold shadow-xs hover:bg-brand-deep">
-                  Sign In Now
+                  {isAmharic ? 'አሁን ይግቡ' : 'Sign In Now'}
                 </Link>
               )}
-              {(error.includes('booked') || error.includes('reserved') || error.includes('available')) && (
+              {(error.includes('booked') || error.includes('reserved') || error.includes('available') || error.includes('የተሸጠ')) && (
                 <Link
                   to={`/trips/${tripId}/seats`}
                   className="px-3 py-1.5 rounded-btn bg-brand-emerald text-white text-xs font-bold shadow-xs hover:bg-brand-deep"
                 >
-                  Choose Available Seat
+                  {isAmharic ? 'ክፍት ወንበር ይምረጡ' : 'Choose Available Seat'}
                 </Link>
               )}
             </div>
@@ -332,14 +369,14 @@ export const CheckoutPage: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-brand-textMain">
-                        Booking as {user.firstName} {user.lastName}
+                        {isAmharic ? `በ${user.firstName} ${user.lastName} ስም ቦታ ማስያዝ` : `Booking as ${user.firstName} ${user.lastName}`}
                       </span>
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                        Signed In
+                        {isAmharic ? 'ገብተዋል' : 'Signed In'}
                       </span>
                     </div>
                     <p className="text-[11px] text-brand-textMuted mt-0.5">
-                      Tickets will automatically link to your EthioTransit dashboard.
+                      {isAmharic ? 'ቲኬቶችዎ በቀጥታ በኢትዮትራንዚት ዳሽቦርድዎ ውስጥ ይቀመጣሉ።' : 'Tickets will automatically link to your EthioTransit dashboard.'}
                     </p>
                   </div>
                 </div>
@@ -350,13 +387,17 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-brand-textMain">Guest Passenger Checkout</span>
+                      <span className="text-xs font-bold text-brand-textMain">
+                        {isAmharic ? 'ያለ መለያ (እንደ እንግዳ) ክፍያ ማጠናቀቂያ' : 'Guest Passenger Checkout'}
+                      </span>
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                        No Login Required
+                        {isAmharic ? 'መግባት አያስፈልግም' : 'No Login Required'}
                       </span>
                     </div>
                     <p className="text-[11px] text-brand-textMuted mt-0.5">
-                      Enter passenger details below. Your QR ticket and receipt are issued immediately after payment.
+                      {isAmharic
+                        ? 'የተጓዦችን መረጃ ከታች ያስገቡ። ክፍያው እንደተፈጸመ የQR ቲኬትዎ እና ደረሰኝዎ ወዲያውኑ ይሰጥዎታል።'
+                        : 'Enter passenger details below. Your QR ticket and receipt are issued immediately after payment.'}
                     </p>
                   </div>
                 </div>
@@ -366,7 +407,7 @@ export const CheckoutPage: React.FC = () => {
                   to={`/login?redirect=/checkout?tripId=${tripId}&seats=${seatsParam}`}
                   className="text-xs font-bold text-brand-emerald hover:underline shrink-0"
                 >
-                  Sign In
+                  {isAmharic ? 'ይግቡ' : 'Sign In'}
                 </Link>
               )}
             </div>
@@ -382,12 +423,16 @@ export const CheckoutPage: React.FC = () => {
             <div className="bg-white rounded-card p-4 sm:p-6 border border-gray-100 shadow-sm flex flex-col gap-4 sm:gap-5">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                 <div>
-                  <h3 className="font-extrabold text-base text-brand-dark">Payment Method</h3>
-                  <p className="text-xs text-brand-textMuted mt-0.5">Official Ethiopian digital payment provider</p>
+                  <h3 className="font-extrabold text-base text-brand-dark">
+                    {isAmharic ? 'የመክፈያ ዘዴ' : 'Payment Method'}
+                  </h3>
+                  <p className="text-xs text-brand-textMuted mt-0.5">
+                    {isAmharic ? 'ሕጋዊ የኢትዮጵያ ዲጂታል ክፍያ አማራጭ' : 'Official Ethiopian digital payment provider'}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-brand-emerald bg-emerald-50 px-3 py-1.5 rounded-btn">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>256-bit Encrypted</span>
+                  <span>{isAmharic ? 'በ256-ቢት የተመሰጠረ' : '256-bit Encrypted'}</span>
                 </div>
               </div>
 
@@ -401,27 +446,31 @@ export const CheckoutPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold text-base text-brand-dark">Chapa</span>
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
-                        Official Gateway
+                        {isAmharic ? 'ሕጋዊ መክፈያ በር' : 'Official Gateway'}
                       </span>
                     </div>
                     <span className="text-xs text-brand-textMuted block mt-0.5">
-                      Pay securely via Chapa
+                      {isAmharic ? 'በቻፓ (Chapa) አማካኝነት በደህና ይክፈሉ' : 'Pay securely via Chapa'}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs font-bold text-purple-700 bg-purple-100/70 px-3 py-1.5 rounded-btn shrink-0">
                   <CheckCircle2 className="w-4 h-4 text-purple-600" />
-                  <span>Selected</span>
+                  <span>{isAmharic ? 'ተመርጧል' : 'Selected'}</span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200 text-xs text-purple-900 flex items-start gap-2.5 animate-in fade-in duration-150">
                 <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <span className="font-bold block text-purple-950">Chapa Official Payment Gateway</span>
+                  <span className="font-bold block text-purple-950">
+                    {isAmharic ? 'የቻፓ (Chapa) ሕጋዊ ክፍያ በር' : 'Chapa Official Payment Gateway'}
+                  </span>
                   <span className="text-[11px] text-purple-700 block mt-0.5 leading-relaxed">
-                    You will be securely routed to Chapa checkout to complete payment. Your seat will be confirmed immediately and a digital QR ticket will be issued.
+                    {isAmharic
+                      ? 'ክፍያውን በደህና ለማጠናቀቅ ወደ ቻፓ ክፍያ ገጽ ይወሰዳሉ። ወንበርዎ ወዲያውኑ ይረጋገጣል እንዲሁም ዲጂታል የQR ቲኬት ይሰጥዎታል።'
+                      : 'You will be securely routed to Chapa checkout to complete payment. Your seat will be confirmed immediately and a digital QR ticket will be issued.'}
                   </span>
                 </div>
               </div>
@@ -429,7 +478,11 @@ export const CheckoutPage: React.FC = () => {
               {/* Seat reservation reminder */}
               <div className="flex items-center gap-2 p-3 rounded-btn bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold">
                 <Clock className="w-4 h-4 flex-shrink-0 text-amber-600" />
-                <span>Your seat reservation is permanently held for this trip upon checkout.</span>
+                <span>
+                  {isAmharic
+                    ? 'ክፍያው እንደተጠናቀቀ የወንበር ማስያዣዎ ለዚህ ጉዞ በቋሚነት የተረጋገጠ ይሆናል።'
+                    : 'Your seat reservation is permanently held for this trip upon checkout.'}
+                </span>
               </div>
             </div>
           </div>
@@ -453,10 +506,10 @@ export const CheckoutPage: React.FC = () => {
               <Lock className="w-5 h-5" />
               <span>
                 {isDeparted
-                  ? 'Journey Departed (Booking Closed)'
+                  ? (isAmharic ? 'ጉዞው ተነስቷል (ክፍያ ተዘግቷል)' : 'Journey Departed (Booking Closed)')
                   : submitting
-                  ? 'Redirecting to Chapa...'
-                  : 'Pay with Chapa'}
+                  ? (isAmharic ? 'ወደ ቻፓ በመሸጋገር ላይ...' : 'Redirecting to Chapa...')
+                  : (isAmharic ? 'በቻፓ ይክፈሉ' : 'Pay with Chapa')}
               </span>
             </button>
 
@@ -464,11 +517,19 @@ export const CheckoutPage: React.FC = () => {
             <div className="flex flex-col gap-2 p-4 rounded-btn bg-emerald-50/50 border border-emerald-100">
               <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold">
                 <ShieldCheck className="w-4 h-4 text-brand-emerald flex-shrink-0" />
-                <span>Official government-regulated fare. No hidden fees.</span>
+                <span>
+                  {isAmharic
+                    ? 'በመንግስት የተወሰነ ትክክለኛ ታሪፍ። ምንም ድብቅ ክፍያ የለም።'
+                    : 'Official government-regulated fare. No hidden fees.'}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-emerald-700 font-semibold">
                 <CheckCircle2 className="w-4 h-4 text-brand-emerald flex-shrink-0" />
-                <span>Digital QR ticket issued instantly after payment.</span>
+                <span>
+                  {isAmharic
+                    ? 'ክፍያው እንደተጠናቀቀ ዲጂታል የQR ቲኬት ወዲያውኑ ይሰጣል።'
+                    : 'Digital QR ticket issued instantly after payment.'}
+                </span>
               </div>
             </div>
           </div>
