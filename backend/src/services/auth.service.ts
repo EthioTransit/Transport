@@ -24,6 +24,15 @@ export class AuthService {
       throw new Error('An account with this phone number already exists.');
     }
 
+    if (data.role === UserRole.ADMIN || data.role === UserRole.SUPER_ADMIN) {
+      const existingAdmin = await User.findOne({
+        role: { $in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] },
+      });
+      if (existingAdmin) {
+        throw new Error('Only one system administrator account is allowed in EthioTransit.');
+      }
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(data.password, salt);
 

@@ -12,22 +12,4 @@ export const BRAND = {
     adminFrontend: 5174,
     backendApi: 5000,
   },
-  demoAccounts: [
-    {
-      role: 'SUPER_ADMIN',
-      name: 'Alula Aba Nega',
-      email: 'superadmin@ethiotransit.et',
-      password: 'EthioTransit@2026',
-      badge: 'Super Admin',
-      description: 'Full nationwide system oversight, audit logs, financial ledger & city governance',
-    },
-    {
-      role: 'ADMIN',
-      name: 'Tewodros Kassa',
-      email: 'admin@ethiotransit.et',
-      password: 'EthioTransit@2026',
-      badge: 'Operations Admin',
-      description: 'Fleet schedules, route optimization, operator verifications & bookings',
-    },
-  ],
 };

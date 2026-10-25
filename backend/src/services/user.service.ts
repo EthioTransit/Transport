@@ -61,6 +61,37 @@ export class UserService {
       }
     }
 
+    // Enforce single admin constraint
+    if (
+      sanitizedUpdates.role === UserRole.ADMIN ||
+      sanitizedUpdates.role === UserRole.SUPER_ADMIN
+    ) {
+      const existingOtherAdmin = await User.findOne({
+        _id: { $ne: id },
+        role: { $in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] },
+      });
+      if (existingOtherAdmin) {
+        throw new Error('Only one system administrator account is allowed in EthioTransit.');
+      }
+    }
+
+    // Prevent deactivating or demoting the sole admin if it's the only one
+    if (
+      (oldUser.role === UserRole.SUPER_ADMIN || oldUser.role === UserRole.ADMIN) &&
+      (sanitizedUpdates.isActive === false ||
+        (sanitizedUpdates.role &&
+          sanitizedUpdates.role !== UserRole.SUPER_ADMIN &&
+          sanitizedUpdates.role !== UserRole.ADMIN))
+    ) {
+      const otherAdminsCount = await User.countDocuments({
+        _id: { $ne: id },
+        role: { $in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] },
+      });
+      if (otherAdminsCount === 0) {
+        throw new Error('Cannot demote or deactivate the only platform administrator.');
+      }
+    }
+
     const updatedUser = await User.findByIdAndUpdate(id, sanitizedUpdates, { new: true })
       .populate('operatorId', 'name licenseNumber')
       .select('-passwordHash')

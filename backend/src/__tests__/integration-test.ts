@@ -19,7 +19,7 @@ async function runIntegrationSuite() {
   const adminLoginRes = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'superadmin@ethiotransit.et', password: 'EthioTransit@2026' }),
+    body: JSON.stringify({ email: 'admin@ethiotransit.et', password: 'EthioTransit@2026' }),
   });
   assert.strictEqual(adminLoginRes.status, 200, 'Admin login failed');
   const adminBody = await adminLoginRes.json();

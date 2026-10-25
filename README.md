@@ -103,19 +103,16 @@ npm run dev
 
 ---
 
-## 🔑 Demo Role Accounts
+## 🔑 Platform Role Accounts
 
-All demo accounts use the standard password: `EthioTransit@2026`
+All platform accounts use the standard password: `EthioTransit@2026`
 
 | Role | Email | Capabilities |
 | :--- | :--- | :--- |
-| **Super Admin** | `superadmin@ethiotransit.et` | Full system audit logs, metrics, global management |
-| **Admin** | `admin@ethiotransit.et` | Dynamic City creation, Route creation, Trip oversight |
+| **System Administrator** | `admin@ethiotransit.et` | Designated sole administrator: full platform oversight, audit logs, routes, cities, fleet |
 | **Operator** | `selam.operator@ethiotransit.et` | Selam Bus fleet management, scheduled trips, manifests |
 | **Driver** | `driver.abebe@ethiotransit.et` | Assigned trips, passenger manifest, live QR boarding scanner |
 | **Passenger** | `passenger.almaz@ethiotransit.et` | Search, seat booking, ticket wallet, booking history |
-
-*Tip: The Login page features 1-click Quick-Fill buttons for instant role switching without manual typing.*
 
 ---
 

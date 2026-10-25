@@ -1,14 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
 import { authApi } from '../api/endpoints';
-import { BRAND } from '../config/brand';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginAsDemo: (role: 'SUPER_ADMIN' | 'ADMIN') => Promise<void>;
   logout: () => void;
   isSuperAdmin: boolean;
 }
@@ -72,12 +70,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginAsDemo = async (role: 'SUPER_ADMIN' | 'ADMIN') => {
-    const account = BRAND.demoAccounts.find((a) => a.role === role);
-    if (!account) return;
-    await login(account.email, account.password);
-  };
-
   const logout = () => {
     localStorage.removeItem('ethiotransit_admin_token');
     localStorage.removeItem('ethiotransit_admin_user');
@@ -94,7 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isLoading,
         login,
-        loginAsDemo,
         logout,
         isSuperAdmin,
       }}

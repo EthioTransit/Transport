@@ -181,13 +181,22 @@ export const UserModal: React.FC<UserModalProps> = ({
               onChange={(e) => setRole(e.target.value as UserRole)}
               className="w-full pl-9 pr-3 py-2 rounded-input border border-gray-200 text-xs bg-white focus:outline-none focus:border-brand-emerald font-bold text-brand-dark"
             >
-              <option value={UserRole.SUPER_ADMIN}>SUPER_ADMIN (Full Platform Authority & Config)</option>
-              <option value={UserRole.ADMIN}>ADMIN (Operational Control, Cities, Routes, Trips)</option>
+              {(userToEdit.role === UserRole.SUPER_ADMIN || userToEdit.role === UserRole.ADMIN) && (
+                <>
+                  <option value={UserRole.SUPER_ADMIN}>SUPER_ADMIN (Designated Sole Administrator)</option>
+                  <option value={UserRole.ADMIN}>ADMIN (Operations Administrator)</option>
+                </>
+              )}
               <option value={UserRole.OPERATOR}>OPERATOR (Bus Company Dispatcher / Manager)</option>
               <option value={UserRole.DRIVER}>DRIVER (Vehicle Captain / Boarding Validator)</option>
               <option value={UserRole.PASSENGER}>PASSENGER (Standard Traveler Account)</option>
             </select>
           </div>
+          {userToEdit.role !== UserRole.SUPER_ADMIN && userToEdit.role !== UserRole.ADMIN && (
+            <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md mt-1.5 inline-block font-semibold">
+              Platform operates with a single designated administrator.
+            </span>
+          )}
         </div>
 
         {/* Operator Assignment (Visible/Enabled for OPERATOR and DRIVER roles, or optional for others) */}

@@ -125,20 +125,12 @@ export async function runDatabaseSeed(force = false) {
 
   const usersData = [
     {
-      firstName: 'Alula',
-      lastName: 'Aba Nega',
-      email: 'superadmin@ethiotransit.et',
-      phone: '+251911000001',
-      passwordHash: defaultPasswordHash,
-      role: UserRole.SUPER_ADMIN,
-    },
-    {
       firstName: 'Tewodros',
       lastName: 'Kassa',
       email: 'admin@ethiotransit.et',
-      phone: '+251911000002',
+      phone: '+251911000001',
       passwordHash: defaultPasswordHash,
-      role: UserRole.ADMIN,
+      role: UserRole.SUPER_ADMIN,
     },
     {
       firstName: 'Dawit',
