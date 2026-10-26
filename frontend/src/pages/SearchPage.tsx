@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Filter, Calendar, Users, SlidersHorizontal, Bus, ArrowRight, RefreshCw, Clock, Image as ImageIcon, Map as MapIcon, MapPin } from 'lucide-react';
+import { Calendar, Users, SlidersHorizontal, Bus, Clock, MapPin } from 'lucide-react';
 import { tripsApi, citiesApi, operatorsApi } from '../api/endpoints';
 import { TripCard } from '../features/search/TripCard';
 import { FilterSidebar } from '../features/search/FilterSidebar';
@@ -27,7 +27,6 @@ export const SearchPage: React.FC = () => {
   const [destCity, setDestCity] = useState<City | null>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [operators, setOperators] = useState<Operator[]>([]);
-  const [sideView, setSideView] = useState<'photo' | 'map'>('photo');
 
   // Filter & Sort State
   const [sortBy, setSortBy] = useState('DEPARTURE_EARLIEST');
@@ -265,150 +264,54 @@ export const SearchPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex flex-col xl:flex-row gap-6 items-start">
-              {/* Left Side: Trips List */}
-              <div className="flex-1 flex flex-col gap-4 w-full">
-                {loading ? (
-                  <div className="flex flex-col gap-4">
-                    <TripCardSkeleton />
-                    <TripCardSkeleton />
-                    <TripCardSkeleton />
-                  </div>
-                ) : error ? (
-                  <ErrorState message={error} onRetry={fetchSearchResults} />
-                ) : trips.length === 0 ? (
-                  <EmptyState
-                    icon={Bus}
-                    title={isAmharic ? "በዚህ ቀን የተመደበ ጉዞ የለም" : "No Trips on This Date"}
-                    description={
-                      currentRoute?.operatingDays && currentRoute.operatingDays.length > 0 && currentRoute.operatingDays.length < 7
-                        ? (isAmharic
-                            ? `ይህ መስመር የሚሰራው በ: ${currentRoute.operatingDays.join(', ')} ነው። የተመደቡ ሰዓታት: ${currentRoute.departureTimes?.join(', ') || '06:00 AM, 08:30 AM'}። እባክዎ ከላይ ካሉት ቀናት ውስጥ አንዱን ይምረጡ።`
-                            : `This route operates on: ${currentRoute.operatingDays.join(', ')}. Scheduled departures: ${currentRoute.departureTimes?.join(' • ') || '06:00 AM, 08:30 AM'}. Please choose an operating day from the date selector above.`)
-                        : (isAmharic 
-                            ? `ከ ${originCity?.amharicName || fromParam} ወደ ${destCity?.amharicName || toParam} በ ${formattedDate} የተመደበ ጉዞ የለም። እባክዎ ከላይ ካሉት ቀናት ውስጥ አንዱን ይምረጡ።`
-                            : `No scheduled departures found from ${originCity?.name || fromParam} to ${destCity?.name || toParam} on ${formattedDate}. Try selecting an upcoming date from above.`)
-                    }
-                    actionText={
-                      nextOperatingDate
-                        ? (isAmharic ? `ወደ ${nextOperatingDate.label} ቀይር` : `Switch to ${nextOperatingDate.label}`)
-                        : (isAmharic ? "ፍለጋ ቀይር" : "Modify Search")
-                    }
-                    onAction={() => {
-                      if (nextOperatingDate) {
-                        handleDateChange(nextOperatingDate.iso);
-                      } else {
-                        navigate('/');
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    {trips.map((trip) => (
-                      <TripCard
-                        key={trip._id}
-                        trip={trip}
-                        travelDate={dateParam}
-                        passengersCount={passengersParam}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Right Side: Route Photo & Map Panel */}
-              <div className="hidden xl:block w-[340px] flex-shrink-0 sticky top-28 h-[calc(100vh-140px)] rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 relative flex flex-col">
-                {/* View Mode Toggle Pill */}
-                <div className="absolute top-3 right-3 z-20 flex items-center bg-black/60 backdrop-blur-md p-1 rounded-full border border-white/20 shadow-md">
-                  <button
-                    onClick={() => setSideView('photo')}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition-colors ${
-                      sideView === 'photo'
-                        ? 'bg-brand-emerald text-white shadow-xs'
-                        : 'text-gray-300 hover:text-white'
-                    }`}
-                  >
-                    <ImageIcon className="w-3 h-3" />
-                    <span>{isAmharic ? 'ፎቶ' : 'Photo'}</span>
-                  </button>
-                  <button
-                    onClick={() => setSideView('map')}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition-colors ${
-                      sideView === 'map'
-                        ? 'bg-brand-emerald text-white shadow-xs'
-                        : 'text-gray-300 hover:text-white'
-                    }`}
-                  >
-                    <MapIcon className="w-3 h-3" />
-                    <span>{isAmharic ? 'ካርታ' : 'Map'}</span>
-                  </button>
+            {/* Trips List */}
+            <div className="flex flex-col gap-4 w-full">
+              {loading ? (
+                <div className="flex flex-col gap-4">
+                  <TripCardSkeleton />
+                  <TripCardSkeleton />
+                  <TripCardSkeleton />
                 </div>
-
-                {!loading && (
-                  <>
-                    {sideView === 'photo' && routePhoto ? (
-                      <div className="relative w-full h-full bg-gray-900 overflow-hidden">
-                        <img
-                          src={routePhoto}
-                          alt="Route corridor"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30" />
-                        <div className="absolute top-4 left-4 z-10">
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/70 backdrop-blur-md text-emerald-300 border border-emerald-500/30">
-                            {isAmharic ? 'የኢትዮጵያ ውብ የመንገድ ገጽታ' : 'Ethiopian Scenic Corridor'}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <iframe
-                        title="Route Map"
-                        src={`https://maps.google.com/maps?q=${encodeURIComponent((originCity?.name || fromParam) + ' to ' + (destCity?.name || toParam) + ', Ethiopia')}&t=&z=6&ie=UTF8&iwloc=&output=embed`}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        style={{ border: 0 }}
-                        allowFullScreen
-                        className="absolute inset-0 z-0"
-                      ></iframe>
-                    )}
-
-                    {/* Distance overlay */}
-                    {trips.length > 0 && trips[0].route?.distanceKm && (
-                      <div className="absolute bottom-4 left-4 right-4 z-10 bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-lg border border-gray-100 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <ArrowRight className="w-4 h-4 text-brand-emerald" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] uppercase tracking-wider font-bold text-brand-textMuted">
-                              {isAmharic ? 'የመንገዱ ርቀት' : 'Route Distance'}
-                            </span>
-                            <span className="text-sm font-black text-brand-dark">
-                              {trips[0].route.distanceKm} km
-                            </span>
-                          </div>
-                        </div>
-                        {trips[0].route?.estimatedDurationHours && (
-                          <div className="text-right">
-                            <span className="text-[10px] uppercase tracking-wider font-bold text-brand-textMuted block">
-                              {isAmharic ? 'ግምታዊ ሰዓት' : 'Est. Time'}
-                            </span>
-                            <span className="text-sm font-black text-brand-dark">
-                              ~{trips[0].route.estimatedDurationHours} {isAmharic ? 'ሰዓት' : 'hrs'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-                {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                )}
-              </div>
+              ) : error ? (
+                <ErrorState message={error} onRetry={fetchSearchResults} />
+              ) : trips.length === 0 ? (
+                <EmptyState
+                  icon={Bus}
+                  title={isAmharic ? "በዚህ ቀን የተመደበ ጉዞ የለም" : "No Trips on This Date"}
+                  description={
+                    currentRoute?.operatingDays && currentRoute.operatingDays.length > 0 && currentRoute.operatingDays.length < 7
+                      ? (isAmharic
+                          ? `ይህ መስመር የሚሰራው በ: ${currentRoute.operatingDays.join(', ')} ነው። የተመደቡ ሰዓታት: ${currentRoute.departureTimes?.join(', ') || '06:00 AM, 08:30 AM'}። እባክዎ ከላይ ካሉት ቀናት ውስጥ አንዱን ይምረጡ።`
+                          : `This route operates on: ${currentRoute.operatingDays.join(', ')}. Scheduled departures: ${currentRoute.departureTimes?.join(' • ') || '06:00 AM, 08:30 AM'}. Please choose an operating day from the date selector above.`)
+                      : (isAmharic 
+                          ? `ከ ${originCity?.amharicName || fromParam} ወደ ${destCity?.amharicName || toParam} በ ${formattedDate} የተመደበ ጉዞ የለም። እባክዎ ከላይ ካሉት ቀናት ውስጥ አንዱን ይምረጡ።`
+                          : `No scheduled departures found from ${originCity?.name || fromParam} to ${destCity?.name || toParam} on ${formattedDate}. Try selecting an upcoming date from above.`)
+                  }
+                  actionText={
+                    nextOperatingDate
+                      ? (isAmharic ? `ወደ ${nextOperatingDate.label} ቀይር` : `Switch to ${nextOperatingDate.label}`)
+                      : (isAmharic ? "ፍለጋ ቀይር" : "Modify Search")
+                  }
+                  onAction={() => {
+                    if (nextOperatingDate) {
+                      handleDateChange(nextOperatingDate.iso);
+                    } else {
+                      navigate('/');
+                    }
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {trips.map((trip) => (
+                    <TripCard
+                      key={trip._id}
+                      trip={trip}
+                      travelDate={dateParam}
+                      passengersCount={passengersParam}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
