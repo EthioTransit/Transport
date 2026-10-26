@@ -8,6 +8,7 @@ import {
   User,
   ShieldCheck,
   Printer,
+  Download,
   CheckCircle,
   Tag,
 } from 'lucide-react';
@@ -28,7 +29,14 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
     if (onPrint) {
       onPrint();
     } else {
+      const originalTitle = document.title;
+      if (ticket?.ticketNumber) {
+        document.title = `EthioTransit-Ticket-${ticket.ticketNumber}`;
+      }
       window.print();
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1500);
     }
   };
 
@@ -238,10 +246,12 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
             </div>
             <button
               onClick={handlePrint}
-              className="no-print print:hidden inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-gray-100 hover:bg-gray-200 text-brand-textMain text-xs font-bold transition-colors"
+              className="no-print print:hidden inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-emerald hover:bg-brand-deep text-white text-xs font-black transition-all shadow-sm hover:shadow hover:-translate-y-0.5"
+              title={isAmharic ? 'ቲኬትዎን ያትሙ ወይም እንደ PDF ያውርዱ' : 'Print or download your ticket as PDF'}
             >
-              <Printer className="w-3.5 h-3.5 text-brand-emerald" />
-              <span>{isAmharic ? 'አትም' : 'Print'}</span>
+              <Printer className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5" />
+              <span>{isAmharic ? 'አትም / PDF አውርድ' : 'Print / Download PDF'}</span>
             </button>
           </div>
         </div>

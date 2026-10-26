@@ -181,6 +181,7 @@ export const ticketsApi = {
   getById: (id: string) => apiRequest<Ticket>(`/tickets/${id}`),
   getByBooking: (bookingId: string) => apiRequest<Ticket[]>(`/tickets/booking/${bookingId}`),
   getMyTickets: () => apiRequest<Ticket[]>('/tickets/my'),
+  lookup: (query: string) => apiRequest<Ticket[]>(`/tickets/lookup/${encodeURIComponent(query)}`),
 };
 
 export const boardingApi = {

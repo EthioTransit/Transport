@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Luggage,
   Star,
+  Printer,
+  Download,
 } from 'lucide-react';
 import { ticketsApi, bookingsApi } from '../api/endpoints';
 import { useAuth } from '../features/auth/useAuth';
@@ -58,15 +60,45 @@ export const PassengerDashboardPage: React.FC = () => {
   const isAmharic = i18n.language === 'am';
   const currencyLabel = isAmharic ? 'ብር' : BRAND.currency;
 
-  
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
 
+  // Guest Ticket Lookup State
+  const [lookupQuery, setLookupQuery] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResults, setLookupResults] = useState<Ticket[] | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
+  const handleLookup = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const q = lookupQuery.trim();
+    if (!q) return;
+
+    setLookupLoading(true);
+    setLookupError(null);
+    try {
+      const results = await ticketsApi.lookup(q);
+      setLookupResults(results);
+      if (results.length === 0) {
+        setLookupError(
+          isAmharic
+            ? 'በተሰጠው መለያ ምንም ቲኬት አልተገኘም። እባክዎ የቲኬት ቁጥርዎን፣ የማስያዣ መለያዎን ወይም የስልክ ቁጥርዎን ያረጋግጡ።'
+            : 'No tickets found matching this query. Please check your Ticket Number (TK-...), Booking Ref (BK-...), or Phone Number.'
+        );
+      }
+    } catch (err: any) {
+      setLookupError(err.message || (isAmharic ? 'ቲኬቶችን መፈለግ አልተቻለም።' : 'Failed to search for tickets.'));
+      setLookupResults([]);
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      setLoading(false);
       return;
     }
     const fetchData = async () => {
@@ -110,6 +142,183 @@ export const PassengerDashboardPage: React.FC = () => {
           <span className="text-sm font-semibold text-brand-textMuted">
             {isAmharic ? 'ዳሽቦርድዎን በመጫን ላይ...' : 'Loading your dashboard...'}
           </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated Guest View: Dedicated Find, Print & Download Ticket portal
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#F4F7FB] pb-16">
+        {/* Guest Hero */}
+        <div className="bg-gradient-to-br from-[#031d12] via-[#052d1a] to-[#0a4729] text-white pt-10 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+          <div className="max-w-4xl mx-auto relative z-10 text-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-3 border border-emerald-400/30">
+              <TicketIcon className="w-3.5 h-3.5" />
+              {isAmharic ? 'የመሳፈሪያ ዲጂታል ቲኬት ፖርታል' : 'Boarding Pass & Ticket Portal'}
+            </span>
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
+              {isAmharic ? 'ቲኬትዎን ፈልገው ያትሙ / ያውርዱ' : 'Find, Print & Download Your Ticket'}
+            </h1>
+            <p className="text-emerald-200/80 text-xs sm:text-sm mt-2 max-w-xl mx-auto">
+              {isAmharic
+                ? 'የቲኬት ቁጥርዎን (ለምሳሌ፡ TK-...)፣ የማስያዣ መለያዎን (ለምሳሌ፡ BK-...) ወይም ስልክ ቁጥርዎን በማስገባት የመሳፈሪያ ፈቃድዎን በቀላሉ ይመልከቱ፣ ያትሙ ወይም እንደ PDF ያውርዱ።'
+                : 'Enter your Ticket Number (e.g. TK-...), Booking Reference (e.g. BK-...), or Passenger Phone Number to view, print, or download your official boarding pass.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Search Card */}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 -mt-10 relative z-20">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-100">
+            <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={lookupQuery}
+                  onChange={(e) => setLookupQuery(e.target.value)}
+                  placeholder={
+                    isAmharic
+                      ? 'የቲኬት ቁጥር (TK-...)፣ የማስያዣ መለያ (BK-...)፣ ወይም ስልክ ቁጥር...'
+                      : 'Ticket Number (TK-...), Booking Ref (BK-...), or Phone (09...)...'
+                  }
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-brand-emerald focus:ring-2 focus:ring-brand-emerald/20 text-sm font-semibold text-brand-dark outline-none transition-all"
+                  autoFocus
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={lookupLoading || !lookupQuery.trim()}
+                className="px-6 py-3.5 rounded-xl bg-brand-emerald hover:bg-brand-deep text-white font-black text-sm shadow-md shadow-brand-emerald/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+              >
+                {lookupLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                <span>{isAmharic ? 'ቲኬት ፈልግ' : 'Find Ticket'}</span>
+              </button>
+            </form>
+
+            {lookupError && (
+              <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-800 text-xs sm:text-sm font-medium">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">{isAmharic ? 'ምንም ቲኬት አልተገኘም' : 'Ticket Lookup'}</p>
+                  <p className="mt-0.5 text-red-700">{lookupError}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Results List */}
+          {lookupResults && lookupResults.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base sm:text-lg font-black text-brand-dark flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-brand-emerald" />
+                  {isAmharic
+                    ? `የተገኙ ቲኬቶች (${lookupResults.length})`
+                    : `Matching Tickets (${lookupResults.length})`}
+                </h2>
+                <button
+                  onClick={() => {
+                    setLookupResults(null);
+                    setLookupQuery('');
+                  }}
+                  className="text-xs font-bold text-gray-500 hover:text-gray-800"
+                >
+                  {isAmharic ? 'ፍለጋውን አጽዳ' : 'Clear search'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {lookupResults.map((ticket) => (
+                  <div
+                    key={ticket._id}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-md p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-emerald-200 transition-all"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-brand-emerald flex items-center justify-center shrink-0">
+                        <Bus className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-black text-brand-dark text-base">{ticket.routeTitle}</h3>
+                          <StatusBadge status={ticket.status} isAmharic={isAmharic} />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-brand-textMuted font-medium">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {ticket.departureDate}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            {ticket.departureTime}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <TicketIcon className="w-3.5 h-3.5" />
+                            {isAmharic ? 'ወንበር: ' : 'Seat: '}
+                            <strong className="text-brand-emerald">{ticket.seatNumber}</strong>
+                          </span>
+                          <span>•</span>
+                          <span className="font-bold text-brand-dark">{ticket.passengerName}</span>
+                        </div>
+                        <p className="font-mono text-xs text-brand-emerald font-bold mt-1.5">
+                          {ticket.ticketNumber}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0">
+                      <Link
+                        to={`/tickets/${ticket._id}`}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-emerald hover:bg-brand-deep text-white text-xs font-black shadow-md shadow-brand-emerald/20 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <Download className="w-3.5 h-3.5" />
+                        <span>{isAmharic ? 'አትም / PDF አውርድ' : 'Print / Download PDF'}</span>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* PDF Tip */}
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-center">
+                <p className="text-xs text-emerald-800 font-semibold flex items-center justify-center gap-1.5">
+                  <Download className="w-4 h-4 text-brand-emerald shrink-0" />
+                  <span>
+                    {isAmharic
+                      ? 'ቲኬቱን በስልክዎ ወይም በኮምፒውተርዎ ለማስቀመጥ "አትም / PDF አውርድ" የሚለውን ይጫኑና በማተሚያው ምርጫ ላይ "Save as PDF" ይምረጡ።'
+                      : 'To save your ticket to your device, click "Print / Download PDF" and select "Save as PDF" in printer options.'}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Account Login CTA */}
+          <div className="mt-8 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-black text-brand-dark text-sm sm:text-base">
+                {isAmharic ? 'የኢትዮ-ትራንዚት አካውንት አለዎት?' : 'Have an EthioTransit Account?'}
+              </h3>
+              <p className="text-xs text-brand-textMuted mt-0.5">
+                {isAmharic
+                  ? 'ሁሉንም የተጓዟቸውን እና የሚመጡ ጉዞዎችዎን በአንድ ቦታ ለማየት ወደ አካውንትዎ ይግቡ።'
+                  : 'Sign in to see all your upcoming journeys, active tickets, and travel history in one place.'}
+              </p>
+            </div>
+            <Link
+              to="/login"
+              className="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-brand-dark text-xs font-bold transition-colors text-center shrink-0"
+            >
+              {isAmharic ? 'ወደ አካውንት ይግቡ →' : 'Sign In →'}
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -263,8 +472,10 @@ export const PassengerDashboardPage: React.FC = () => {
                         <span className="text-brand-textLight">{isAmharic ? 'ወንበር ' : 'Seat '}</span>
                         <span className="font-black text-brand-emerald">{ticket.seatNumber}</span>
                       </div>
-                      <span className="text-xs font-bold text-brand-emerald group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                        {isAmharic ? 'QR ይመልከቱ' : 'View QR'} <ArrowRight className="w-3 h-3" />
+                      <span className="text-xs font-bold text-brand-emerald group-hover:translate-x-0.5 transition-transform flex items-center gap-1.5">
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>{isAmharic ? 'ይመልከቱ / ያትሙ' : 'View & Print'}</span>
+                        <ArrowRight className="w-3 h-3" />
                       </span>
                     </div>
                   </div>
@@ -386,13 +597,29 @@ export const PassengerDashboardPage: React.FC = () => {
                         {booking.total} {currencyLabel}
                       </span>
                       {booking.tickets && (booking.tickets as any[]).length > 0 && (
-                        <Link
-                          to={`/tickets/${(booking.tickets as any[])[0]._id || (booking.tickets as any[])[0]}`}
-                          className="px-3 py-1.5 rounded-btn bg-emerald-50 text-brand-emerald text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
-                        >
-                          <QrCode className="w-3 h-3" />
-                          {isAmharic ? 'ቲኬት' : 'Ticket'}
-                        </Link>
+                        (booking.tickets as any[]).length === 1 ? (
+                          <Link
+                            to={`/tickets/${(booking.tickets as any[])[0]._id || (booking.tickets as any[])[0]}`}
+                            className="px-3 py-1.5 rounded-btn bg-emerald-50 text-brand-emerald text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>{isAmharic ? 'ቲኬት አትም' : 'Print Ticket'}</span>
+                          </Link>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5">
+                            {(booking.tickets as any[]).map((t: any, tidx: number) => (
+                              <Link
+                                key={t._id || tidx}
+                                to={`/tickets/${t._id || t}`}
+                                className="px-2.5 py-1 rounded-btn bg-emerald-50 text-brand-emerald text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                                title={isAmharic ? `ወንበር ${t.seatNumber || tidx + 1} ቲኬት ያትሙ` : `Print Ticket (Seat ${t.seatNumber || tidx + 1})`}
+                              >
+                                <Printer className="w-3 h-3" />
+                                <span>{isAmharic ? `ወንበር ${t.seatNumber || tidx + 1}` : `Seat ${t.seatNumber || tidx + 1}`}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        )
                       )}
                     </div>
                   </div>

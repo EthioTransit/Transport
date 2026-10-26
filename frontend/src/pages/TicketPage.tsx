@@ -60,6 +60,17 @@ export const TicketPage: React.FC = () => {
     }
   };
 
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    if (ticket?.ticketNumber) {
+      document.title = `EthioTransit-Ticket-${ticket.ticketNumber}`;
+    }
+    window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1500);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center p-6">
@@ -142,11 +153,13 @@ export const TicketPage: React.FC = () => {
               </button>
 
               <button
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-colors shadow-xs"
+                onClick={handlePrint}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-emerald hover:bg-emerald-500 text-white text-xs font-black transition-all shadow-md shadow-emerald-950/30 hover:-translate-y-0.5 active:translate-y-0"
+                title={isAmharic ? 'ቲኬትዎን ያትሙ ወይም እንደ PDF ያውርዱ' : 'Print ticket or save as PDF'}
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{isAmharic ? 'አትም' : 'Print'}</span>
+                <Download className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'አትም / PDF አውርድ' : 'Print / Download PDF'}</span>
               </button>
             </div>
           </div>
@@ -155,10 +168,23 @@ export const TicketPage: React.FC = () => {
 
       {/* Ticket */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <DigitalTicketCard ticket={ticket} onPrint={() => window.print()} />
+        <DigitalTicketCard ticket={ticket} onPrint={handlePrint} />
+
+        {/* Download as PDF tip */}
+        <div className="no-print print:hidden mt-3 max-w-md mx-auto text-center">
+          <p className="text-[11px] text-brand-textMuted flex items-center justify-center gap-1.5 font-medium">
+            <Download className="w-3.5 h-3.5 text-brand-emerald shrink-0" />
+            <span>
+              {isAmharic
+                ? 'በማተሚያ ሳጥኑ ላይ "Save as PDF" በመምረጥ ቲኬቱን በስልክዎ ወይም በኮምፒውተርዎ ማስቀመጥ ይችላሉ።'
+                : 'Select "Save as PDF" in printer options to download an offline ticket.'}
+            </span>
+          </p>
+        </div>
 
         {/* Show this QR code instruction */}
-        <div className="no-print print:hidden mt-6 max-w-xl mx-auto">
+        <div className="no-print print:hidden mt-5 max-w-xl mx-auto">
+
           <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs sm:text-sm text-emerald-800 font-semibold shadow-xs">
             <div className="w-8 h-8 rounded-xl bg-brand-emerald flex items-center justify-center flex-shrink-0">
               <span className="text-white text-base">📱</span>

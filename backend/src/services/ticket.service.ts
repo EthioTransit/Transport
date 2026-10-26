@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Ticket, ITicket } from '../models/Ticket';
 import { Booking } from '../models/Booking';
 import { Trip } from '../models/Trip';
@@ -67,8 +68,13 @@ export class TicketService {
     return generatedTickets;
   }
 
-  static async getTicketById(ticketId: string) {
-    const ticket = await Ticket.findById(ticketId)
+  static async getTicketById(identifier: string) {
+    const isObjectId = mongoose.isValidObjectId(identifier);
+    const query = isObjectId
+      ? { $or: [{ _id: identifier }, { ticketNumber: identifier }, { qrVerificationToken: identifier }] }
+      : { $or: [{ ticketNumber: identifier }, { qrVerificationToken: identifier }] };
+
+    const ticket = await Ticket.findOne(query)
       .populate('booking')
       .populate({
         path: 'trip',
@@ -80,6 +86,44 @@ export class TicketService {
     return ticket;
   }
 
+  static async lookupTickets(query: string) {
+    const q = query.trim();
+    if (!q) return [];
+
+    // 1. Try ticket number, QR token, or phone
+    let tickets = await Ticket.find({
+      $or: [
+        { ticketNumber: { $regex: new RegExp(`^${q}$`, 'i') } },
+        { qrVerificationToken: q },
+        { passengerPhone: q },
+      ],
+    })
+      .populate('booking')
+      .populate({
+        path: 'trip',
+        populate: ['operator', 'vehicle', 'driver'],
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (tickets.length > 0) return tickets;
+
+    // 2. Try booking reference
+    const booking = await Booking.findOne({ bookingReference: q.toUpperCase() });
+    if (booking) {
+      tickets = await Ticket.find({ booking: booking._id })
+        .populate('booking')
+        .populate({
+          path: 'trip',
+          populate: ['operator', 'vehicle', 'driver'],
+        })
+        .sort({ seatNumber: 1 })
+        .lean();
+    }
+
+    return tickets;
+  }
+
   static async getTicketsByBooking(bookingId: string) {
     return await Ticket.find({ booking: bookingId }).sort({ seatNumber: 1 }).lean();
   }
@@ -88,3 +132,4 @@ export class TicketService {
     return await Ticket.find({ user: userId }).sort({ createdAt: -1 }).lean();
   }
 }
+

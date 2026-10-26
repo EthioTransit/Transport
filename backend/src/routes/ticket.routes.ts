@@ -6,6 +6,10 @@ const router = Router();
 
 router.get('/my', authenticate, TicketController.getMyTickets);
 router.get('/booking/:bookingId', TicketController.getTicketsByBooking);
+router.get('/lookup/:query', TicketController.lookupTicket);
 router.get('/:id', TicketController.getTicketById);
+
+
+
 
 export default router;

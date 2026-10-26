@@ -12,6 +12,8 @@ import {
   Search,
   Wallet,
   ChevronRight,
+  Printer,
+  Download,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ticketsApi, bookingsApi } from '../api/endpoints';
@@ -57,7 +59,7 @@ export const MyTripsPage: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/my-tickets');
       return;
     }
     const fetchData = async () => {
@@ -311,13 +313,29 @@ export const MyTripsPage: React.FC = () => {
                           </span>
                         </div>
                         {booking.tickets && (booking.tickets as any[]).length > 0 && (
-                          <Link
-                            to={`/tickets/${(booking.tickets as any[])[0]._id || (booking.tickets as any[])[0]}`}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-brand-emerald hover:bg-brand-deep text-white text-xs font-bold rounded-btn transition-colors shadow-sm"
-                          >
-                            <QrCode className="w-4 h-4" />
-                            {isAmharic ? 'ቲኬት ይመልከቱ' : 'View Ticket'}
-                          </Link>
+                          (booking.tickets as any[]).length === 1 ? (
+                            <Link
+                              to={`/tickets/${(booking.tickets as any[])[0]._id || (booking.tickets as any[])[0]}`}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-brand-emerald hover:bg-brand-deep text-white text-xs font-bold rounded-btn transition-colors shadow-sm"
+                            >
+                              <Printer className="w-4 h-4" />
+                              <span>{isAmharic ? 'ቲኬት አትም' : 'Print Ticket'}</span>
+                            </Link>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {(booking.tickets as any[]).map((t: any, tidx: number) => (
+                                <Link
+                                  key={t._id || tidx}
+                                  to={`/tickets/${t._id || t}`}
+                                  className="px-3 py-1.5 rounded-btn bg-emerald-50 text-brand-emerald text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                                  title={isAmharic ? `ወንበር ${t.seatNumber || tidx + 1} ቲኬት ያትሙ` : `Print Ticket (Seat ${t.seatNumber || tidx + 1})`}
+                                >
+                                  <Printer className="w-3.5 h-3.5" />
+                                  <span>{isAmharic ? `ወንበር ${t.seatNumber || tidx + 1}` : `Seat ${t.seatNumber || tidx + 1}`}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )
                         )}
                       </div>
                     </div>
@@ -440,10 +458,13 @@ export const MyTripsPage: React.FC = () => {
 
                         {/* CTA */}
                         <div className="mt-4 flex items-center justify-between">
-                          <span className="text-xs font-bold text-brand-emerald group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                            {ticket.status === 'ISSUED'
-                              ? isAmharic ? 'QR ኮድ ይመልከቱ' : 'View QR Code'
-                              : isAmharic ? 'ዝርዝር ይመልከቱ' : 'View Details'}{' '}
+                          <span className="text-xs font-bold text-brand-emerald group-hover:translate-x-0.5 transition-transform flex items-center gap-1.5">
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>
+                              {ticket.status === 'ISSUED'
+                                ? isAmharic ? 'ይመልከቱ / ያትሙ' : 'View & Print'
+                                : isAmharic ? 'ዝርዝር ይመልከቱ' : 'View Details'}
+                            </span>
                             <ChevronRight className="w-3.5 h-3.5" />
                           </span>
                           {ticket.status === 'ISSUED' && (

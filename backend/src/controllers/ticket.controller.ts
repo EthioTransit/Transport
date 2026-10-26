@@ -4,6 +4,15 @@ import { sendSuccess, sendError } from '../utils/response.utils';
 import { UserRole } from '../types';
 
 export class TicketController {
+  static async lookupTicket(req: Request, res: Response) {
+    try {
+      const tickets = await TicketService.lookupTickets(req.params.query);
+      return sendSuccess(res, tickets);
+    } catch (err: any) {
+      return sendError(res, err.message, 500);
+    }
+  }
+
   static async getTicketById(req: Request, res: Response) {
     try {
       const ticket = await TicketService.getTicketById(req.params.id);
