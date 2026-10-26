@@ -160,18 +160,68 @@
 
 /* Print optimizations for boarding tickets */
 @media print {
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
 
-  header,
-  footer,
-  nav,
-  button {
-    display: none !important;
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   body {
-    background: white !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide all non-ticket page chrome */
+  header,
+  footer,
+  nav,
+  button,
+  .no-print,
+  #pre-footer-cta {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Only display the printable ticket */
+  body:has(#printable-ticket) * {
+    visibility: hidden;
+  }
+
+  body:has(#printable-ticket) #printable-ticket,
+  body:has(#printable-ticket) #printable-ticket * {
+    visibility: visible;
+  }
+
+  #printable-ticket {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 460px !important;
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 16px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  #printable-ticket button,
+  #printable-ticket .no-print {
+    display: none !important;
+    visibility: hidden !important;
   }
 }
+
 
 
 /* Mobile safe area padding utilities */

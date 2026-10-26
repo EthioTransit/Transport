@@ -3,14 +3,44 @@ import { AuthService } from '../services/auth.service';
 import { sendSuccess, sendError } from '../utils/response.utils';
 
 export class AuthController {
+  static async initiateRegistration(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AuthService.initiateRegistration(req.body);
+      return sendSuccess(res, result, 'Verification code sent to email', 200);
+    } catch (err: any) {
+      return sendError(res, err.message, 400, 'INITIATE_REGISTRATION_FAILED');
+    }
+  }
+
+  static async verifyRegistrationOtp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, otp } = req.body;
+      const result = await AuthService.verifyRegistrationOtp(email, otp);
+      return sendSuccess(res, result, 'Account verified and registered successfully', 201);
+    } catch (err: any) {
+      return sendError(res, err.message, 400, 'OTP_VERIFICATION_FAILED');
+    }
+  }
+
+  static async resendRegistrationOtp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      const result = await AuthService.resendRegistrationOtp(email);
+      return sendSuccess(res, result, 'New verification code sent to email', 200);
+    } catch (err: any) {
+      return sendError(res, err.message, 400, 'RESEND_OTP_FAILED');
+    }
+  }
+
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await AuthService.register(req.body);
-      return sendSuccess(res, result, 'Account registered successfully', 201);
+      return sendSuccess(res, result, 'Registration processed successfully', 201);
     } catch (err: any) {
       return sendError(res, err.message, 400, 'REGISTRATION_FAILED');
     }
   }
+
 
   static async login(req: Request, res: Response, next: NextFunction) {
     try {

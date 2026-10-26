@@ -12,6 +12,21 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  initiateRegistration: (data: any) =>
+    apiRequest<{ message: string; email: string; expiresInSeconds: number; devCode?: string }>('/auth/register/initiate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  verifyRegistrationOtp: (data: { email: string; otp: string }) =>
+    apiRequest<{ user: User; accessToken: string; refreshToken: string }>('/auth/register/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  resendRegistrationOtp: (data: { email: string }) =>
+    apiRequest<{ message: string; email: string; expiresInSeconds: number; devCode?: string }>('/auth/register/resend-otp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   getMe: () => apiRequest<User>('/auth/me'),
 };
 

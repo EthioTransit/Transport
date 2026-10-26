@@ -113,7 +113,7 @@ export const TicketPage: React.FC = () => {
   return (
     <div className="bg-brand-bg min-h-screen">
       {/* Page Header */}
-      <div className="bg-[#031d12] text-white py-5 sm:py-6 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50">
+      <div className="no-print print:hidden bg-[#031d12] text-white py-5 sm:py-6 px-4 sm:px-6 lg:px-8 border-b border-emerald-900/50">
         <div className="max-w-4xl mx-auto">
           <Link
             to="/my-tickets"
@@ -158,7 +158,7 @@ export const TicketPage: React.FC = () => {
         <DigitalTicketCard ticket={ticket} onPrint={() => window.print()} />
 
         {/* Show this QR code instruction */}
-        <div className="mt-6 max-w-xl mx-auto">
+        <div className="no-print print:hidden mt-6 max-w-xl mx-auto">
           <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs sm:text-sm text-emerald-800 font-semibold shadow-xs">
             <div className="w-8 h-8 rounded-xl bg-brand-emerald flex items-center justify-center flex-shrink-0">
               <span className="text-white text-base">📱</span>
@@ -172,7 +172,7 @@ export const TicketPage: React.FC = () => {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="mt-6 sm:mt-8 max-w-xl mx-auto flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="no-print print:hidden mt-6 sm:mt-8 max-w-xl mx-auto flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             to="/my-tickets"
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white border border-gray-200 text-xs sm:text-sm font-bold text-brand-textMain hover:bg-gray-50 transition-colors text-center shadow-xs"

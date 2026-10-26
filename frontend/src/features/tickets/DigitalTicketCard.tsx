@@ -39,7 +39,8 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
     <div className="max-w-md mx-auto my-2 sm:my-4 w-full">
       {/* Main Ticket Card */}
       <div
-        className={`bg-white rounded-cardLg shadow-2xl overflow-hidden relative transition-all ${
+        id="printable-ticket"
+        className={`printable-ticket bg-white rounded-cardLg shadow-2xl overflow-hidden relative transition-all ${
           isCancelled ? 'opacity-70 grayscale' : ''
         }`}
         style={{ boxShadow: '0 20px 60px -10px rgba(11, 143, 85, 0.15), 0 6px 20px -4px rgba(0,0,0,0.08)' }}
@@ -237,7 +238,7 @@ export const DigitalTicketCard: React.FC<DigitalTicketCardProps> = ({ ticket, on
             </div>
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-gray-100 hover:bg-gray-200 text-brand-textMain text-xs font-bold transition-colors"
+              className="no-print print:hidden inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-gray-100 hover:bg-gray-200 text-brand-textMain text-xs font-bold transition-colors"
             >
               <Printer className="w-3.5 h-3.5 text-brand-emerald" />
               <span>{isAmharic ? 'አትም' : 'Print'}</span>
