@@ -23,6 +23,7 @@
 
   /* Prevent automatic iOS zooming on text inputs */
   @media screen and (max-width: 640px) {
+
     input[type='text'],
     input[type='email'],
     input[type='tel'],
@@ -60,15 +61,19 @@
   0% {
     transform: translateX(-120%) scaleX(1);
   }
+
   48% {
     transform: translateX(110vw) scaleX(1);
   }
+
   50% {
     transform: translateX(110vw) scaleX(-1);
   }
+
   98% {
     transform: translateX(-120%) scaleX(-1);
   }
+
   100% {
     transform: translateX(-120%) scaleX(1);
   }
@@ -78,15 +83,19 @@
   0% {
     transform: translateX(110vw) scaleX(-1);
   }
+
   48% {
     transform: translateX(-120%) scaleX(-1);
   }
+
   50% {
     transform: translateX(-120%) scaleX(1);
   }
+
   98% {
     transform: translateX(110vw) scaleX(1);
   }
+
   100% {
     transform: translateX(110vw) scaleX(-1);
   }
@@ -96,16 +105,20 @@
   from {
     stroke-dashoffset: 60;
   }
+
   to {
     stroke-dashoffset: 0;
   }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.9;
     transform: scale(1.15);
@@ -113,9 +126,12 @@
 }
 
 @keyframes floatGentle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-6px);
   }
@@ -144,9 +160,14 @@
 
 /* Print optimizations for boarding tickets */
 @media print {
-  header, footer, nav, button {
+
+  header,
+  footer,
+  nav,
+  button {
     display: none !important;
   }
+
   body {
     background: white !important;
   }
@@ -157,6 +178,7 @@
 .safe-area-pb {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
 }
+
 .safe-area-pt {
   padding-top: max(env(safe-area-inset-top, 0px), 0px);
 }
@@ -166,24 +188,39 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
+
 .touch-scroll::-webkit-scrollbar {
   display: none;
 }
 
 /* Page fade-in animation */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-fade-in-up {
   animation: fadeInUp 0.25s ease-out forwards;
 }
 
 /* Skeleton shimmer effect */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
+
 .animate-shimmer {
   background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
@@ -192,23 +229,43 @@
 
 /* Slide in from top */
 @keyframes slideInFromTop {
-  from { opacity: 0; transform: translateY(-12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-slide-in-top {
   animation: slideInFromTop 0.2s ease-out forwards;
 }
 
 /* Scale in (for modals, popovers) */
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
 .animate-scale-in {
   animation: scaleIn 0.15s ease-out forwards;
 }
 
 /* Explicit w-13 / h-13 utility classes */
-.w-13 { width: 3.25rem; }
-.h-13 { height: 3.25rem; }
+.w-13 {
+  width: 3.25rem;
+}
 
+.h-13 {
+  height: 3.25rem;
+}
