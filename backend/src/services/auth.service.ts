@@ -46,10 +46,11 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, salt);
 
     // Generate cryptographic 6-digit OTP code
+    const expiryMinutes = Math.max(1, parseInt(process.env.OTP_EXPIRY_MINUTES || '5', 10));
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const otpSalt = await bcrypt.genSalt(8);
     const otpHash = await bcrypt.hash(otpCode, otpSalt);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
 
     // Upsert pending registration record
     await OtpVerification.findOneAndUpdate(
@@ -77,13 +78,16 @@ export class AuthService {
     const emailSent = await BrevoService.sendOtpEmail(
       email,
       `${data.firstName} ${data.lastName}`,
-      otpCode
+      otpCode,
+      expiryMinutes
     );
 
     return {
-      message: 'Verification code sent to email',
+      message: `Verification code sent to email. Valid for ${expiryMinutes} minutes.`,
       email,
-      expiresInSeconds: 600,
+      expiresInSeconds: expiryMinutes * 60,
+      expiryMinutes,
+      expiresAt: expiresAt.toISOString(),
       emailSent,
       // Provide devCode fallback if Brevo key is not configured or in development
       ...((!process.env.BREVO_API_KEY || process.env.BREVO_API_KEY.includes('xxxx') || process.env.NODE_ENV !== 'production')
@@ -195,10 +199,11 @@ export class AuthService {
       throw new Error(`Please wait ${waitSeconds}s before requesting another verification code.`);
     }
 
+    const expiryMinutes = Math.max(1, parseInt(process.env.OTP_EXPIRY_MINUTES || '5', 10));
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const otpSalt = await bcrypt.genSalt(8);
     const otpHash = await bcrypt.hash(otpCode, otpSalt);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
 
     pending.otpHash = otpHash;
     pending.expiresAt = expiresAt;
@@ -209,13 +214,16 @@ export class AuthService {
     const emailSent = await BrevoService.sendOtpEmail(
       normalizedEmail,
       `${pending.registrationData.firstName} ${pending.registrationData.lastName}`,
-      otpCode
+      otpCode,
+      expiryMinutes
     );
 
     return {
-      message: 'New verification code sent',
+      message: `New verification code sent. Valid for ${expiryMinutes} minutes.`,
       email: normalizedEmail,
-      expiresInSeconds: 600,
+      expiresInSeconds: expiryMinutes * 60,
+      expiryMinutes,
+      expiresAt: expiresAt.toISOString(),
       emailSent,
       ...((!process.env.BREVO_API_KEY || process.env.BREVO_API_KEY.includes('xxxx') || process.env.NODE_ENV !== 'production')
         ? { devCode: otpCode }

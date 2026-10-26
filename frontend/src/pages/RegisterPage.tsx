@@ -46,11 +46,15 @@ export const RegisterPage: React.FC = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
+  // OTP Expiration Countdown (in seconds)
+  const [otpExpiresIn, setOtpExpiresIn] = useState<number>(300);
+  const [expiryMinutes, setExpiryMinutes] = useState<number>(5);
+
   // Global UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cooldown countdown effect
+  // Cooldown countdown effect (for resend rate limiting)
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -58,6 +62,28 @@ export const RegisterPage: React.FC = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
+
+  // Expiration countdown effect (ticks down until OTP expires)
+  useEffect(() => {
+    if (step !== 'otp' || otpExpiresIn <= 0) return;
+    const timer = setInterval(() => {
+      setOtpExpiresIn((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, otpExpiresIn]);
+
+  // Format seconds to MM:SS
+  const formatTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Step 1: Initiate registration and send Brevo OTP
   const handleInitiateRegistration = async (e: React.FormEvent) => {
@@ -93,12 +119,17 @@ export const RegisterPage: React.FC = () => {
         setDevCode(null);
       }
 
+      const expSecs = res.expiresInSeconds || 300;
+      const expMins = res.expiryMinutes || Math.round(expSecs / 60);
+      setOtpExpiresIn(expSecs);
+      setExpiryMinutes(expMins);
+
       setStep('otp');
       setResendCooldown(60);
       setInfoMessage(
         isAmharic
-          ? `የ 6-ዲጂት የማረጋገጫ ኮድ ወደ ${email} ተልኳል።`
-          : `A 6-digit verification code has been sent to ${email}.`
+          ? `የ 6-ዲጂት የማረጋገጫ ኮድ ወደ ${email} ተልኳል (ለ ${expMins} ደቂቃዎች ያገለግላል)።`
+          : `A 6-digit verification code has been sent to ${email} (valid for ${expMins} minutes).`
       );
     } catch (err: any) {
       setError(
@@ -115,6 +146,16 @@ export const RegisterPage: React.FC = () => {
   // Step 2: Verify OTP and finalize account creation
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (otpExpiresIn <= 0) {
+      setError(
+        isAmharic
+          ? 'የማረጋገጫ ኮዱ ጊዜው አልቋል። እባክዎ "እንደገና ላክ" የሚለውን በመጫን አዲስ ኮድ ይቀበሉ።'
+          : 'The verification code has expired. Please click "Resend OTP" to request a fresh code.'
+      );
+      return;
+    }
+
     if (!otp || otp.trim().length !== 6) {
       setError(
         isAmharic
@@ -146,7 +187,7 @@ export const RegisterPage: React.FC = () => {
       setError(
         err.message ||
           (isAmharic
-            ? 'የማረጋገጫ ኮዱ ትክክል አይደለም። እባክዎ እንደገና ይሞክሩ።'
+            ? 'የማረጋገጫ ኮዱ ትክክል አይደለም ወይም ጊዜው አልቋል። እባክዎ እንደገና ይሞክሩ።'
             : 'Invalid or expired verification code. Please try again.')
       );
     } finally {
@@ -166,11 +207,18 @@ export const RegisterPage: React.FC = () => {
       if (res.devCode) {
         setDevCode(res.devCode);
       }
+
+      const expSecs = res.expiresInSeconds || 300;
+      const expMins = res.expiryMinutes || Math.round(expSecs / 60);
+      setOtpExpiresIn(expSecs);
+      setExpiryMinutes(expMins);
+      setOtp('');
+
       setResendCooldown(60);
       setInfoMessage(
         isAmharic
-          ? 'አዲስ የማረጋገጫ ኮድ ወደ ኢሜይልዎ ተልኳል!'
-          : 'A fresh verification code has been sent to your email!'
+          ? `አዲስ የማረጋገጫ ኮድ ተልኳል (ለ ${expMins} ደቂቃዎች ያገለግላል)!`
+          : `A fresh verification code has been sent (valid for ${expMins} minutes)!`
       );
     } catch (err: any) {
       setError(
@@ -265,8 +313,8 @@ export const RegisterPage: React.FC = () => {
               <p className="mt-4 text-sm sm:text-base text-emerald-100/70 leading-relaxed">
                 {step === 'otp'
                   ? isAmharic
-                    ? 'የመለያዎን ደህንነት ለመጠበቅ በBrevo በኩል የተላከውን የ 6-ዲጂት ሚስጥራዊ ቁጥር ያስገቡ።'
-                    : 'We ensure platform safety by verifying each traveler via secure Brevo transactional email.'
+                    ? `የመለያዎን ደህንነት ለመጠበቅ በBrevo በኩል የተላከውን የ 6-ዲጂት ሚስጥራዊ ቁጥር ያስገቡ። ኮዱ ለ ${expiryMinutes} ደቂቃዎች ብቻ ያገለግላል።`
+                    : `We ensure platform safety by verifying each traveler via secure Brevo transactional email. Code is valid for ${expiryMinutes} minutes.`
                   : isAmharic
                   ? 'ከአዲስ አበባ፣ ባህር ዳር፣ ጎንደር፣ ድሬዳዋ፣ ሐዋሳ እና ጂማ ፈጣን የመቀመጫ ምዝገባ፣ ህጋዊ ታሪፎች እና ፈጣን የQR ዲጂታል ቦርዲንግ ፓስ።'
                   : 'Fast seat reservation, official regulated fares, and tamper-proof digital QR boarding passes for all major routes.'}
@@ -523,12 +571,39 @@ export const RegisterPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Success Info Banner */}
-              {infoMessage && (
-                <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>{infoMessage}</span>
+              {/* Expiry Warning when Timer Hits 0 */}
+              {otpExpiresIn <= 0 ? (
+                <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+                    <div>
+                      <p className="font-extrabold text-amber-950">
+                        {isAmharic ? 'የማረጋገጫ ኮዱ ጊዜው አልቋል!' : 'Verification code has expired!'}
+                      </p>
+                      <p className="font-normal text-amber-800/90 mt-0.5">
+                        {isAmharic
+                          ? 'እባክዎ አዲስ ኮድ ለመቀበል "አዲስ ኮድ ላክ" የሚለውን ይጫኑ።'
+                          : 'Please request a fresh code to complete registration.'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={resendLoading}
+                    onClick={handleResendOtp}
+                    className="px-3.5 py-2 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs transition-colors shadow-xs shrink-0"
+                  >
+                    {isAmharic ? 'አዲስ ኮድ ላክ' : 'Resend Code'}
+                  </button>
                 </div>
+              ) : (
+                /* Success Info Banner */
+                infoMessage && (
+                  <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <span>{infoMessage}</span>
+                  </div>
+                )
               )}
 
               {/* Error Alert */}
@@ -557,9 +632,35 @@ export const RegisterPage: React.FC = () => {
               {/* OTP Form */}
               <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark mb-2">
-                    {isAmharic ? 'የ 6-ዲጂት የማረጋገጫ ኮድ' : '6-Digit Verification Code'}
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-dark">
+                      {isAmharic ? 'የ 6-ዲጂት የማረጋገጫ ኮድ' : '6-Digit Verification Code'}
+                    </label>
+
+                    {/* Expiry Badge */}
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <span className="text-[11px] font-bold text-brand-textMuted uppercase">
+                        {isAmharic ? 'የኮድ ቆይታ:' : 'Expires in:'}
+                      </span>
+                      {otpExpiresIn > 0 ? (
+                        <span
+                          className={`inline-flex items-center gap-1 font-mono font-black px-2 py-0.5 rounded-md text-xs ${
+                            otpExpiresIn <= 60
+                              ? 'bg-red-100 text-red-700 border border-red-200 animate-pulse'
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          }`}
+                        >
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTime(otpExpiresIn)}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 text-xs">
+                          {isAmharic ? 'ጊዜው አልቋል' : 'Expired'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="relative">
                     <input
                       type="text"
@@ -568,13 +669,18 @@ export const RegisterPage: React.FC = () => {
                       maxLength={6}
                       autoFocus
                       required
+                      disabled={otpExpiresIn <= 0}
                       value={otp}
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, '').slice(0, 6);
                         setOtp(val);
                       }}
                       placeholder="• • • • • •"
-                      className="w-full text-center tracking-[12px] text-2xl font-mono font-black py-3.5 rounded-xl bg-white border-2 border-emerald-600/60 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 text-brand-dark transition-all shadow-xs"
+                      className={`w-full text-center tracking-[12px] text-2xl font-mono font-black py-3.5 rounded-xl bg-white border-2 text-brand-dark transition-all shadow-xs ${
+                        otpExpiresIn <= 0
+                          ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                          : 'border-emerald-600/60 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-500/20'
+                      }`}
                     />
                   </div>
                 </div>
@@ -582,11 +688,13 @@ export const RegisterPage: React.FC = () => {
                 {/* Action Buttons */}
                 <button
                   type="submit"
-                  disabled={loading || otp.trim().length !== 6}
+                  disabled={loading || otp.trim().length !== 6 || otpExpiresIn <= 0}
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#07472c] to-[#0a5c39] hover:from-[#0a5c39] hover:to-[#07472c] text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-emerald-950/20 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {loading ? (
                     <span>{isAmharic ? 'ኮዱን በማረጋገጥ ላይ...' : 'Verifying code...'}</span>
+                  ) : otpExpiresIn <= 0 ? (
+                    <span>{isAmharic ? 'ኮዱ ጊዜው አልቋል - እንደገና ላክ' : 'Code Expired - Please Resend'}</span>
                   ) : (
                     <>
                       <span>{isAmharic ? 'አረጋግጥ እና መለያ ፍጠር' : 'Verify & Complete Registration'}</span>
@@ -616,8 +724,8 @@ export const RegisterPage: React.FC = () => {
                       <RefreshCw className={`w-3.5 h-3.5 ${resendLoading ? 'animate-spin' : ''}`} />
                       <span>
                         {isAmharic
-                          ? 'ኮዱ አልደረሰዎትም? እንደገና ላክ'
-                          : "Didn't receive the code? Resend OTP"}
+                          ? 'ኮዱ አልደረሰዎትም ወይም ጊዜው አልቋል? እንደገና ላክ'
+                          : "Didn't receive code or expired? Resend OTP"}
                       </span>
                     </button>
                   )}

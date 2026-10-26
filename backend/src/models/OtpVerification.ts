@@ -58,7 +58,8 @@ const OtpVerificationSchema = new Schema<IOtpVerification>(
   { timestamps: true }
 );
 
-// Automatic TTL cleanup after 15 minutes
-OtpVerificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 900 });
+// Automatic TTL cleanup right when expiresAt timestamp is reached
+OtpVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 
 export const OtpVerification = mongoose.model<IOtpVerification>('OtpVerification', OtpVerificationSchema);

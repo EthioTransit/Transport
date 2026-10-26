@@ -13,7 +13,7 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
   initiateRegistration: (data: any) =>
-    apiRequest<{ message: string; email: string; expiresInSeconds: number; devCode?: string }>('/auth/register/initiate', {
+    apiRequest<{ message: string; email: string; expiresInSeconds: number; expiryMinutes?: number; expiresAt?: string; devCode?: string }>('/auth/register/initiate', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
@@ -23,7 +23,7 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
   resendRegistrationOtp: (data: { email: string }) =>
-    apiRequest<{ message: string; email: string; expiresInSeconds: number; devCode?: string }>('/auth/register/resend-otp', {
+    apiRequest<{ message: string; email: string; expiresInSeconds: number; expiryMinutes?: number; expiresAt?: string; devCode?: string }>('/auth/register/resend-otp', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

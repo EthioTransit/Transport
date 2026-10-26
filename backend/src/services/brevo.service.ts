@@ -4,7 +4,12 @@ export class BrevoService {
   /**
    * Send a 6-digit registration OTP code to the user via Brevo Transactional Email.
    */
-  static async sendOtpEmail(toEmail: string, recipientName: string, otpCode: string): Promise<boolean> {
+  static async sendOtpEmail(
+    toEmail: string,
+    recipientName: string,
+    otpCode: string,
+    expiryMinutes: number = 5
+  ): Promise<boolean> {
     const apiKey = process.env.BREVO_API_KEY;
     const senderEmail = process.env.BREVO_SENDER_EMAIL || 'support@ethiotransit.et';
     const senderName = process.env.BREVO_SENDER_NAME || 'EthioTransit';
@@ -13,7 +18,7 @@ export class BrevoService {
     if (!apiKey || apiKey.includes('xxxx') || apiKey.trim() === '') {
       console.warn(
         `\n⚠️ [BrevoService] BREVO_API_KEY is not configured in .env.\n` +
-        `🔑 [REGISTRATION OTP FOR ${toEmail}]: ${otpCode}\n` +
+        `🔑 [REGISTRATION OTP FOR ${toEmail}]: ${otpCode} (expires in ${expiryMinutes}m)\n` +
         `👉 To send real emails, set BREVO_API_KEY in backend/.env\n`
       );
       return false;
@@ -57,7 +62,7 @@ export class BrevoService {
       
       <div class="otp-card">
         <div class="otp-code">${otpCode}</div>
-        <div class="otp-timer">⏱️ የማረጋገጫ ኮዱ ለ 10 ደቂቃዎች ያገለግላል / Valid for 10 minutes</div>
+        <div class="otp-timer">⏱️ የማረጋገጫ ኮዱ ለ ${expiryMinutes} ደቂቃዎች ያገለግላል / Valid for ${expiryMinutes} minutes</div>
       </div>
 
       <div class="notice">
